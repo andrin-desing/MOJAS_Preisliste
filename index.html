@@ -110,7 +110,7 @@
         }
         /* Disabled state for form elements */
         #adminPanel input:disabled, #adminPanel button:disabled,
-        #adminPanel input[type="file"]:disabled + button { /* Adjusted for removed file input logic */
+        #adminPanel input[type="file"]:disabled + button { 
             opacity: 0.6;
             cursor: not-allowed;
         }
@@ -255,7 +255,7 @@
         <section id="preisliste" class="my-8 bg-white p-6 rounded-2xl shadow-xl">
             <h2 class="text-4xl font-bold text-mojas-orange mb-6 text-center">Unsere Preisliste</h2>
             <p class="text-gray-700 text-center mb-8">Hier findest du eine Übersicht über unsere köstlichen Snacks und Getränke.</p>
-            <!-- Preisliste Image 1 (statisch geladen, da Upload entfernt wurde) -->
+            <!-- Preisliste Image 1 (statisch geladen) -->
             <img id="priceList1Display" src="1.1.png" alt="Mojas Preisliste Snacks & Getränke" class="price-list-img">
         </section>
 
@@ -266,7 +266,7 @@
                 <p class="text-gray-700">Diese Drinks sind nur während Partys und kurz danach erhältlich.</p>
             </div>
             <p class="text-gray-700 text-center mb-8">Erfrischende Drinks für jeden Geschmack.</p>
-            <!-- Preisliste Image 2 (statisch geladen, da Upload entfernt wurde) -->
+            <!-- Preisliste Image 2 (statisch geladen) -->
             <img id="priceList2Display" src="2.1.png" alt="Mojas Drinks" class="price-list-img">
         </section>
     </main>
@@ -290,17 +290,15 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signOut, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signOut, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        // Firebase Storage imports are removed as image upload is no longer part of the app.
-        // import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         // Ihre tatsächliche Firebase-Konfiguration von der Firebase Console
         const firebaseConfig = {
             apiKey: "AIzaSyCzVeUMKWfax8Gi3wdisQEj35lQEeKc6B0",
             authDomain: "mojas-preisliste-a01be.firebaseapp.com",
             projectId: "mojas-preisliste-a01be",
-            storageBucket: "mojas-preisliste-a01be.firebasestorage.app", // Still needed in config, even if not used directly
+            storageBucket: "mojas-preisliste-a01be.firebasestorage.app", 
             messagingSenderId: "667994628903",
             appId: "1:667994628903:web:aabf099f890ca9e5d07f02"
         };
@@ -309,15 +307,12 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        // const storage = getStorage(app); // Storage initialization removed
         
         // Extract appId from firebaseConfig for use in Firestore paths
         const appId = firebaseConfig.appId; 
 
-        // Firestore collection and document references
+        // Firestore collection reference for products
         const productsColRef = collection(db, `artifacts/${appId}/public/data/products`);
-        // The imagePathsDocRef is no longer needed as images are static.
-        // const imagePathsDocRef = doc(db, `artifacts/${appId}/public/data/settings`, 'priceListImages');
 
         // Global variable for product list, synchronized from Firestore
         window.products = []; 
@@ -374,19 +369,11 @@
             const cancelEditBtn = document.getElementById('cancelEditBtn');
             const adminProductListUl = document.getElementById('adminProductList');
 
-            // Elements for image upload (REMOVED)
-            // const uploadPriceList1Input = document.getElementById('uploadPriceList1');
-            // const btnUploadPriceList1 = document.getElementById('btnUploadPriceList1');
-            // const uploadStatus1 = document.getElementById('uploadStatus1');
+            // Elements for static image display (no upload related elements)
             const priceList1Display = document.getElementById('priceList1Display');
-
-            // const uploadPriceList2Input = document.getElementById('uploadPriceList2');
-            // const btnUploadPriceList2 = document.getElementById('btnUploadPriceList2');
-            // const uploadStatus2 = document.getElementById('uploadStatus2');
             const priceList2Display = document.getElementById('priceList2Display');
 
             // Query Selectors for all administrable elements to disable them
-            // Note: Removed references to upload elements
             const adminControlElements = document.querySelectorAll(
                 '#adminPanel input:not(#adminEmail):not(#adminPassword), #adminPanel button:not([type="submit"]), #adminPanel select, #adminPanel textarea'
             );
@@ -407,27 +394,19 @@
                 });
             }
 
-            // Initialize authentication (anonymous) on page load
-            try {
-                if (!auth.currentUser) {
-                    await signInAnonymously(auth);
-                    console.log("Anonyme Authentifizierung erfolgreich (Initialisierung)!");
-                } else {
-                    console.log("Benutzer bereits angemeldet (Initialisierung)!");
-                }
-            } catch (error) {
-                console.error("Fehler bei der initialen Authentifizierung:", error);
-            }
-
             // Monitor login status
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
+                    // A user is signed in (could be email/password, or anonymous if it was enabled).
+                    // For this version, we assume if `user` exists and is not anonymous, it's our admin.
                     currentUserId = user.uid;
                     console.log("Benutzer angemeldet:", currentUserId);
                     
-                    isAdminLoggedIn = !user.isAnonymous;
+                    isAdminLoggedIn = !user.isAnonymous; // Check if the user is NOT anonymous
 
-                    if (!initialProductsChecked) {
+                    // Only initialize products if this is the first authentication check AND
+                    // if there's an actual user (not null) to potentially write data.
+                    if (user && !initialProductsChecked) {
                         await initializeProductsInFirestore();
                         initialProductsChecked = true;
                     }
@@ -438,14 +417,17 @@
                         adminLoginFormDiv.classList.add('hidden'); // Hide login form
                         setAdminControlsDisabled(false); // Enable admin forms
                     } else {
+                        // User is authenticated but is anonymous (shouldn't happen with anonymous sign-in removed).
+                        // Or a non-admin email/password user (if you had multiple users).
                         adminAuthButton.textContent = "Admin Login";
                         adminPanel.classList.add('hidden');
                         adminLoginFormDiv.classList.add('hidden'); 
                         setAdminControlsDisabled(true); // Disable admin forms
                     }
-                    setupFirestoreListener(); // Load/monitor data from Firestore
-                    // loadAndDisplayImages(); // Removed: Images are now static
+                    setupFirestoreListener(); // Load/monitor data from Firestore for products
+                    // No loadAndDisplayImages() here, as images are static.
                 } else {
+                    // No user is signed in (unauthenticated)
                     currentUserId = null;
                     isAdminLoggedIn = false; // Reset admin status on logout
                     console.log("Kein Benutzer angemeldet.");
@@ -454,17 +436,19 @@
                     adminLoginFormDiv.classList.add('hidden'); // Hide login form
                     setAdminControlsDisabled(true); // Disable admin forms
                     
-                    // loadAndDisplayImages(); // Removed: Images are now static
-                    setupFirestoreListener();
+                    setupFirestoreListener(); // Load products (publicly readable)
+                    // No loadAndDisplayImages() here, as images are static.
                 }
             });
 
             // Function to initialize products in Firestore
             async function initializeProductsInFirestore() {
                 try {
-                    if (!auth.currentUser) {
-                        console.error("Fehler: initializeProductsInFirestore aufgerufen ohne angemeldeten Benutzer!");
-                        return; // Abort early
+                    // This function should only be called if a user is logged in AND has write permissions.
+                    // Given our rules, only the email/password admin user will have write permission.
+                    if (!auth.currentUser || auth.currentUser.isAnonymous) {
+                         console.log("Nicht berechtigt zum Initialisieren der Produkte. Admin-Anmeldung erforderlich.");
+                         return; // Abort if not a logged-in admin.
                     }
 
                     const snapshot = await getDocs(productsColRef);
@@ -473,7 +457,7 @@
                         const addPromises = initialProductsData.map(product => 
                             addDoc(productsColRef, {
                                 name: product.name,
-                                price: parseFloat(product.price), // Ensure price is stored as a number
+                                price: parseFloat(product.price), 
                                 keywords: product.keywords,
                                 createdAt: new Date()
                             })
@@ -485,20 +469,13 @@
                     }
                 } catch (error) {
                     console.error("Fehler beim Initialisieren der Produkte in Firestore:", error);
+                    // alert("Fehler beim Initialisieren der Produkte: " + error.message); // Only for debugging
                 }
             }
 
-            // Function to upload an image to Firebase Storage and save the URL in Firestore (REMOVED)
-            // This function is now removed as image upload is no longer part of the app.
-
-            // Function to load and display images from Firestore (REMOVED: Images are now static)
-            // This function is no longer needed to dynamically load images from Firestore.
-            // The image `src` attributes are now fixed to "1.1.png" and "2.1.png" directly in HTML.
-            // Keeping the elements, but removing the dynamic loading logic.
-
-
             // Function to monitor Firestore data (for products)
             function setupFirestoreListener() {
+                // This listener runs for all users (authenticated or not) because read access is 'if true'.
                 onSnapshot(productsColRef, (snapshot) => {
                     const fetchedProducts = snapshot.docs.map(doc => ({
                         id: doc.id,
@@ -509,7 +486,7 @@
                     
                     searchProducts(); 
                     updateShoppingListDisplay();
-                    updateAdminProductList();
+                    updateAdminProductList(); // This updates based on isAdminLoggedIn state
                 }, (error) => {
                     console.error("Fehler beim Laden der Produkte von Firestore:", error);
                 });
@@ -521,7 +498,7 @@
                     // Logout function
                     try {
                         await signOut(auth);
-                        isAdminLoggedIn = false; // Reset admin status
+                        // isAdminLoggedIn will be reset by onAuthStateChanged
                         console.log("Admin abgemeldet.");
                     } catch (error) {
                         console.error("Fehler beim Abmelden:", error);
@@ -530,9 +507,9 @@
                 } else {
                     // Show login form
                     adminLoginFormDiv.classList.remove('hidden');
-                    adminPanel.classList.add('hidden'); // Hide admin panel when login form is shown
-                    loginErrorP.classList.add('hidden'); // Reset error message
-                    setAdminControlsDisabled(true); // Ensure admin controls are disabled
+                    adminPanel.classList.add('hidden'); 
+                    loginErrorP.classList.add('hidden'); 
+                    setAdminControlsDisabled(true); 
                 }
             });
 
@@ -542,13 +519,12 @@
                 const email = adminEmailInput.value;
                 const password = adminPasswordInput.value;
 
-                loginErrorP.classList.add('hidden'); // Reset error message
+                loginErrorP.classList.add('hidden'); 
 
                 try {
                     await signInWithEmailAndPassword(auth, email, password);
-                    // isAdminLoggedIn will be set by the onAuthStateChanged listener
                     console.log("Admin-Login erfolgreich!");
-                    // UI update happens in onAuthStateChanged
+                    // The onAuthStateChanged listener handles UI updates and isAdminLoggedIn state.
                 } catch (error) {
                     console.error("Fehler beim Admin-Login:", error);
                     isAdminLoggedIn = false; // Reset for safety on error
@@ -565,14 +541,13 @@
                 }
             });
 
-
             // Add product
             async function addProductToFirestore(name, price, keywords) {
                 if (!name || isNaN(price)) {
                     alert("Name und Preis müssen gültig sein.");
                     return;
                 }
-                if (!isAdminLoggedIn) { // Additional check
+                if (!isAdminLoggedIn) { 
                     alert("Sie müssen als Admin angemeldet sein, um Produkte hinzuzufügen/zu bearbeiten.");
                     return;
                 }
@@ -597,7 +572,7 @@
                     alert("Alle Felder müssen gültig sein.");
                     return;
                 }
-                if (!isAdminLoggedIn) { // Additional check
+                if (!isAdminLoggedIn) { 
                     alert("Sie müssen als Admin angemeldet sein, um Produkte hinzuzufügen/zu bearbeiten.");
                     return;
                 }
@@ -618,7 +593,7 @@
 
             // Delete product
             async function deleteProductFromFirestore(id) {
-                if (!isAdminLoggedIn) { // Additional check
+                if (!isAdminLoggedIn) { 
                     alert("Sie müssen als Admin angemeldet sein, um Produkte zu löschen.");
                     return;
                 }
@@ -713,11 +688,6 @@
 
             // Event listener for the cancel button in the admin form
             cancelEditBtn.addEventListener('click', resetAdminForm);
-
-            // Event listeners for image uploads (REMOVED)
-            // btnUploadPriceList1.addEventListener('click', () => { ... });
-            // btnUploadPriceList2.addEventListener('click', () => { ... });
-
 
             // --- Existing search and shopping list functions ---
 
