@@ -108,6 +108,12 @@
             border-radius: 1rem;
             box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
         }
+        /* Disabled state for form elements */
+        #adminPanel input:disabled, #adminPanel button:disabled,
+        #adminPanel input[type="file"]:disabled + button {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body class="bg-light-cream flex flex-col min-h-screen">
@@ -303,7 +309,6 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // Importiere signInWithEmailAndPassword für die echte Authentifizierung
         import { getAuth, signInAnonymously, signOut, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
@@ -333,10 +338,6 @@
         let currentUserId = null;
         let isAdminLoggedIn = false; // Status für Admin-Anmeldung
         let initialProductsChecked = false; // Flag, um sicherzustellen, dass die Initialisierung nur einmal läuft
-
-        // Keine simulierten Admin-Anmeldedaten mehr, da wir echte Firebase-Authentifizierung verwenden werden
-        // const ADMIN_EMAIL = "admin@mojas.ch";
-        // const ADMIN_PASSWORD = "mojasadminprice"; 
 
         // Shopping list array
         let shoppingList = [];
@@ -373,6 +374,10 @@
             const uploadStatus2 = document.getElementById('uploadStatus2');
             const priceList2Display = document.getElementById('priceList2Display');
 
+            // Query Selectors for all administrable elements to disable them
+            const adminControlElements = document.querySelectorAll(
+                '#adminPanel input, #adminPanel button, #adminPanel select, #adminPanel textarea'
+            );
 
             // Bestehende Such- und Einkaufslisten-Funktionen
             const searchInput = document.getElementById('searchInput');
@@ -383,11 +388,21 @@
             const clearShoppingListBtn = document.getElementById('clearShoppingListBtn');
             const emptyListMessage = document.getElementById('emptyListMessage');
 
+            // Funktion zum Aktivieren/Deaktivieren von Admin-Formularen
+            function setAdminControlsDisabled(disabled) {
+                adminControlElements.forEach(el => {
+                    if (el.id !== 'adminEmail' && el.id !== 'adminPassword' && el.id !== 'loginForm' && el.type !== 'submit') { // Don't disable login form elements
+                        el.disabled = disabled;
+                    }
+                });
+                // Spezielle Handhabung für Dateieingaben, falls nötig
+                uploadPriceList1Input.disabled = disabled;
+                uploadPriceList2Input.disabled = disabled;
+            }
+
             // Initialisiere die Authentifizierung (anonym) beim Laden der Seite
             // Dies ist wichtig, damit Firestore-Operationen mit den notwendigen Berechtigungen ausgeführt werden können.
             try {
-                // Wenn bereits ein Benutzer angemeldet ist (z.B. durch frühere Sitzung),
-                // müssen wir nicht erneut anonym anmelden.
                 if (!auth.currentUser) {
                     await signInAnonymously(auth);
                     console.log("Anonyme Authentifizierung erfolgreich (Initialisierung)!");
@@ -404,31 +419,12 @@
                     currentUserId = user.uid;
                     console.log("Benutzer angemeldet:", currentUserId);
                     
-                    // Prüfen, ob der angemeldete Benutzer ein Admin ist.
-                    // Da wir keine Custom Claims verwenden, gehen wir davon aus,
-                    // dass jeder, der sich mit E-Mail/Passwort anmeldet, der Admin ist.
-                    // Für eine robustere Lösung müsste hier eine Admin-Rolle geprüft werden.
-                    // IMPORTANT: The comparison `user.email === adminEmailInput.value` needs `adminEmailInput.value` to be populated.
-                    // This happens only after user attempts to log in.
-                    // For `onAuthStateChanged` which fires on page load, `adminEmailInput.value` might be empty.
-                    // A more reliable way is to store the admin email in a variable after successful login or fetch it from a secure source.
-                    // For now, let's assume `adminEmailInput.value` holds the email from a *previous* successful login if user.email matches.
-                    // A better solution for production would involve checking Firebase Custom Claims if this user is truly an admin.
-                    // For this context, if the user successfully logged in with an email/password, we assume they are the admin.
-                    if (user.email) { // Check if the user object has an email, implies a non-anonymous login
-                         // For this scenario, we assume any email/password user is the admin.
-                         // In a real app, you'd fetch specific admin emails or check custom claims.
-                         // For simplicity, we just check if it's not an anonymous user.
-                         // Or, more robustly, you could store the admin email entered during login and check against it.
-                         // For now, let's assume if they logged in with email/password, they are admin.
-                         isAdminLoggedIn = true; // Simplified: if user has an email (not anonymous), they are "admin"
-                    } else {
-                         isAdminLoggedIn = false; // Anonymous user
-                    }
+                    // Admin ist jeder angemeldete Benutzer, der NICHT anonym ist.
+                    // Dies ist eine Vereinfachung für diese App. In einer Produktivumgebung
+                    // würden Sie Firebase Custom Claims verwenden, um Admin-Rollen zu verwalten.
+                    isAdminLoggedIn = !user.isAnonymous;
 
-
-                    // Wenn der Benutzer ein Admin ist, oder wenn die Seite zum ersten Mal lädt
-                    // und die Produkte noch nicht initialisiert wurden
+                    // Wenn der Benutzer zum ersten Mal geladen wird und die Produkte noch nicht initialisiert wurden
                     if (!initialProductsChecked) {
                         await initializeProductsInFirestore();
                         initialProductsChecked = true;
@@ -438,10 +434,12 @@
                         adminAuthButton.textContent = "Admin Logout";
                         adminPanel.classList.remove('hidden');
                         adminLoginFormDiv.classList.add('hidden'); // Login-Formular verstecken
+                        setAdminControlsDisabled(false); // Admin-Formulare aktivieren
                     } else {
                         adminAuthButton.textContent = "Admin Login";
                         adminPanel.classList.add('hidden');
                         adminLoginFormDiv.classList.add('hidden'); 
+                        setAdminControlsDisabled(true); // Admin-Formulare deaktivieren
                     }
                     setupFirestoreListener(); // Daten von Firestore laden/überwachen
                     loadAndDisplayImages(); // Bilder von Firestore laden und anzeigen
@@ -452,9 +450,9 @@
                     adminAuthButton.textContent = "Admin Login";
                     adminPanel.classList.add('hidden'); // Adminbereich verstecken
                     adminLoginFormDiv.classList.add('hidden'); // Login-Formular verstecken
-                    // Laden und Anzeigen der Bilder auch für nicht angemeldete Benutzer (public read)
+                    setAdminControlsDisabled(true); // Admin-Formulare deaktivieren
+                    
                     loadAndDisplayImages(); 
-                    // Produkte laden auch für nicht angemeldete Benutzer (public read)
                     setupFirestoreListener();
                 }
             });
@@ -501,7 +499,6 @@
                     statusElement.style.color = "red";
                     return;
                 }
-
 
                 statusElement.textContent = "Bild wird hochgeladen...";
                 statusElement.style.color = "orange";
@@ -602,6 +599,7 @@
                     adminLoginFormDiv.classList.remove('hidden');
                     adminPanel.classList.add('hidden'); // Adminbereich verstecken, wenn Login-Formular gezeigt wird
                     loginErrorP.classList.add('hidden'); // Fehlermeldung zurücksetzen
+                    setAdminControlsDisabled(true); // Sicherstellen, dass Admin-Steuerelemente deaktiviert sind
                 }
             });
 
@@ -614,7 +612,6 @@
                 loginErrorP.classList.add('hidden'); // Fehlermeldung zurücksetzen
 
                 try {
-                    // Echte Anmeldung mit E-Mail und Passwort über Firebase
                     await signInWithEmailAndPassword(auth, email, password);
                     // isAdminLoggedIn wird durch den onAuthStateChanged Listener gesetzt
                     console.log("Admin-Login erfolgreich!");
@@ -692,7 +689,6 @@
                     alert("Sie müssen als Admin angemeldet sein, um Produkte zu löschen.");
                     return;
                 }
-                // Bestätigungs-Dialog verwenden, der sichtbar ist (statt alert/confirm)
                 const confirmation = confirm("Sind Sie sicher, dass Sie dieses Produkt löschen möchten?");
                 if (confirmation) {
                     try {
