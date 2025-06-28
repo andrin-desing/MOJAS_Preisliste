@@ -287,14 +287,23 @@
         import { getAuth, signInAnonymously, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Globale Variablen für Firebase (werden vom Canvas-Environment bereitgestellt)
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        // Ihre tatsächliche Firebase-Konfiguration von der Firebase Console
+        const firebaseConfig = {
+            apiKey: "AIzaSyCzVeUMKWfax8Gi3wdisQEj35lQEeKc6B0",
+            authDomain: "mojas-preisliste-a01be.firebaseapp.com",
+            projectId: "mojas-preisliste-a01be",
+            storageBucket: "mojas-preisliste-a01be.firebasestorage.app",
+            messagingSenderId: "667994628903",
+            appId: "1:667994628903:web:aabf099f890ca9e5d07f02"
+        };
 
         // Firebase Initialisierung
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+        
+        // Extrahieren der appId direkt aus der firebaseConfig
+        const appId = firebaseConfig.appId; // oder firebaseConfig.projectId, je nachdem, was Sie in Ihrem Pfad verwenden möchten
         const productsColRef = collection(db, `artifacts/${appId}/public/data/products`);
 
         // Globale Variable für die Produktliste, die von Firestore synchronisiert wird
