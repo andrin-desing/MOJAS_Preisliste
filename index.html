@@ -322,12 +322,17 @@
                     lottiePlayer.setDirection(1); // Stellt sicher, dass die Animation vorwärts läuft
                     lottiePlayer.play();
 
-                    // Blendet die Animation nach kurzer Zeit wieder aus und zeigt den Button wieder an
+                    // Blendet die Animation nach der gesamten Dauer wieder aus und zeigt den Button wieder an
+                    // und leert gleichzeitig das Suchfeld und die Ergebnisse.
                     setTimeout(() => {
                         lottiePlayer.stop(); // Animation stoppen
                         lottieContainer.style.display = 'none'; // Lottie Container ausblenden
                         targetButton.style.display = 'inline-block'; // "Hinzufügen"-Button wieder einblenden
-                    }, 5000); // Animation für 0.35 Sekunden anzeigen
+                        
+                        // Löscht das Suchfeld und die Ergebnisse nach der Animation
+                        searchInput.value = ''; // Suchfeld leeren
+                        searchProducts(); // Suchergebnisse leeren und ausblenden
+                    }, 5000); // Warten, bis die 5-sekündige Animation fertig ist
                 }
             }
         }
