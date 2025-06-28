@@ -99,6 +99,15 @@
             transform: translate(-50%, -50%);
             display: none; /* Standardmässig versteckt */
         }
+        /* Style for login form */
+        #adminLoginForm {
+            max-width: 400px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body class="bg-light-cream flex flex-col min-h-screen">
@@ -118,9 +127,13 @@
                     <li><a href="#drinks" class="hover:underline text-mojas-orange">Drinks</a></li>
                     <li><a href="#shoppingListSection" class="hover:underline text-mojas-orange">Einkaufsliste</a></li>
                     <li>
+                        <!-- Admin Login/Logout Button -->
+                        <button id="adminAuthButton" class="px-4 py-2 bg-gray-600 text-white rounded-lg shadow-md hover:bg-gray-700 transition duration-300 ease-in-out">Admin Login</button>
+                    </li>
+                    <li>
                         <!-- Instagram Icon only, serves as link -->
                         <a href="https://www.instagram.com/MOJAS.ch/" target="_blank" rel="noopener noreferrer" class="text-mojas-orange flex items-center justify-center p-1 rounded-full hover:bg-white hover:bg-opacity-20 transition duration-300">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-1">
                                 <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
                                 <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
                                 <line x1="17.5" x2="17.5" y1="6.5" y2="6.5"/>
@@ -150,6 +163,54 @@
 
     <!-- Main Content Section -->
     <main class="container mx-auto p-4 flex-grow">
+        <!-- Admin Login Form (initially hidden) -->
+        <div id="adminLoginForm" class="hidden">
+            <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Admin Login</h2>
+            <form id="loginForm" class="grid grid-cols-1 gap-4">
+                <div>
+                    <label for="adminEmail" class="block text-gray-700 text-sm font-bold mb-2">E-Mail:</label>
+                    <input type="email" id="adminEmail" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div>
+                    <label for="adminPassword" class="block text-gray-700 text-sm font-bold mb-2">Passwort:</label>
+                    <input type="password" id="adminPassword" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <button type="submit" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Login</button>
+                <p id="loginError" class="text-red-500 text-center mt-2 hidden">Ungültige E-Mail oder Passwort.</p>
+            </form>
+        </div>
+
+        <!-- Admin Panel Section (initially hidden) -->
+        <section id="adminPanel" class="my-8 bg-white p-6 rounded-2xl shadow-xl hidden">
+            <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Admin Bereich</h2>
+            
+            <h3 id="productFormTitle" class="text-2xl font-semibold text-mojas-orange mb-4">Neues Produkt hinzufügen</h3>
+            <form id="productForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <input type="hidden" id="productId">
+                <div>
+                    <label for="productName" class="block text-gray-700 text-sm font-bold mb-2">Produktname:</label>
+                    <input type="text" id="productName" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div>
+                    <label for="productPrice" class="block text-gray-700 text-sm font-bold mb-2">Preis (Fr.):</label>
+                    <input type="number" step="0.01" id="productPrice" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div class="md:col-span-2">
+                    <label for="productKeywords" class="block text-gray-700 text-sm font-bold mb-2">Schlüsselwörter (kommagetrennt):</label>
+                    <input type="text" id="productKeywords" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div class="md:col-span-2 flex justify-end space-x-2">
+                    <button type="submit" id="saveProductBtn" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Produkt hinzufügen</button>
+                    <button type="button" id="cancelEditBtn" class="bg-gray-400 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-500 transition hidden">Abbrechen</button>
+                </div>
+            </form>
+
+            <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Vorhandene Produkte</h3>
+            <ul id="adminProductList" class="space-y-3">
+                <!-- Products will be loaded here from Firestore -->
+            </ul>
+        </section>
+
         <!-- Search Function Section -->
         <section class="my-8 bg-white p-6 rounded-2xl shadow-xl">
             <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Finde deinen Preis</h2>
@@ -209,7 +270,7 @@
         <div class="container mx-auto text-center">
             <p>&copy; 2025 MOJAS.ch. Alle Rechte vorbehalten.</p>
             <div class="flex flex-col sm:flex-row justify-center items-center mt-3 space-y-2 sm:space-y-0 sm:space-x-4">
-                <a href="https://www.instagram.com/MOJAS.ch/" target="_blank" rel="noopener noreferrer" class="text-mojas-orange hover:text-white transition duration-300 flex items-center">
+                <a href="https://www.instagram.com/MOJAS.ch/" target="_blank" rel="noopener noreferrer" class="text-mojas-orange flex items-center justify-center p-1 rounded-full hover:bg-white hover:bg-opacity-20 transition duration-300">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-1">
                         <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
                         <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
@@ -221,9 +282,28 @@
         </div>
     </footer>
 
-    <script>
-        // Array mit allen Produkten, Preisen und Schlüsselwörtern für die intelligente Suche
-        const products = [
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signOut, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Globale Variablen für Firebase (werden vom Canvas-Environment bereitgestellt)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+
+        // Firebase Initialisierung
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const productsColRef = collection(db, `artifacts/${appId}/public/data/products`);
+
+        // Globale Variable für die Produktliste, die von Firestore synchronisiert wird
+        window.products = []; 
+        let currentUserId = null;
+        let isAdminLoggedIn = false; // Status für Admin-Anmeldung
+
+        // Initialprodukte, falls Firestore leer ist
+        const initialProductsData = [
             { name: "Diverse Softdrinks", price: 1.50, keywords: ["diverse softdrinks", "softdrink", "softdrinks", "getränke", "rivella", "cola", "fanta", "sprite", "zitronenlimo", "apfelschorle", "eistee", "trinken"] },
             { name: "Mineralwasser", price: 1.00, keywords: ["mineralwasser", "wasser", "mineral", "still", "sprudel"] },
             { name: "Capri Sun", price: 0.80, keywords: ["capri sun", "caprisun", "saft", "fruchtsaft", "kindergetränk"] },
@@ -247,187 +327,493 @@
             { name: "Blue Dream", price: 2.00, keywords: ["blue dream", "cocktail", "drink", "alkoholfrei", "blau"] }
         ];
 
+        // Simulierte Admin-Anmeldedaten (NICHT FÜR PRODUKTIV-UMGEBUNGEN VERWENDEN!)
+        const ADMIN_EMAIL = "admin@mojas.ch";
+        const ADMIN_PASSWORD = "mojasadminprice"; 
+
         // Shopping list array
         let shoppingList = [];
 
-        // Referenzen auf HTML-Elemente
-        const searchInput = document.getElementById('searchInput');
-        const searchButton = document.getElementById('searchButton');
-        const searchResultsDiv = document.getElementById('searchResults');
-        const shoppingListItemsUl = document.getElementById('shoppingListItems');
-        const shoppingListTotalSpan = document.getElementById('shoppingListTotal');
-        const clearShoppingListBtn = document.getElementById('clearShoppingListBtn');
-        const emptyListMessage = document.getElementById('emptyListMessage');
-
-        // Funktion zum Aktualisieren der Anzeige der Einkaufsliste
-        function updateShoppingListDisplay() {
-            shoppingListItemsUl.innerHTML = ''; // Vorherige Einträge löschen
-
-            if (shoppingList.length === 0) {
-                emptyListMessage.classList.remove('hidden');
-                shoppingListItemsUl.classList.add('hidden');
-            } else {
-                emptyListMessage.classList.add('hidden');
-                shoppingListItemsUl.classList.remove('hidden');
-                shoppingList.forEach(item => {
-                    const listItem = document.createElement('li');
-                    listItem.classList.add('list-item'); // Eigene Klasse für Styling
-                    listItem.innerHTML = `
-                        <span class="flex-grow">${item.name} (${item.price.toFixed(2)} Fr. pro Stk.)</span>
-                        <div class="quantity-controls flex items-center">
-                            <button class="bg-gray-200 text-gray-800 px-2 py-1 rounded-md hover:bg-gray-300" data-action="decrease" data-name="${item.name}">-</button>
-                            <span class="px-2 font-semibold">${item.quantity}</span>
-                            <button class="bg-gray-200 text-gray-800 px-2 py-1 rounded-md hover:bg-gray-300" data-action="increase" data-name="${item.name}">+</button>
-                            <span class="ml-4 font-bold text-mojas-orange">Total: ${(item.price * item.quantity).toFixed(2)} Fr.</span>
-                            <button class="bg-red-500 text-white px-2 py-1 ml-4 rounded-md hover:bg-red-600" data-action="remove" data-name="${item.name}">X</button>
-                        </div>
-                    `;
-                    shoppingListItemsUl.appendChild(listItem);
-                });
-            }
-            calculateTotal(); // Gesamtsumme neu berechnen
-        }
-
-        // Funktion zur Berechnung der Gesamtsumme
-        function calculateTotal() {
-            let total = shoppingList.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            shoppingListTotalSpan.textContent = `${total.toFixed(2)} Fr.`;
-        }
-
-        // Funktion zum Hinzufügen/Aktualisieren von Elementen in der Einkaufsliste
-        function addToShoppingList(productName, targetButton) { // targetButton ist der 'Hinzufügen'-Button
-            const product = products.find(p => p.name === productName);
-            if (!product) return; // Produkt nicht gefunden
-
-            const existingItem = shoppingList.find(item => item.name === productName);
-
-            if (existingItem) {
-                existingItem.quantity++;
-            } else {
-                shoppingList.push({ ...product, quantity: 1 });
-            }
-            updateShoppingListDisplay();
-
-            // Lottie Animation anzeigen
-            if (targetButton) {
-                const productItemDiv = targetButton.closest('.product-item');
-                const lottieContainer = productItemDiv.querySelector('.lottie-container');
-                const lottiePlayer = productItemDiv.querySelector('lottie-player');
-
-                if (lottieContainer && lottiePlayer) {
-                    targetButton.style.display = 'none'; // "Hinzufügen"-Button ausblenden
-                    lottieContainer.style.display = 'block'; // Lottie Container einblenden
-
-                    // Setzt die Animation zurück auf den Anfang und spielt sie ab
-                    lottiePlayer.setDirection(1); // Stellt sicher, dass die Animation vorwärts läuft
-                    lottiePlayer.play();
-
-                    // Blendet die Animation nach der gesamten Dauer wieder aus und zeigt den Button wieder an
-                    // und leert gleichzeitig das Suchfeld und die Ergebnisse.
-                    setTimeout(() => {
-                        lottiePlayer.stop(); // Animation stoppen
-                        lottieContainer.style.display = 'none'; // Lottie Container ausblenden
-                        targetButton.style.display = 'inline-block'; // "Hinzufügen"-Button wieder einblenden
-                        
-                        // Löscht das Suchfeld und die Ergebnisse nach der Animation
-                        searchInput.value = ''; // Suchfeld leeren
-                        searchProducts(); // Suchergebnisse leeren und ausblenden
-                    }, 5000); // Warten, bis die 5-sekündige Animation fertig ist
+        // DOMContentLoaded stellt sicher, dass alle HTML-Elemente geladen sind
+        document.addEventListener('DOMContentLoaded', async () => {
+            // **WICHTIG**: Zuerst anonym anmelden, um Schreibrechte zu erhalten
+            // Dies ist notwendig, da Firestore-Regeln oft 'request.auth != null' erfordern.
+            try {
+                // Versuche, das initiale Token zu verwenden, falls es von der Canvas-Umgebung bereitgestellt wird.
+                // Wenn nicht, melde dich anonym an.
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token !== null) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                    console.log("Authentifizierung mit Canvas Custom Token erfolgreich (Initialisierung)!");
+                } else {
+                    await signInAnonymously(auth);
+                    console.log("Anonyme Authentifizierung erfolgreich (Initialisierung)!");
                 }
+            } catch (error) {
+                console.error("Fehler bei der initialen Authentifizierung:", error);
+                // Hier könnte man eine Fallback-UI anzeigen oder es dem Benutzer mitteilen.
             }
-        }
 
-        // Event Listener für Klicks auf der Einkaufsliste (für Mengenänderung und Entfernen)
-        shoppingListItemsUl.addEventListener('click', (event) => {
-            const target = event.target;
-            const action = target.dataset.action;
-            const productName = target.dataset.name;
 
-            if (action && productName) {
-                const itemIndex = shoppingList.findIndex(item => item.name === productName);
-                if (itemIndex === -1) return; // Artikel nicht gefunden
+            // UI-Elemente für den Adminbereich
+            const adminPanel = document.getElementById('adminPanel');
+            const adminAuthButton = document.getElementById('adminAuthButton'); // Geändert von adminLoginButton
+            const adminLoginFormDiv = document.getElementById('adminLoginForm');
+            const loginForm = document.getElementById('loginForm');
+            const adminEmailInput = document.getElementById('adminEmail');
+            const adminPasswordInput = document.getElementById('adminPassword');
+            const loginErrorP = document.getElementById('loginError');
 
-                if (action === 'increase') {
-                    shoppingList[itemIndex].quantity++;
-                } else if (action === 'decrease') {
-                    if (shoppingList[itemIndex].quantity > 1) {
-                        shoppingList[itemIndex].quantity--;
+            const productForm = document.getElementById('productForm');
+            const productIdInput = document.getElementById('productId');
+            const productNameInput = document.getElementById('productName');
+            const productPriceInput = document.getElementById('productPrice');
+            const productKeywordsInput = document.getElementById('productKeywords');
+            const productFormTitle = document.getElementById('productFormTitle');
+            const saveProductBtn = document.getElementById('saveProductBtn');
+            const cancelEditBtn = document.getElementById('cancelEditBtn');
+            const adminProductListUl = document.getElementById('adminProductList');
+
+            // Bestehende Such- und Einkaufslisten-Funktionen
+            const searchInput = document.getElementById('searchInput');
+            const searchButton = document.getElementById('searchButton');
+            const searchResultsDiv = document.getElementById('searchResults');
+            const shoppingListItemsUl = document.getElementById('shoppingListItems');
+            const shoppingListTotalSpan = document.getElementById('shoppingListTotal');
+            const clearShoppingListBtn = document.getElementById('clearShoppingListBtn');
+            const emptyListMessage = document.getElementById('emptyListMessage');
+
+            // Initialisiere Produkte, falls Firestore leer ist
+            // Dies sollte NACH der initialen Authentifizierung geschehen
+            await initializeProductsInFirestore();
+
+            // Login-Status überwachen
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUserId = user.uid;
+                    console.log("Benutzer angemeldet:", currentUserId);
+                    
+                    // Überprüfen, ob der aktuell angemeldete Benutzer ein Admin ist
+                    // ACHTUNG: In einer echten App würde dies über Benutzerrollen in Firestore oder Custom Claims gesteuert
+                    // Hier simulieren wir dies mit einer festen ID oder der Tatsache, dass ein Admin erfolgreich angemeldet wurde
+                    if (isAdminLoggedIn) { // isAdminLoggedIn wird vom simulierten Login gesetzt
+                        adminAuthButton.textContent = "Admin Logout";
+                        adminPanel.classList.remove('hidden');
+                        adminLoginFormDiv.classList.add('hidden'); // Login-Formular verstecken
                     } else {
-                        // Wenn Menge 1 ist und verringert wird, Artikel entfernen
-                        shoppingList.splice(itemIndex, 1);
+                        // Normale Benutzeransicht (oder wenn Canvas-Token aktiv, aber kein Admin-Login)
+                        adminAuthButton.textContent = "Admin Login";
+                        adminPanel.classList.add('hidden');
+                        adminLoginFormDiv.classList.add('hidden'); // Login-Formular verstecken
                     }
-                } else if (action === 'remove') {
-                    shoppingList.splice(itemIndex, 1); // Artikel vollständig entfernen
+                    setupFirestoreListener(); // Daten von Firestore laden/überwachen
+                } else {
+                    currentUserId = null;
+                    isAdminLoggedIn = false; // Reset Admin-Status bei Abmeldung
+                    console.log("Kein Benutzer angemeldet.");
+                    adminAuthButton.textContent = "Admin Login";
+                    adminPanel.classList.add('hidden'); // Adminbereich verstecken
+                    adminLoginFormDiv.classList.add('hidden'); // Login-Formular verstecken
                 }
-                updateShoppingListDisplay();
-            }
-        });
-
-        // Event Listener für den "Einkaufsliste leeren" Button
-        clearShoppingListBtn.addEventListener('click', () => {
-            shoppingList = [];
-            updateShoppingListDisplay();
-        });
-
-
-        // Funktion zum Suchen von Produkten (bestehend, mit Hinzufügen-Button erweitert)
-        function searchProducts() {
-            const query = searchInput.value.toLowerCase().trim();
-            searchResultsDiv.innerHTML = '';
-
-            if (query.length === 0) {
-                searchResultsDiv.classList.add('hidden');
-                return;
-            }
-
-            const matchedProducts = products.filter(product => {
-                return product.keywords.some(keyword => keyword.includes(query));
             });
 
-            if (matchedProducts.length > 0) {
-                searchResultsDiv.classList.remove('hidden');
-                matchedProducts.forEach(product => {
-                    const resultItem = document.createElement('div');
-                    resultItem.classList.add('product-item'); // Eigene Klasse für Styling
-                    resultItem.innerHTML = `
-                        <span class="text-lg font-medium">${product.name}</span>
-                        <span class="text-lg font-bold text-mojas-orange">${product.price.toFixed(2)} Fr.</span>
-                        <div class="relative w-24 h-10 flex items-center justify-center"> <!-- Fixed size container for button/lottie -->
-                            <button class="add-to-list-btn px-3 py-1 bg-mojas-orange text-white rounded-md hover:bg-opacity-90 transition duration-300" 
-                                    data-name="${product.name}">
-                                Hinzufügen
-                            </button>
-                            <div class="lottie-container">
-                                <lottie-player src="animations/checkmark_animation.json" background="transparent" speed="1"></lottie-player>
-                            </div>
+            // Funktion zur Initialisierung der Produkte in Firestore
+            async function initializeProductsInFirestore() {
+                try {
+                    // Überprüfe den Authentifizierungsstatus, bevor du auf Firestore zugreifst
+                    if (!auth.currentUser) {
+                         // Dies sollte nicht passieren, da wir oben bereits angemeldet haben,
+                         // aber als zusätzliche Absicherung.
+                        console.warn("Kein aktueller Benutzer angemeldet. Versuche anonyme Anmeldung vor Initialisierung.");
+                        await signInAnonymously(auth);
+                    }
+
+                    const snapshot = await getDocs(productsColRef);
+                    if (snapshot.empty) {
+                        console.log("Firestore Products-Sammlung ist leer. Fülle mit Initialdaten...");
+                        const addPromises = initialProductsData.map(product => 
+                            addDoc(productsColRef, {
+                                name: product.name,
+                                price: parseFloat(product.price), // Sicherstellen, dass der Preis als Zahl gespeichert wird
+                                keywords: product.keywords,
+                                createdAt: new Date()
+                            })
+                        );
+                        await Promise.all(addPromises);
+                        console.log("Initialdaten erfolgreich zu Firestore hinzugefügt.");
+                    } else {
+                        console.log("Firestore Products-Sammlung ist bereits gefüllt.");
+                    }
+                } catch (error) {
+                    console.error("Fehler beim Initialisieren der Produkte in Firestore:", error);
+                }
+            }
+
+
+            // Funktion zur Firestore-Datenüberwachung
+            function setupFirestoreListener() {
+                onSnapshot(productsColRef, (snapshot) => {
+                    const fetchedProducts = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    window.products = fetchedProducts.sort((a, b) => a.name.localeCompare(b.name));
+                    console.log("Produkte von Firestore geladen:", window.products);
+                    
+                    if (searchInput.value.length > 0) {
+                        searchProducts();
+                    } else {
+                        searchResultsDiv.classList.add('hidden');
+                    }
+                    updateShoppingListDisplay();
+                    updateAdminProductList();
+                }, (error) => {
+                    console.error("Fehler beim Laden der Produkte von Firestore:", error);
+                });
+            }
+
+            // Admin Login / Logout Handler
+            adminAuthButton.addEventListener('click', async () => {
+                if (isAdminLoggedIn) {
+                    // Logout-Funktion
+                    try {
+                        await signOut(auth);
+                        // Optional: Melde dich nach dem Admin-Logout wieder anonym an,
+                        // damit der normale Benutzerbereich weiterhin Daten laden kann (falls Regeln dies erfordern).
+                        // await signInAnonymously(auth); 
+                        isAdminLoggedIn = false;
+                        console.log("Admin abgemeldet.");
+                    } catch (error) {
+                        console.error("Fehler beim Abmelden:", error);
+                        alert("Abmeldung fehlgeschlagen: " + error.message);
+                    }
+                } else {
+                    // Zeige das Login-Formular an
+                    adminLoginFormDiv.classList.remove('hidden');
+                    adminPanel.classList.add('hidden'); // Adminbereich verstecken, wenn Login-Formular gezeigt wird
+                    loginErrorP.classList.add('hidden'); // Fehlermeldung zurücksetzen
+                }
+            });
+
+            // Login-Formular-Handler (simulierte Anmeldung)
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = adminEmailInput.value;
+                const password = adminPasswordInput.value;
+
+                if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+                    // In einer echten App: hier E-Mail/Passwort-Authentifizierung durchführen.
+                    // Da wir Canvas nutzen, simulieren wir den Admin-Status.
+                    isAdminLoggedIn = true; // Setze den Admin-Status
+                    // Stelle sicher, dass *ein* Benutzer angemeldet ist, um Firestore-Schreibrechte zu haben
+                    if (!auth.currentUser) {
+                        await signInAnonymously(auth); // Melde anonym an, falls noch kein User da ist
+                    }
+                    console.log("Simulierter Admin-Login erfolgreich!");
+                    adminLoginFormDiv.classList.add('hidden'); // Login-Formular verstecken
+                    adminPanel.classList.remove('hidden'); // Adminbereich anzeigen
+                    adminAuthButton.textContent = "Admin Logout";
+                    loginErrorP.classList.add('hidden');
+                    // setupFirestoreListener() wird durch onAuthStateChanged getriggert, wenn sich der auth-Status ändert.
+                    // Wenn der Benutzer bereits angemeldet war und nur der isAdminLoggedIn-Status geändert wurde,
+                    // ist der Listener bereits aktiv und aktualisiert die UI.
+                } else {
+                    loginErrorP.classList.remove('hidden'); // Fehlermeldung anzeigen
+                }
+            });
+
+
+            // Produkt hinzufügen
+            async function addProductToFirestore(name, price, keywords) {
+                if (!name || isNaN(price)) {
+                    alert("Name und Preis müssen gültig sein.");
+                    return;
+                }
+                try {
+                    await addDoc(productsColRef, {
+                        name: name,
+                        price: parseFloat(price),
+                        keywords: keywords.split(',').map(k => k.trim().toLowerCase()).filter(k => k.length > 0),
+                        createdAt: new Date()
+                    });
+                    console.log("Produkt hinzugefügt:", name);
+                    resetAdminForm();
+                } catch (error) {
+                    console.error("Fehler beim Hinzufügen des Produkts:", error);
+                    alert("Fehler beim Hinzufügen: " + error.message);
+                }
+            }
+
+            // Produkt aktualisieren
+            async function updateProductInFirestore(id, name, price, keywords) {
+                if (!id || !name || isNaN(price)) {
+                    alert("Alle Felder müssen gültig sein.");
+                    return;
+                }
+                try {
+                    const productRef = doc(db, `artifacts/${appId}/public/data/products`, id);
+                    await setDoc(productRef, {
+                        name: name,
+                        price: parseFloat(price),
+                        keywords: keywords.split(',').map(k => k.trim().toLowerCase()).filter(k => k.length > 0)
+                    }, { merge: true });
+                    console.log("Produkt aktualisiert:", name);
+                    resetAdminForm();
+                } catch (error) {
+                    console.error("Fehler beim Aktualisieren des Produkts:", error);
+                    alert("Fehler beim Aktualisieren: " + error.message);
+                }
+            }
+
+            // Produkt löschen
+            async function deleteProductFromFirestore(id) {
+                if (confirm("Sind Sie sicher, dass Sie dieses Produkt löschen möchten?")) {
+                    try {
+                        const productRef = doc(db, `artifacts/${appId}/public/data/products`, id);
+                        await deleteDoc(productRef);
+                        console.log("Produkt gelöscht:", id);
+                        resetAdminForm();
+                    } catch (error) {
+                        console.error("Fehler beim Löschen des Produkts:", error);
+                        alert("Fehler beim Löschen: " + error.message);
+                    }
+                }
+            }
+
+            // Helper-Funktion um die Admin-Produktliste zu aktualisieren (im Adminbereich)
+            window.updateAdminProductList = () => {
+                if (!adminProductListUl) return;
+
+                adminProductListUl.innerHTML = '';
+                window.products.forEach(product => {
+                    const listItem = document.createElement('li');
+                    listItem.classList.add('flex', 'flex-col', 'sm:flex-row', 'items-start', 'sm:items-center', 'justify-between', 'border-b', 'border-gray-200', 'py-3', 'gap-2');
+                    listItem.innerHTML = `
+                        <div class="flex-grow">
+                            <span class="font-semibold">${product.name}</span> - ${product.price.toFixed(2)} Fr.
+                            <div class="text-sm text-gray-500">Keywords: ${product.keywords ? product.keywords.join(', ') : 'Keine'}</div>
+                        </div>
+                        <div class="flex space-x-2 mt-2 sm:mt-0">
+                            <button class="edit-product-btn bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600" data-id="${product.id}">Bearbeiten</button>
+                            <button class="delete-product-btn bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600" data-id="${product.id}">Löschen</button>
                         </div>
                     `;
-                    searchResultsDiv.appendChild(resultItem);
+                    adminProductListUl.appendChild(listItem);
                 });
-                // Event Listener für alle "Hinzufügen"-Buttons
-                document.querySelectorAll('.add-to-list-btn').forEach(button => {
-                    button.addEventListener('click', (event) => {
-                        // Übergibt das Button-Element an die addToShoppingList Funktion
-                        addToShoppingList(event.target.dataset.name, event.target); 
+
+                document.querySelectorAll('.edit-product-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const productId = e.target.dataset.id;
+                        const productToEdit = window.products.find(p => p.id === productId);
+                        if (productToEdit) {
+                            productIdInput.value = productToEdit.id;
+                            productNameInput.value = productToEdit.name;
+                            productPriceInput.value = productToEdit.price;
+                            productKeywordsInput.value = productToEdit.keywords.join(', ');
+                            productFormTitle.textContent = "Produkt bearbeiten";
+                            saveProductBtn.textContent = "Änderungen speichern";
+                            cancelEditBtn.classList.remove('hidden');
+                        }
                     });
                 });
-            } else {
-                searchResultsDiv.classList.remove('hidden');
-                const noResultItem = document.createElement('div');
-                noResultItem.classList.add('py-2', 'text-gray-600', 'text-center', 'italic');
-                noResultItem.textContent = "Keine Produkte gefunden, die deiner Suche entsprechen. Probiere es mit anderen Begriffen.";
-                searchResultsDiv.appendChild(noResultItem);
+
+                document.querySelectorAll('.delete-product-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const productId = e.target.dataset.id;
+                        deleteProductFromFirestore(productId);
+                    });
+                });
+            };
+
+            // Funktion zum Zurücksetzen des Admin-Formulars
+            function resetAdminForm() {
+                productForm.reset();
+                productIdInput.value = '';
+                productFormTitle.textContent = "Neues Produkt hinzufügen";
+                saveProductBtn.textContent = "Produkt hinzufügen";
+                cancelEditBtn.classList.add('hidden');
             }
-        }
 
-        // Initialisiere die Einkaufsliste beim Laden der Seite
-        updateShoppingListDisplay();
+            // Event-Listener für das Hinzufügen/Speichern-Formular im Adminbereich
+            productForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const productId = productIdInput.value;
+                const productName = productNameInput.value;
+                const productPrice = productPriceInput.value;
+                const productKeywords = productKeywordsInput.value;
 
-        // Event Listener für den Suchen-Button
-        searchButton.addEventListener('click', searchProducts);
+                if (productId) {
+                    updateProductInFirestore(productId, productName, productPrice, productKeywords);
+                } else {
+                    addProductToFirestore(productName, productPrice, productKeywords);
+                }
+            });
 
-        // Event Listener für das Eingabefeld (Suche bei jeder Eingabe)
-        searchInput.addEventListener('input', searchProducts);
+            // Event-Listener für den Abbrechen-Button im Admin-Formular
+            cancelEditBtn.addEventListener('click', resetAdminForm);
+
+            // --- Bestehende Such- und Einkaufslisten-Funktionen ---
+
+            // Funktion zum Aktualisieren der Anzeige der Einkaufsliste
+            window.updateShoppingListDisplay = function() {
+                shoppingListItemsUl.innerHTML = '';
+
+                if (shoppingList.length === 0) {
+                    emptyListMessage.classList.remove('hidden');
+                    shoppingListItemsUl.classList.add('hidden');
+                } else {
+                    emptyListMessage.classList.add('hidden');
+                    shoppingListItemsUl.classList.remove('hidden');
+                    shoppingList.forEach(item => {
+                        const listItem = document.createElement('li');
+                        listItem.classList.add('list-item');
+                        listItem.innerHTML = `
+                            <span class="flex-grow">${item.name} (${item.price.toFixed(2)} Fr. pro Stk.)</span>
+                            <div class="quantity-controls flex items-center">
+                                <button class="bg-gray-200 text-gray-800 px-2 py-1 rounded-md hover:bg-gray-300" data-action="decrease" data-name="${item.name}">-</button>
+                                <span class="px-2 font-semibold">${item.quantity}</span>
+                                <button class="bg-gray-200 text-gray-800 px-2 py-1 rounded-md hover:bg-gray-300" data-action="increase" data-name="${item.name}">+</button>
+                                <span class="ml-4 font-bold text-mojas-orange">Total: ${(item.price * item.quantity).toFixed(2)} Fr.</span>
+                                <button class="bg-red-500 text-white px-2 py-1 ml-4 rounded-md hover:bg-red-600" data-action="remove" data-name="${item.name}">X</button>
+                            </div>
+                        `;
+                        shoppingListItemsUl.appendChild(listItem);
+                    });
+                }
+                calculateTotal();
+            };
+
+            // Funktion zur Berechnung der Gesamtsumme
+            function calculateTotal() {
+                let total = shoppingList.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                shoppingListTotalSpan.textContent = `${total.toFixed(2)} Fr.`;
+            }
+
+            // Funktion zum Hinzufügen/Aktualisieren von Elementen in der Einkaufsliste
+            window.addToShoppingList = function(productName, targetButton) {
+                const product = window.products.find(p => p.name === productName);
+                if (!product) return;
+
+                const existingItem = shoppingList.find(item => item.name === productName);
+
+                if (existingItem) {
+                    existingItem.quantity++;
+                } else {
+                    shoppingList.push({ ...product, quantity: 1 });
+                }
+                updateShoppingListDisplay();
+
+                if (targetButton) {
+                    const productItemDiv = targetButton.closest('.product-item');
+                    const lottieContainer = productItemDiv.querySelector('.lottie-container');
+                    const lottiePlayer = productItemDiv.querySelector('lottie-player');
+
+                    if (lottieContainer && lottiePlayer) {
+                        targetButton.style.display = 'none';
+                        lottieContainer.style.display = 'block';
+
+                        lottiePlayer.setDirection(1);
+                        lottiePlayer.play();
+
+                        setTimeout(() => {
+                            lottiePlayer.stop();
+                            lottieContainer.style.display = 'none';
+                            targetButton.style.display = 'inline-block';
+                            
+                            searchInput.value = '';
+                            searchProducts();
+                        }, 5000);
+                    }
+                }
+            };
+
+            // Event Listener für Klicks auf der Einkaufsliste (für Mengenänderung und Entfernen)
+            shoppingListItemsUl.addEventListener('click', (event) => {
+                const target = event.target;
+                const action = target.dataset.action;
+                const productName = target.dataset.name;
+
+                if (action && productName) {
+                    const itemIndex = shoppingList.findIndex(item => item.name === productName);
+                    if (itemIndex === -1) return;
+
+                    if (action === 'increase') {
+                        shoppingList[itemIndex].quantity++;
+                    } else if (action === 'decrease') {
+                        if (shoppingList[itemIndex].quantity > 1) {
+                            shoppingList[itemIndex].quantity--;
+                        } else {
+                            shoppingList.splice(itemIndex, 1);
+                        }
+                    } else if (action === 'remove') {
+                        shoppingList.splice(itemIndex, 1);
+                    }
+                    updateShoppingListDisplay();
+                }
+            });
+
+            // Event Listener für den "Einkaufsliste leeren" Button
+            clearShoppingListBtn.addEventListener('click', () => {
+                shoppingList = [];
+                updateShoppingListDisplay();
+            });
+
+            // Funktion zum Suchen von Produkten
+            window.searchProducts = function() {
+                const query = searchInput.value.toLowerCase().trim();
+                searchResultsDiv.innerHTML = '';
+
+                if (query.length === 0) {
+                    searchResultsDiv.classList.add('hidden');
+                    return;
+                }
+
+                const matchedProducts = window.products.filter(product => {
+                    return product.keywords.some(keyword => keyword.includes(query));
+                });
+
+                if (matchedProducts.length > 0) {
+                    searchResultsDiv.classList.remove('hidden');
+                    matchedProducts.forEach(product => {
+                        const resultItem = document.createElement('div');
+                        resultItem.classList.add('product-item');
+                        resultItem.innerHTML = `
+                            <span class="text-lg font-medium">${product.name}</span>
+                            <span class="text-lg font-bold text-mojas-orange">${product.price.toFixed(2)} Fr.</span>
+                            <div class="relative w-24 h-10 flex items-center justify-center">
+                                <button class="add-to-list-btn px-3 py-1 bg-mojas-orange text-white rounded-md hover:bg-opacity-90 transition duration-300" 
+                                        data-name="${product.name}">
+                                    Hinzufügen
+                                </button>
+                                <div class="lottie-container">
+                                    <lottie-player src="animations/checkmark_animation.json" background="transparent" speed="1"></lottie-player>
+                                </div>
+                            </div>
+                        `;
+                        searchResultsDiv.appendChild(resultItem);
+                    });
+                    document.querySelectorAll('.add-to-list-btn').forEach(button => {
+                        button.addEventListener('click', (event) => {
+                            addToShoppingList(event.target.dataset.name, event.target); 
+                        });
+                    });
+                } else {
+                    searchResultsDiv.classList.remove('hidden');
+                    const noResultItem = document.createElement('div');
+                    noResultItem.classList.add('py-2', 'text-gray-600', 'text-center', 'italic');
+                    noResultItem.textContent = "Keine Produkte gefunden, die deiner Suche entsprechen. Probiere es mit anderen Begriffen.";
+                    searchResultsDiv.appendChild(noResultItem);
+                }
+            };
+
+            // Event Listener für den Suchen-Button
+            searchButton.addEventListener('click', searchProducts);
+
+            // Event Listener für das Eingabefeld (Suche bei jeder Eingabe)
+            searchInput.addEventListener('input', searchProducts);
+
+            // Initialisiere die Einkaufsliste (wird durch Firestore-Listener aktualisiert)
+            updateShoppingListDisplay(); 
+        }); // Ende DOMContentLoaded
     </script>
 </body>
 </html>
