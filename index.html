@@ -206,9 +206,28 @@
             </form>
 
             <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Vorhandene Produkte</h3>
-            <ul id="adminProductList" class="space-y-3">
+            <ul id="adminProductList" class="space-y-3 mb-8">
                 <!-- Products will be loaded here from Firestore -->
             </ul>
+
+            <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Preislisten-Bilder ändern</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Preisliste 1 Image Upload -->
+                <div class="p-4 border rounded-lg shadow-sm">
+                    <label for="uploadPriceList1" class="block text-gray-700 text-sm font-bold mb-2">Preisliste Snacks & Getränke (1.1.png)</label>
+                    <input type="file" id="uploadPriceList1" accept="image/png, image/jpeg" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-mojas-orange file:text-white hover:file:bg-opacity-90 mb-2">
+                    <button id="btnUploadPriceList1" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">Bild hochladen</button>
+                    <p id="uploadStatus1" class="text-sm mt-2 text-gray-600"></p>
+                </div>
+
+                <!-- Preisliste 2 Image Upload -->
+                <div class="p-4 border rounded-lg shadow-sm">
+                    <label for="uploadPriceList2" class="block text-gray-700 text-sm font-bold mb-2">Preisliste Drinks (2.1.png)</label>
+                    <input type="file" id="uploadPriceList2" accept="image/png, image/jpeg" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-mojas-orange file:text-white hover:file:bg-opacity-90 mb-2">
+                    <button id="btnUploadPriceList2" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">Bild hochladen</button>
+                    <p id="uploadStatus2" class="text-sm mt-2 text-gray-600"></p>
+                </div>
+            </div>
         </section>
 
         <!-- Search Function Section -->
@@ -249,8 +268,8 @@
         <section id="preisliste" class="my-8 bg-white p-6 rounded-2xl shadow-xl">
             <h2 class="text-4xl font-bold text-mojas-orange mb-6 text-center">Unsere Preisliste</h2>
             <p class="text-gray-700 text-center mb-8">Hier findest du eine Übersicht über unsere köstlichen Snacks und Getränke.</p>
-            <!-- Preisliste Image -->
-            <img src="1.1.png" alt="Mojas Preisliste Snacks & Getränke" class="price-list-img">
+            <!-- Preisliste Image 1 (dynamisch geladen) -->
+            <img id="priceList1Display" src="1.1.png" alt="Mojas Preisliste Snacks & Getränke" class="price-list-img">
         </section>
 
         <section id="drinks" class="my-8 bg-white p-6 rounded-2xl shadow-xl">
@@ -260,8 +279,8 @@
                 <p class="text-gray-700">Diese Drinks sind nur während Partys und kurz danach erhältlich.</p>
             </div>
             <p class="text-gray-700 text-center mb-8">Erfrischende Drinks für jeden Geschmack.</p>
-            <!-- Drinks Image -->
-            <img src="2.1.png" alt="Mojas Drinks" class="price-list-img">
+            <!-- Preisliste Image 2 (dynamisch geladen) -->
+            <img id="priceList2Display" src="2.1.png" alt="Mojas Drinks" class="price-list-img">
         </section>
     </main>
 
@@ -286,6 +305,8 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // Importiere Firebase Storage Funktionen
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         // Ihre tatsächliche Firebase-Konfiguration von der Firebase Console
         const firebaseConfig = {
@@ -301,10 +322,13 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+        const storage = getStorage(app); // Firebase Storage initialisieren
         
         // Extrahieren der appId direkt aus der firebaseConfig
-        const appId = firebaseConfig.appId; // oder firebaseConfig.projectId, je nachdem, was Sie in Ihrem Pfad verwenden möchten
+        const appId = firebaseConfig.appId; 
         const productsColRef = collection(db, `artifacts/${appId}/public/data/products`);
+        // Firestore-Dokument-Referenz für die Bild-URLs
+        const imagePathsDocRef = doc(db, `artifacts/${appId}/public/data/settings`, 'priceListImages');
 
         // Globale Variable für die Produktliste, die von Firestore synchronisiert wird
         window.products = []; 
@@ -365,6 +389,18 @@
             const cancelEditBtn = document.getElementById('cancelEditBtn');
             const adminProductListUl = document.getElementById('adminProductList');
 
+            // Elemente für den Bilder-Upload
+            const uploadPriceList1Input = document.getElementById('uploadPriceList1');
+            const btnUploadPriceList1 = document.getElementById('btnUploadPriceList1');
+            const uploadStatus1 = document.getElementById('uploadStatus1');
+            const priceList1Display = document.getElementById('priceList1Display');
+
+            const uploadPriceList2Input = document.getElementById('uploadPriceList2');
+            const btnUploadPriceList2 = document.getElementById('btnUploadPriceList2');
+            const uploadStatus2 = document.getElementById('uploadStatus2');
+            const priceList2Display = document.getElementById('priceList2Display');
+
+
             // Bestehende Such- und Einkaufslisten-Funktionen
             const searchInput = document.getElementById('searchInput');
             const searchButton = document.getElementById('searchButton');
@@ -409,6 +445,7 @@
                         adminLoginFormDiv.classList.add('hidden'); // Login-Formular verstecken
                     }
                     setupFirestoreListener(); // Daten von Firestore laden/überwachen
+                    loadAndDisplayImages(); // Bilder von Firestore laden und anzeigen
                 } else {
                     currentUserId = null;
                     isAdminLoggedIn = false; // Reset Admin-Status bei Abmeldung
@@ -449,10 +486,82 @@
                 }
             }
 
-            // Funktion zur Firestore-Datenüberwachung
+            // Funktion zum Hochladen eines Bildes zu Firebase Storage und Speichern der URL in Firestore
+            async function uploadAndSaveImage(file, fileNameInStorage, statusElement, displayElement) {
+                if (!file) {
+                    statusElement.textContent = "Bitte eine Datei zum Hochladen auswählen.";
+                    statusElement.style.color = "red";
+                    return;
+                }
+
+                statusElement.textContent = "Bild wird hochgeladen...";
+                statusElement.style.color = "orange";
+
+                try {
+                    // Referenz zum Speicherort des Bildes
+                    const storageRef = ref(storage, `artifacts/${appId}/public/images/${fileNameInStorage}`);
+                    
+                    // Bild hochladen
+                    const snapshot = await uploadBytes(storageRef, file);
+                    console.log('Bild hochgeladen:', snapshot.ref.fullPath);
+
+                    // Download-URL erhalten
+                    const downloadURL = await getDownloadURL(snapshot.ref);
+                    console.log('Download-URL:', downloadURL);
+
+                    // URL in Firestore speichern
+                    const updateData = {};
+                    if (fileNameInStorage === 'price_list_1.png') {
+                        updateData.image1_url = downloadURL;
+                    } else if (fileNameInStorage === 'price_list_2.png') {
+                        updateData.image2_url = downloadURL;
+                    }
+                    
+                    // Das Firestore-Dokument erstellen oder aktualisieren
+                    await setDoc(imagePathsDocRef, updateData, { merge: true });
+                    
+                    statusElement.textContent = "Bild erfolgreich hochgeladen und aktualisiert!";
+                    statusElement.style.color = "green";
+                    
+                    // Optional: Die im Browser angezeigten Bilder sofort aktualisieren
+                    if (displayElement) {
+                        displayElement.src = downloadURL;
+                    }
+
+                } catch (error) {
+                    console.error("Fehler beim Hochladen oder Speichern der URL:", error);
+                    statusElement.textContent = "Fehler beim Hochladen: " + error.message;
+                    statusElement.style.color = "red";
+                }
+            }
+
+            // Funktion zum Laden und Anzeigen der Bilder aus Firestore
+            function loadAndDisplayImages() {
+                onSnapshot(imagePathsDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        if (data.image1_url && priceList1Display) {
+                            priceList1Display.src = data.image1_url;
+                            priceList1Display.alt = "Mojas Preisliste Snacks & Getränke (aktualisiert)";
+                        }
+                        if (data.image2_url && priceList2Display) {
+                            priceList2Display.src = data.image2_url;
+                            priceList2Display.alt = "Mojas Drinks (aktualisiert)";
+                        }
+                    } else {
+                        console.log("Keine Bild-URLs in Firestore gefunden. Verwende Standardbilder.");
+                        // Optional: Hier könnten Sie Standard-Platzhalterbilder setzen oder die originalen GitHub Pages URLs verwenden
+                        priceList1Display.src = "1.1.png"; // Fallback zu lokal gehosteten Bildern
+                        priceList2Display.src = "2.1.png"; // Fallback zu lokal gehosteten Bildern
+                    }
+                }, (error) => {
+                    console.error("Fehler beim Laden der Bild-URLs von Firestore:", error);
+                });
+            }
+
+
+            // Funktion zur Firestore-Datenüberwachung (für Produkte)
             function setupFirestoreListener() {
-                // Diese Funktion wird nun nur aufgerufen, wenn onAuthStateChanged einen Benutzer bestätigt hat.
-                // Daher sollte auth.currentUser hier immer vorhanden sein.
                 onSnapshot(productsColRef, (snapshot) => {
                     const fetchedProducts = snapshot.docs.map(doc => ({
                         id: doc.id,
@@ -655,6 +764,28 @@
 
             // Event-Listener für den Abbrechen-Button im Admin-Formular
             cancelEditBtn.addEventListener('click', resetAdminForm);
+
+            // Event-Listener für Bild-Uploads
+            btnUploadPriceList1.addEventListener('click', () => {
+                const file = uploadPriceList1Input.files[0];
+                if (file) {
+                    uploadAndSaveImage(file, 'price_list_1.png', uploadStatus1, priceList1Display);
+                } else {
+                    uploadStatus1.textContent = "Bitte eine Bilddatei auswählen.";
+                    uploadStatus1.style.color = "red";
+                }
+            });
+
+            btnUploadPriceList2.addEventListener('click', () => {
+                const file = uploadPriceList2Input.files[0];
+                if (file) {
+                    uploadAndSaveImage(file, 'price_list_2.png', uploadStatus2, priceList2Display);
+                } else {
+                    uploadStatus2.textContent = "Bitte eine Bilddatei auswählen.";
+                    uploadStatus2.style.color = "red";
+                }
+            });
+
 
             // --- Bestehende Such- und Einkaufslisten-Funktionen ---
 
