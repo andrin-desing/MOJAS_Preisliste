@@ -339,15 +339,11 @@
             // **WICHTIG**: Zuerst anonym anmelden, um Schreibrechte zu erhalten
             // Dies ist notwendig, da Firestore-Regeln oft 'request.auth != null' erfordern.
             try {
-                // Versuche, das initiale Token zu verwenden, falls es von der Canvas-Umgebung bereitgestellt wird.
-                // Wenn nicht, melde dich anonym an.
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token !== null) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                    console.log("Authentifizierung mit Canvas Custom Token erfolgreich (Initialisierung)!");
-                } else {
-                    await signInAnonymously(auth);
-                    console.log("Anonyme Authentifizierung erfolgreich (Initialisierung)!");
-                }
+                // Nur anonym anmelden für allgemeine App-Zugriffe
+                // __initial_auth_token wird von Canvas automatisch für den App-Kontext angewendet,
+                // wir müssen hier nicht explizit signInWithCustomToken aufrufen, um die App zu initialisieren.
+                await signInAnonymously(auth);
+                console.log("Anonyme Authentifizierung erfolgreich (Initialisierung)!");
             } catch (error) {
                 console.error("Fehler bei der initialen Authentifizierung:", error);
                 // Hier könnte man eine Fallback-UI anzeigen oder es dem Benutzer mitteilen.
@@ -419,12 +415,11 @@
             // Funktion zur Initialisierung der Produkte in Firestore
             async function initializeProductsInFirestore() {
                 try {
-                    // Überprüfe den Authentifizierungsstatus, bevor du auf Firestore zugreifst
+                    // Da wir zu Beginn von DOMContentLoaded signInAnonymously aufrufen, sollte hier
+                    // auth.currentUser existieren und Schreibberechtigungen vorhanden sein.
                     if (!auth.currentUser) {
-                         // Dies sollte nicht passieren, da wir oben bereits angemeldet haben,
-                         // aber als zusätzliche Absicherung.
-                        console.warn("Kein aktueller Benutzer angemeldet. Versuche anonyme Anmeldung vor Initialisierung.");
-                        await signInAnonymously(auth);
+                         console.error("Fehler: Kein Benutzer angemeldet für Firestore-Initialisierung!");
+                         return; // Frühzeitig abbrechen, wenn keine Authentifizierung vorhanden ist.
                     }
 
                     const snapshot = await getDocs(productsColRef);
@@ -473,14 +468,12 @@
 
             // Admin Login / Logout Handler
             adminAuthButton.addEventListener('click', async () => {
+                console.log("Admin Auth Button clicked. isAdminLoggedIn:", isAdminLoggedIn); // Debug-Meldung
                 if (isAdminLoggedIn) {
                     // Logout-Funktion
                     try {
                         await signOut(auth);
-                        // Optional: Melde dich nach dem Admin-Logout wieder anonym an,
-                        // damit der normale Benutzerbereich weiterhin Daten laden kann (falls Regeln dies erfordern).
-                        // await signInAnonymously(auth); 
-                        isAdminLoggedIn = false;
+                        isAdminLoggedIn = false; // Admin-Status zurücksetzen
                         console.log("Admin abgemeldet.");
                     } catch (error) {
                         console.error("Fehler beim Abmelden:", error);
@@ -511,13 +504,14 @@
                     console.log("Simulierter Admin-Login erfolgreich!");
                     adminLoginFormDiv.classList.add('hidden'); // Login-Formular verstecken
                     adminPanel.classList.remove('hidden'); // Adminbereich anzeigen
-                    adminAuthButton.textContent = "Admin Logout";
+                    adminAuthButton.textContent = "Admin Logout"; // Button-Text sofort aktualisieren
                     loginErrorP.classList.add('hidden');
                     // setupFirestoreListener() wird durch onAuthStateChanged getriggert, wenn sich der auth-Status ändert.
                     // Wenn der Benutzer bereits angemeldet war und nur der isAdminLoggedIn-Status geändert wurde,
                     // ist der Listener bereits aktiv und aktualisiert die UI.
                 } else {
                     loginErrorP.classList.remove('hidden'); // Fehlermeldung anzeigen
+                    console.log("Ungültige Anmeldedaten."); // Debug-Meldung
                 }
             });
 
