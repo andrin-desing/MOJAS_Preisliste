@@ -323,28 +323,56 @@
             appId: "1:667994628903:web:aabf099f890ca9e5d07f02"
         };
 
-        // Firebase Initialisierung
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
         const storage = getStorage(app); 
         
+        // Extract appId from firebaseConfig for use in Firestore paths
         const appId = firebaseConfig.appId; 
+
+        // Firestore collection and document references
         const productsColRef = collection(db, `artifacts/${appId}/public/data/products`);
         const imagePathsDocRef = doc(db, `artifacts/${appId}/public/data/settings`, 'priceListImages');
 
-        // Globale Variable für die Produktliste, die von Firestore synchronisiert wird
+        // Global variable for product list, synchronized from Firestore
         window.products = []; 
         let currentUserId = null;
-        let isAdminLoggedIn = false; // Status für Admin-Anmeldung
-        let initialProductsChecked = false; // Flag, um sicherzustellen, dass die Initialisierung nur einmal läuft
+        let isAdminLoggedIn = false; // Status for admin login
+        let initialProductsChecked = false; // Flag to ensure product initialization runs only once
+
+        // Initial product data if Firestore is empty
+        const initialProductsData = [
+            { name: "Diverse Softdrinks", price: 1.50, keywords: ["diverse softdrinks", "softdrink", "softdrinks", "getränke", "rivella", "cola", "fanta", "sprite", "zitronenlimo", "apfelschorle", "eistee", "trinken"] },
+            { name: "Mineralwasser", price: 1.00, keywords: ["mineralwasser", "wasser", "mineral", "still", "sprudel"] },
+            { name: "Capri Sun", price: 0.80, keywords: ["capri sun", "caprisun", "saft", "fruchtsaft", "kindergetränk"] },
+            { name: "Gummistangen", price: 0.10, keywords: ["gummistangen", "gummi", "süssigkeiten", "süsswaren", "gumistange"] },
+            { name: "Gummischlangen", price: 0.50, keywords: ["gummischlangen", "gummi", "süssigkeiten", "süsswaren", "gummischlange"] },
+            { name: "Snickers", price: 1.00, keywords: ["snickers", "schokoriegel", "schokolade", "riegel", "snickerss"] },
+            { name: "Mars", price: 1.00, keywords: ["mars", "schokoriegel", "schokolade", "riegel"] },
+            { name: "Twix", price: 1.00, keywords: ["twix", "schokoriegel", "schokolade", "riegel", "karamel"] },
+            { name: "Bounty", price: 1.00, keywords: ["bounty", "schokoriegel", "schokolade", "riegel", "kokos"] },
+            { name: "M&M's", price: 1.50, keywords: ["m&m's", "mms", "schokolinsen", "linsen", "schokodragees"] },
+            { name: "Skittles", price: 1.50, keywords: ["skittles", "fruchtgummi", "bonbons", "fruchtbonbons"] },
+            { name: "Oreo's", price: 1.50, keywords: ["oreo's", "oreos", "kekse", "doppelkeks"] },
+            { name: "Reese's", price: 1.80, keywords: ["reese's", "reeses", "erdnussbutter", "schokolade"] },
+            { name: "Pringels Rot", price: 1.50, keywords: ["pringels rot", "pringels", "chips", "rot", "paprika", "pringles"] },
+            { name: "Pringels Orange", price: 1.50, keywords: ["pringels orange", "pringels", "chips", "orange", "käse", "pringles"] },
+            { name: "Pringels Grün", price: 1.50, keywords: ["pringels grün", "pringels", "chips", "grün", "sour cream", "onion", "zwiebel", "pringles"] },
+            { name: "Popcorn", price: 1.00, keywords: ["popcorn", "snacks", "kino", "gesalzen"] },
+            { name: "Toast mit Käse", price: 1.50, keywords: ["toast mit käse", "toast", "käse", "sandwich"] },
+            { name: "Toast mit Käse und Trutenschinken", price: 2.00, keywords: ["toast mit käse und trutenschinken", "toast", "käse", "trutenschinken", "schinken", "sandwich"] },
+            { name: "Virgin Sunrise", price: 2.00, keywords: ["virgin sunrise", "cocktail", "drink", "alkoholfrei", "orange", "sunrise"] },
+            { name: "Blue Dream", price: 2.00, keywords: ["blue dream", "cocktail", "drink", "alkoholfrei", "blau"] }
+        ];
 
         // Shopping list array
         let shoppingList = [];
 
-        // DOMContentLoaded stellt sicher, dass alle HTML-Elemente geladen sind
+        // DOMContentLoaded ensures all HTML elements are loaded
         document.addEventListener('DOMContentLoaded', async () => {
-            // UI-Elemente für den Adminbereich
+            // UI Elements for the admin section
             const adminPanel = document.getElementById('adminPanel');
             const adminAuthButton = document.getElementById('adminAuthButton');
             const adminLoginFormDiv = document.getElementById('adminLoginForm');
@@ -363,7 +391,7 @@
             const cancelEditBtn = document.getElementById('cancelEditBtn');
             const adminProductListUl = document.getElementById('adminProductList');
 
-            // Elemente für den Bilder-Upload
+            // Elements for image upload
             const uploadPriceList1Input = document.getElementById('uploadPriceList1');
             const btnUploadPriceList1 = document.getElementById('btnUploadPriceList1');
             const uploadStatus1 = document.getElementById('uploadStatus1');
@@ -379,7 +407,7 @@
                 '#adminPanel input, #adminPanel button, #adminPanel select, #adminPanel textarea'
             );
 
-            // Bestehende Such- und Einkaufslisten-Funktionen
+            // Existing search and shopping list functions
             const searchInput = document.getElementById('searchInput');
             const searchButton = document.getElementById('searchButton');
             const searchResultsDiv = document.getElementById('searchResults');
@@ -388,21 +416,26 @@
             const clearShoppingListBtn = document.getElementById('clearShoppingListBtn');
             const emptyListMessage = document.getElementById('emptyListMessage');
 
-            // Funktion zum Aktivieren/Deaktivieren von Admin-Formularen
+            // Function to enable/disable admin forms
             function setAdminControlsDisabled(disabled) {
                 adminControlElements.forEach(el => {
-                    if (el.id !== 'adminEmail' && el.id !== 'adminPassword' && el.id !== 'loginForm' && el.type !== 'submit') { // Don't disable login form elements
+                    // Do not disable login form elements (email, password, login button)
+                    if (el.id !== 'adminEmail' && el.id !== 'adminPassword' && el.id !== 'loginForm' && el.type !== 'submit') { 
                         el.disabled = disabled;
                     }
                 });
-                // Spezielle Handhabung für Dateieingaben, falls nötig
+                // Specific handling for file inputs, if needed
                 uploadPriceList1Input.disabled = disabled;
+                btnUploadPriceList1.disabled = disabled; // Disable the upload button too
                 uploadPriceList2Input.disabled = disabled;
+                btnUploadPriceList2.disabled = disabled; // Disable the upload button too
             }
 
-            // Initialisiere die Authentifizierung (anonym) beim Laden der Seite
-            // Dies ist wichtig, damit Firestore-Operationen mit den notwendigen Berechtigungen ausgeführt werden können.
+            // Initialize authentication (anonymous) on page load
+            // This is important so that Firestore operations can be performed with the necessary permissions.
             try {
+                // If a user is already logged in (e.g., from a previous session),
+                // we don't need to sign in anonymously again.
                 if (!auth.currentUser) {
                     await signInAnonymously(auth);
                     console.log("Anonyme Authentifizierung erfolgreich (Initialisierung)!");
@@ -413,18 +446,18 @@
                 console.error("Fehler bei der initialen Authentifizierung:", error);
             }
 
-            // Login-Status überwachen
+            // Monitor login status
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     currentUserId = user.uid;
                     console.log("Benutzer angemeldet:", currentUserId);
                     
-                    // Admin ist jeder angemeldete Benutzer, der NICHT anonym ist.
-                    // Dies ist eine Vereinfachung für diese App. In einer Produktivumgebung
-                    // würden Sie Firebase Custom Claims verwenden, um Admin-Rollen zu verwalten.
+                    // Admin is any logged-in user who is NOT anonymous.
+                    // This is a simplification for this app. In a production environment,
+                    // you would use Firebase Custom Claims to manage admin roles.
                     isAdminLoggedIn = !user.isAnonymous;
 
-                    // Wenn der Benutzer zum ersten Mal geladen wird und die Produkte noch nicht initialisiert wurden
+                    // If the user is loaded for the first time and products have not been initialized yet
                     if (!initialProductsChecked) {
                         await initializeProductsInFirestore();
                         initialProductsChecked = true;
@@ -433,37 +466,37 @@
                     if (isAdminLoggedIn) { 
                         adminAuthButton.textContent = "Admin Logout";
                         adminPanel.classList.remove('hidden');
-                        adminLoginFormDiv.classList.add('hidden'); // Login-Formular verstecken
-                        setAdminControlsDisabled(false); // Admin-Formulare aktivieren
+                        adminLoginFormDiv.classList.add('hidden'); // Hide login form
+                        setAdminControlsDisabled(false); // Enable admin forms
                     } else {
                         adminAuthButton.textContent = "Admin Login";
                         adminPanel.classList.add('hidden');
                         adminLoginFormDiv.classList.add('hidden'); 
-                        setAdminControlsDisabled(true); // Admin-Formulare deaktivieren
+                        setAdminControlsDisabled(true); // Disable admin forms
                     }
-                    setupFirestoreListener(); // Daten von Firestore laden/überwachen
-                    loadAndDisplayImages(); // Bilder von Firestore laden und anzeigen
+                    setupFirestoreListener(); // Load/monitor data from Firestore
+                    loadAndDisplayImages(); // Load and display images from Firestore
                 } else {
                     currentUserId = null;
-                    isAdminLoggedIn = false; // Reset Admin-Status bei Abmeldung
+                    isAdminLoggedIn = false; // Reset admin status on logout
                     console.log("Kein Benutzer angemeldet.");
                     adminAuthButton.textContent = "Admin Login";
-                    adminPanel.classList.add('hidden'); // Adminbereich verstecken
-                    adminLoginFormDiv.classList.add('hidden'); // Login-Formular verstecken
-                    setAdminControlsDisabled(true); // Admin-Formulare deaktivieren
+                    adminPanel.classList.add('hidden'); // Hide admin panel
+                    adminLoginFormDiv.classList.add('hidden'); // Hide login form
+                    setAdminControlsDisabled(true); // Disable admin forms
                     
                     loadAndDisplayImages(); 
                     setupFirestoreListener();
                 }
             });
 
-            // Funktion zur Initialisierung der Produkte in Firestore
+            // Function to initialize products in Firestore
             async function initializeProductsInFirestore() {
                 try {
-                    // Stelle sicher, dass ein Benutzer angemeldet ist, bevor Firestore-Operationen durchgeführt werden
+                    // Ensure a user is logged in before performing Firestore operations
                     if (!auth.currentUser) {
                         console.error("Fehler: initializeProductsInFirestore aufgerufen ohne angemeldeten Benutzer!");
-                        return; // Frühzeitig abbrechen
+                        return; // Abort early
                     }
 
                     const snapshot = await getDocs(productsColRef);
@@ -472,7 +505,7 @@
                         const addPromises = initialProductsData.map(product => 
                             addDoc(productsColRef, {
                                 name: product.name,
-                                price: parseFloat(product.price), // Sicherstellen, dass der Preis als Zahl gespeichert wird
+                                price: parseFloat(product.price), // Ensure price is stored as a number
                                 keywords: product.keywords,
                                 createdAt: new Date()
                             })
@@ -487,7 +520,7 @@
                 }
             }
 
-            // Funktion zum Hochladen eines Bildes zu Firebase Storage und Speichern der URL in Firestore
+            // Function to upload an image to Firebase Storage and save the URL in Firestore
             async function uploadAndSaveImage(file, fileNameInStorage, statusElement, displayElement) {
                 if (!file) {
                     statusElement.textContent = "Bitte eine Datei zum Hochladen auswählen.";
@@ -504,18 +537,18 @@
                 statusElement.style.color = "orange";
 
                 try {
-                    // Referenz zum Speicherort des Bildes
+                    // Reference to the image storage location
                     const storageRef = ref(storage, `artifacts/${appId}/public/images/${fileNameInStorage}`);
                     
-                    // Bild hochladen
+                    // Upload image
                     const snapshot = await uploadBytes(storageRef, file);
                     console.log('Bild hochgeladen:', snapshot.ref.fullPath);
 
-                    // Download-URL erhalten
+                    // Get download URL
                     const downloadURL = await getDownloadURL(snapshot.ref);
                     console.log('Download-URL:', downloadURL);
 
-                    // URL in Firestore speichern
+                    // Save URL in Firestore
                     const updateData = {};
                     if (fileNameInStorage === 'price_list_1.png') {
                         updateData.image1_url = downloadURL;
@@ -528,7 +561,7 @@
                     statusElement.textContent = "Bild erfolgreich hochgeladen und aktualisiert!";
                     statusElement.style.color = "green";
                     
-                    // Optional: Die im Browser angezeigten Bilder sofort aktualisieren
+                    // Optional: Update the displayed images in the browser immediately
                     if (displayElement) {
                         displayElement.src = downloadURL;
                     }
@@ -540,7 +573,7 @@
                 }
             }
 
-            // Funktion zum Laden und Anzeigen der Bilder aus Firestore
+            // Function to load and display images from Firestore
             function loadAndDisplayImages() {
                 onSnapshot(imagePathsDocRef, (docSnap) => {
                     if (docSnap.exists()) {
@@ -564,7 +597,7 @@
             }
 
 
-            // Funktion zur Firestore-Datenüberwachung (für Produkte)
+            // Function to monitor Firestore data (for products)
             function setupFirestoreListener() {
                 onSnapshot(productsColRef, (snapshot) => {
                     const fetchedProducts = snapshot.docs.map(doc => ({
@@ -585,40 +618,40 @@
             // Admin Login / Logout Handler
             adminAuthButton.addEventListener('click', async () => {
                 if (isAdminLoggedIn) {
-                    // Logout-Funktion
+                    // Logout function
                     try {
                         await signOut(auth);
-                        isAdminLoggedIn = false; // Admin-Status zurücksetzen
+                        isAdminLoggedIn = false; // Reset admin status
                         console.log("Admin abgemeldet.");
                     } catch (error) {
                         console.error("Fehler beim Abmelden:", error);
                         alert("Abmeldung fehlgeschlagen: " + error.message);
                     }
                 } else {
-                    // Zeige das Login-Formular an
+                    // Show login form
                     adminLoginFormDiv.classList.remove('hidden');
-                    adminPanel.classList.add('hidden'); // Adminbereich verstecken, wenn Login-Formular gezeigt wird
-                    loginErrorP.classList.add('hidden'); // Fehlermeldung zurücksetzen
-                    setAdminControlsDisabled(true); // Sicherstellen, dass Admin-Steuerelemente deaktiviert sind
+                    adminPanel.classList.add('hidden'); // Hide admin panel when login form is shown
+                    loginErrorP.classList.add('hidden'); // Reset error message
+                    setAdminControlsDisabled(true); // Ensure admin controls are disabled
                 }
             });
 
-            // Login-Formular-Handler (echte Firebase-Anmeldung)
+            // Login Form Handler (real Firebase login)
             loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const email = adminEmailInput.value;
                 const password = adminPasswordInput.value;
 
-                loginErrorP.classList.add('hidden'); // Fehlermeldung zurücksetzen
+                loginErrorP.classList.add('hidden'); // Reset error message
 
                 try {
                     await signInWithEmailAndPassword(auth, email, password);
-                    // isAdminLoggedIn wird durch den onAuthStateChanged Listener gesetzt
+                    // isAdminLoggedIn will be set by the onAuthStateChanged listener
                     console.log("Admin-Login erfolgreich!");
-                    // Die UI-Aktualisierung erfolgt in onAuthStateChanged
+                    // UI update happens in onAuthStateChanged
                 } catch (error) {
                     console.error("Fehler beim Admin-Login:", error);
-                    isAdminLoggedIn = false; // Bei Fehler sicherheitshalber zurücksetzen
+                    isAdminLoggedIn = false; // Reset for safety on error
                     let errorMessage = "Anmeldung fehlgeschlagen. Ungültige E-Mail oder Passwort.";
                     if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
                         errorMessage = "Ungültige E-Mail oder Passwort. Bitte überprüfen Sie Ihre Eingaben.";
@@ -633,13 +666,13 @@
             });
 
 
-            // Produkt hinzufügen
+            // Add product
             async function addProductToFirestore(name, price, keywords) {
                 if (!name || isNaN(price)) {
                     alert("Name und Preis müssen gültig sein.");
                     return;
                 }
-                if (!isAdminLoggedIn) { // Zusätzliche Prüfung
+                if (!isAdminLoggedIn) { // Additional check
                     alert("Sie müssen als Admin angemeldet sein, um Produkte hinzuzufügen/zu bearbeiten.");
                     return;
                 }
@@ -658,13 +691,13 @@
                 }
             }
 
-            // Produkt aktualisieren
+            // Update product
             async function updateProductInFirestore(id, name, price, keywords) {
                 if (!id || !name || isNaN(price)) {
                     alert("Alle Felder müssen gültig sein.");
                     return;
                 }
-                if (!isAdminLoggedIn) { // Zusätzliche Prüfung
+                if (!isAdminLoggedIn) { // Additional check
                     alert("Sie müssen als Admin angemeldet sein, um Produkte hinzuzufügen/zu bearbeiten.");
                     return;
                 }
@@ -683,9 +716,9 @@
                 }
             }
 
-            // Produkt löschen
+            // Delete product
             async function deleteProductFromFirestore(id) {
-                if (!isAdminLoggedIn) { // Zusätzliche Prüfung
+                if (!isAdminLoggedIn) { // Additional check
                     alert("Sie müssen als Admin angemeldet sein, um Produkte zu löschen.");
                     return;
                 }
@@ -703,7 +736,7 @@
                 }
             }
 
-            // Helper-Funktion um die Admin-Produktliste zu aktualisieren (im Adminbereich)
+            // Helper function to update the admin product list (in the admin section)
             window.updateAdminProductList = () => {
                 if (!adminProductListUl) return;
 
@@ -712,7 +745,7 @@
                     const listItem = document.createElement('li');
                     listItem.classList.add('flex', 'flex-col', 'sm:flex-row', 'items-start', 'sm:items-center', 'justify-between', 'border-b', 'border-gray-200', 'py-3', 'gap-2');
                     
-                    // Bearbeiten- und Löschen-Buttons nur anzeigen, wenn Admin angemeldet ist
+                    // Show edit and delete buttons only if admin is logged in
                     const adminButtons = isAdminLoggedIn ? `
                         <button class="edit-product-btn bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600" data-id="${product.id}">Bearbeiten</button>
                         <button class="delete-product-btn bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600" data-id="${product.id}">Löschen</button>
@@ -754,7 +787,7 @@
                 });
             };
 
-            // Funktion zum Zurücksetzen des Admin-Formulars
+            // Function to reset the admin form
             function resetAdminForm() {
                 productForm.reset();
                 productIdInput.value = '';
@@ -763,7 +796,7 @@
                 cancelEditBtn.classList.add('hidden');
             }
 
-            // Event-Listener für das Hinzufügen/Speichern-Formular im Adminbereich
+            // Event listener for adding/saving product form in admin section
             productForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const productId = productIdInput.value;
@@ -778,10 +811,10 @@
                 }
             });
 
-            // Event-Listener für den Abbrechen-Button im Admin-Formular
+            // Event listener for the cancel button in the admin form
             cancelEditBtn.addEventListener('click', resetAdminForm);
 
-            // Event-Listener für Bild-Uploads
+            // Event listeners for image uploads
             btnUploadPriceList1.addEventListener('click', () => {
                 const file = uploadPriceList1Input.files[0];
                 if (file) {
@@ -803,9 +836,9 @@
             });
 
 
-            // --- Bestehende Such- und Einkaufslisten-Funktionen ---
+            // --- Existing search and shopping list functions ---
 
-            // Funktion zum Aktualisieren der Anzeige der Einkaufsliste
+            // Function to update the display of the shopping list
             window.updateShoppingListDisplay = function() {
                 shoppingListItemsUl.innerHTML = '';
 
@@ -834,13 +867,13 @@
                 calculateTotal();
             };
 
-            // Funktion zur Berechnung der Gesamtsumme
+            // Function to calculate the total sum
             function calculateTotal() {
                 let total = shoppingList.reduce((sum, item) => sum + (item.price * item.quantity), 0);
                 shoppingListTotalSpan.textContent = `${total.toFixed(2)} Fr.`;
             }
 
-            // Funktion zum Hinzufügen/Aktualisieren von Elementen in der Einkaufsliste
+            // Function to add/update items in the shopping list
             window.addToShoppingList = function(productName, targetButton) {
                 const product = window.products.find(p => p.name === productName);
                 if (!product) return;
@@ -878,7 +911,7 @@
                 }
             };
 
-            // Event Listener für Klicks auf der Einkaufsliste (für Mengenänderung und Entfernen)
+            // Event Listener for clicks on the shopping list (for quantity change and removal)
             shoppingListItemsUl.addEventListener('click', (event) => {
                 const target = event.target;
                 const action = target.dataset.action;
@@ -903,13 +936,13 @@
                 }
             });
 
-            // Event Listener für den "Einkaufsliste leeren" Button
+            // Event Listener for the "Clear shopping list" button
             clearShoppingListBtn.addEventListener('click', () => {
                 shoppingList = [];
                 updateShoppingListDisplay();
             });
 
-            // Funktion zum Suchen von Produkten
+            // Function to search for products
             window.searchProducts = function() {
                 const query = searchInput.value.toLowerCase().trim();
                 searchResultsDiv.innerHTML = '';
@@ -957,15 +990,15 @@
                 }
             };
 
-            // Event Listener für den Suchen-Button
+            // Event Listener for the search button
             searchButton.addEventListener('click', searchProducts);
 
-            // Event Listener für das Eingabefeld (Suche bei jeder Eingabe)
+            // Event Listener for the input field (search on every input)
             searchInput.addEventListener('input', searchProducts);
 
-            // Initialisiere die Einkaufsliste (wird durch Firestore-Listener aktualisiert)
+            // Initialize the shopping list (will be updated by Firestore listener)
             updateShoppingListDisplay(); 
-        }); // Ende DOMContentLoaded
+        }); // End DOMContentLoaded
     </script>
 </body>
 </html>
