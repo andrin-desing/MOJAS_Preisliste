@@ -7,12 +7,15 @@
     <!-- Favicon Link - Wichtig für das Logo in der Taskleiste/im Tab -->
     <link rel="icon" href="Logo.png" type="image/png">
     
+    <!-- Google Fonts Links -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&display=swap" rel="stylesheet">
+    
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', sans-serif; /* Standard-Schriftart für Fliesstext */
         }
         /* Custom Tailwind Colors for Mojas Palette */
         /* Primary Accent Orange */
@@ -55,6 +58,19 @@
             width: auto;
             border-radius: 0.5rem; /* Slightly rounded corners for the logo */
         }
+        /* Apply Orbitron to headings for a distinct look */
+        h1, h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700; /* Use a bold weight for impact */
+        }
+        /* Style for search results */
+        #searchResults div {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        #searchResults div:last-child {
+            border-bottom: none;
+        }
     </style>
 </head>
 <body class="bg-light-cream flex flex-col min-h-screen">
@@ -63,9 +79,9 @@
     <header class="bg-dark-accent text-white p-6 shadow-lg rounded-b-xl">
         <div class="container mx-auto flex flex-col sm:flex-row items-center justify-between">
             <div class="flex items-center space-x-3 mb-4 sm:mb-0">
-                <!-- Mojas Logo replaced with Logo.png -->
+                <!-- Mojas Logo -->
                 <img src="Logo.png" alt="Mojas Logo" class="logo-img">
-                <h1 class="text-3xl font-bold">MOJAS</h1>
+                <h1 class="text-3xl font-bold">MOJAS.ch</h1>
             </div>
             <nav class="w-full sm:w-auto mt-4 sm:mt-0">
                 <!-- Navigation links: stacked vertically on mobile, horizontal on small screens and up -->
@@ -89,7 +105,7 @@
                                   hover:bg-opacity-90 transition duration-300 ease-in-out 
                                   flex items-center justify-center space-x-2">
                             <span>Zur MOJAS Website</span>
-                            <!-- External Link Icon (from Lucide React, adapted for SVG) -->
+                            <!-- External Link Icon -->
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
                                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
                                 <polyline points="15 3 21 3 21 9"/>
@@ -104,6 +120,24 @@
 
     <!-- Main Content Section -->
     <main class="container mx-auto p-4 flex-grow">
+        <!-- Search Function Section -->
+        <section class="my-8 bg-white p-6 rounded-2xl shadow-xl">
+            <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Finde deinen Preis</h2>
+            <div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <input type="text" id="searchInput" placeholder="Z.B. Rivella, Schokoriegel, Chips..." 
+                       class="w-full sm:w-2/3 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mojas-orange">
+                <button id="searchButton" 
+                        class="w-full sm:w-auto px-6 py-3 bg-mojas-orange text-white rounded-lg shadow-md 
+                               hover:bg-opacity-90 transition duration-300 ease-in-out">
+                    Suchen
+                </button>
+            </div>
+            <!-- Search Results Display Area -->
+            <div id="searchResults" class="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200 hidden">
+                <!-- Results will be injected here by JavaScript -->
+            </div>
+        </section>
+
         <section id="preisliste" class="my-8 bg-white p-6 rounded-2xl shadow-xl">
             <h2 class="text-4xl font-bold text-mojas-orange mb-6 text-center">Unsere Preisliste</h2>
             <p class="text-gray-700 text-center mb-8">Hier findest du eine Übersicht über unsere köstlichen Snacks und Getränke.</p>
@@ -114,7 +148,7 @@
         <section id="drinks" class="my-8 bg-white p-6 rounded-2xl shadow-xl">
             <h2 class="text-4xl font-bold text-mojas-orange mb-6 text-center">Unsere Drinks</h2>
             <!-- Information about drink availability in a small box -->
-            <div class="bg-gray-100 p-4 mb-6 rounded-lg border border-gray-300 text-center mx-auto max-w-sm">
+            <div class="bg-orange-50 p-4 mb-6 rounded-lg border border-mojas-orange text-center mx-auto max-w-sm">
                 <p class="text-gray-700">Diese Drinks sind nur während Partys und kurz danach erhältlich.</p>
             </div>
             <p class="text-gray-700 text-center mb-8">Erfrischende Drinks für jeden Geschmack.</p>
@@ -140,5 +174,74 @@
         </div>
     </footer>
 
+    <script>
+        // Array mit allen Produkten, Preisen und Schlüsselwörtern für die intelligente Suche
+        const products = [
+            { name: "Diverse Softdrinks", price: "1.50 Fr.", keywords: ["diverse softdrinks", "softdrink", "softdrinks", "getränke", "rivella", "cola", "fanta", "sprite", "zitronenlimo", "apfelschorle", "eistee", "trinken"] },
+            { name: "Mineralwasser", price: "1.00 Fr.", keywords: ["mineralwasser", "wasser", "mineral", "still", "sprudel"] },
+            { name: "Capri Sun", price: "0.80 Fr.", keywords: ["capri sun", "caprisun", "saft", "fruchtsaft", "kindergetränk"] },
+            { name: "Gummistangen", price: "0.10 Fr.", keywords: ["gummistangen", "gummi", "süssigkeiten", "süsswaren", "gumistange"] },
+            { name: "Gummischlangen", price: "0.50 Fr.", keywords: ["gummischlangen", "gummi", "süssigkeiten", "süsswaren", "gummischlange"] },
+            { name: "Snickers", price: "1.00 Fr.", keywords: ["snickers", "schokoriegel", "schokolade", "riegel", "snickerss"] },
+            { name: "Mars", price: "1.00 Fr.", keywords: ["mars", "schokoriegel", "schokolade", "riegel"] },
+            { name: "Twix", price: "1.00 Fr.", keywords: ["twix", "schokoriegel", "schokolade", "riegel", "karamel"] },
+            { name: "Bounty", price: "1.00 Fr.", keywords: ["bounty", "schokoriegel", "schokolade", "riegel", "kokos"] },
+            { name: "M&M's", price: "1.50 Fr.", keywords: ["m&m's", "mms", "schokolinsen", "linsen", "schokodragees"] },
+            { name: "Skittles", price: "1.50 Fr.", keywords: ["skittles", "fruchtgummi", "bonbons", "fruchtbonbons"] },
+            { name: "Oreo's", price: "1.50 Fr.", keywords: ["oreo's", "oreos", "kekse", "doppelkeks"] },
+            { name: "Reese's", price: "1.80 Fr.", keywords: ["reese's", "reeses", "erdnussbutter", "schokolade"] },
+            { name: "Pringels Rot", price: "1.50 Fr.", keywords: ["pringels rot", "pringels", "chips", "rot", "paprika", "pringles"] },
+            { name: "Pringels Orange", price: "1.50 Fr.", keywords: ["pringels orange", "pringels", "chips", "orange", "käse", "pringles"] },
+            { name: "Pringels Grün", price: "1.50 Fr.", keywords: ["pringels grün", "pringels", "chips", "grün", "sour cream", "onion", "zwiebel", "pringles"] },
+            { name: "Popcorn", price: "1.00 Fr.", keywords: ["popcorn", "snacks", "kino", "gesalzen"] },
+            { name: "Toast mit Käse", price: "1.50 Fr.", keywords: ["toast mit käse", "toast", "käse", "sandwich"] },
+            { name: "Toast mit Käse und Trutenschinken", price: "2.00 Fr.", keywords: ["toast mit käse und trutenschinken", "toast", "käse", "trutenschinken", "schinken", "sandwich"] },
+            { name: "Virgin Sunrise", price: "2.00 Fr.", keywords: ["virgin sunrise", "cocktail", "drink", "alkoholfrei", "orange", "sunrise"] },
+            { name: "Blue Dream", price: "2.00 Fr.", keywords: ["blue dream", "cocktail", "drink", "alkoholfrei", "blau"] }
+        ];
+
+        // Referenzen auf HTML-Elemente
+        const searchInput = document.getElementById('searchInput');
+        const searchButton = document.getElementById('searchButton');
+        const searchResultsDiv = document.getElementById('searchResults');
+
+        // Funktion zum Suchen von Produkten
+        function searchProducts() {
+            const query = searchInput.value.toLowerCase().trim(); // Suchbegriff in Kleinbuchstaben
+            searchResultsDiv.innerHTML = ''; // Vorherige Ergebnisse löschen
+
+            if (query.length === 0) {
+                searchResultsDiv.classList.add('hidden'); // Ergebnisfeld ausblenden, wenn Suchfeld leer ist
+                return;
+            }
+
+            const matchedProducts = products.filter(product => {
+                // Überprüfe, ob der Suchbegriff in einem der Schlüsselwörter des Produkts enthalten ist
+                return product.keywords.some(keyword => keyword.includes(query));
+            });
+
+            if (matchedProducts.length > 0) {
+                searchResultsDiv.classList.remove('hidden'); // Ergebnisfeld einblenden
+                matchedProducts.forEach(product => {
+                    const resultItem = document.createElement('div');
+                    resultItem.classList.add('flex', 'justify-between', 'items-center', 'py-2'); // Tailwind-Klassen für Layout
+                    resultItem.innerHTML = `<span class="text-lg font-medium">${product.name}</span><span class="text-lg font-bold text-mojas-orange">${product.price}</span>`;
+                    searchResultsDiv.appendChild(resultItem);
+                });
+            } else {
+                searchResultsDiv.classList.remove('hidden'); // Ergebnisfeld einblenden, auch wenn nichts gefunden wurde
+                const noResultItem = document.createElement('div');
+                noResultItem.classList.add('py-2', 'text-gray-600', 'text-center', 'italic');
+                noResultItem.textContent = "Keine Produkte gefunden, die deiner Suche entsprechen. Probiere es mit anderen Begriffen.";
+                searchResultsDiv.appendChild(noResultItem);
+            }
+        }
+
+        // Event Listener für den Suchen-Button
+        searchButton.addEventListener('click', searchProducts);
+
+        // Event Listener für das Eingabefeld (Suche bei jeder Eingabe)
+        searchInput.addEventListener('input', searchProducts);
+    </script>
 </body>
 </html>
