@@ -13,6 +13,10 @@
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- LottieFiles Web Player CDN (for playing Lottie animations) -->
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+
     <style>
         body {
             font-family: 'Inter', sans-serif; /* Standard-Schriftart für Fliesstext */
@@ -31,7 +35,7 @@
 
         /* Darker, Sophisticated Accent (for Header/Footer) */
         .bg-dark-accent {
-            background-color: #2c3e50; /* A deep, rich charcoal blue */
+            background-color: #2c3e50; /* Ein tiefes, sattes Anthrazitblau */
         }
         .text-dark-accent {
             color: #2c3e50;
@@ -39,37 +43,61 @@
 
         /* Light, Warm Background */
         .bg-light-cream {
-            background-color: #FDFBF8; /* A very subtle, warm off-white */
+            background-color: #FDFBF8; /* Ein sehr subtiles, warmes Off-White */
         }
 
         /* Styling for the price list images to ensure they are responsive and well-displayed */
         .price-list-img {
             width: 100%;
             height: auto;
-            max-width: 800px; /* Max width to prevent images from becoming too large on desktop */
+            max-width: 800px; /* Maximale Breite, um Bilder auf Desktops nicht zu gross werden zu lassen */
             display: block;
             margin: 0 auto;
-            border-radius: 1rem; /* Rounded corners */
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            border-radius: 1rem; /* Abgerundete Ecken */
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); /* Subtiler Schatten */
         }
         /* Styling for the logo image */
         .logo-img {
-            height: 40px; /* Adjust height as needed */
+            height: 40px; /* Höhe nach Bedarf anpassen */
             width: auto;
-            border-radius: 0.5rem; /* Slightly rounded corners for the logo */
+            border-radius: 0.5rem; /* Leicht abgerundete Ecken für das Logo */
         }
         /* Apply Orbitron to headings for a distinct look */
         h1, h2 {
             font-family: 'Orbitron', sans-serif;
-            font-weight: 700; /* Use a bold weight for impact */
+            font-weight: 700; /* Eine fette Schriftstärke für mehr Wirkung */
         }
         /* Style for search results */
-        #searchResults div {
-            padding: 0.5rem 0;
+        #searchResults .product-item, #shoppingListItems .list-item {
+            padding: 0.75rem 0;
             border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap; /* Elemente bei Bedarf umbrechen lassen */
+            gap: 0.5rem; /* Kleiner Abstand zwischen Elementen */
         }
-        #searchResults div:last-child {
+        #searchResults .product-item:last-child, #shoppingListItems .list-item:last-child {
             border-bottom: none;
+        }
+        #shoppingListItems .list-item span {
+            flex-grow: 1; /* Text kann wachsen */
+        }
+        #shoppingListItems .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        /* Styling for Lottie container */
+        .lottie-container {
+            width: 30px; /* Grösse des Lottie-Icons anpassen */
+            height: 30px;
+            /* Absolute Positionierung innerhalb des relativen Wrappers */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none; /* Standardmässig versteckt */
         }
     </style>
 </head>
@@ -81,13 +109,14 @@
             <div class="flex items-center space-x-3 mb-4 sm:mb-0">
                 <!-- Mojas Logo -->
                 <img src="Logo.png" alt="Mojas Logo" class="logo-img">
-                <h1 class="text-3xl font-bold">MOJAS</h1>
+                <h1 class="text-3xl font-bold">MOJAS.ch</h1>
             </div>
             <nav class="w-full sm:w-auto mt-4 sm:mt-0">
                 <!-- Navigation links: stacked vertically on mobile, horizontal on small screens and up -->
                 <ul class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 text-lg items-center">
                     <li><a href="#preisliste" class="hover:underline text-mojas-orange">Preisliste</a></li>
                     <li><a href="#drinks" class="hover:underline text-mojas-orange">Drinks</a></li>
+                    <li><a href="#shoppingListSection" class="hover:underline text-mojas-orange">Einkaufsliste</a></li>
                     <li>
                         <!-- Instagram Icon only, serves as link -->
                         <a href="https://www.instagram.com/MOJAS.ch/" target="_blank" rel="noopener noreferrer" class="text-mojas-orange flex items-center justify-center p-1 rounded-full hover:bg-white hover:bg-opacity-20 transition duration-300">
@@ -107,7 +136,8 @@
                             <span>Zur MOJAS Website</span>
                             <!-- External Link Icon -->
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
-                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0
+                                0 1 2-2h6"/>
                                 <polyline points="15 3 21 3 21 9"/>
                                 <line x1="10" x2="21" y1="14" y2="3"/>
                             </svg>
@@ -136,6 +166,23 @@
             <div id="searchResults" class="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200 hidden">
                 <!-- Results will be injected here by JavaScript -->
             </div>
+        </section>
+
+        <!-- Shopping List Section -->
+        <section id="shoppingListSection" class="my-8 bg-white p-6 rounded-2xl shadow-xl">
+            <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Deine Einkaufsliste</h2>
+            <ul id="shoppingListItems" class="mb-4">
+                <!-- Shopping list items will be injected here -->
+            </ul>
+            <div id="shoppingListSummary" class="text-right text-2xl font-bold text-mojas-orange mt-4 pt-4 border-t-2 border-gray-200">
+                Gesamt: <span id="shoppingListTotal">0.00 Fr.</span>
+            </div>
+            <button id="clearShoppingListBtn" 
+                    class="mt-4 px-6 py-3 bg-gray-300 text-gray-800 rounded-lg shadow-md 
+                           hover:bg-gray-400 transition duration-300 ease-in-out w-full sm:w-auto mx-auto block">
+                Einkaufsliste leeren
+            </button>
+            <div id="emptyListMessage" class="text-center text-gray-600 mt-4 italic">Deine Einkaufsliste ist leer.</div>
         </section>
 
         <section id="preisliste" class="my-8 bg-white p-6 rounded-2xl shadow-xl">
@@ -177,65 +224,198 @@
     <script>
         // Array mit allen Produkten, Preisen und Schlüsselwörtern für die intelligente Suche
         const products = [
-            { name: "Diverse Softdrinks", price: "1.50 Fr.", keywords: ["diverse softdrinks", "softdrink", "softdrinks", "getränke", "rivella", "cola", "fanta", "sprite", "zitronenlimo", "apfelschorle", "eistee", "trinken"] },
-            { name: "Mineralwasser", price: "1.00 Fr.", keywords: ["mineralwasser", "wasser", "mineral", "still", "sprudel"] },
-            { name: "Capri Sun", price: "0.80 Fr.", keywords: ["capri sun", "caprisun", "saft", "fruchtsaft", "kindergetränk"] },
-            { name: "Gummistangen", price: "0.10 Fr.", keywords: ["gummistangen", "gummi", "süssigkeiten", "süsswaren", "gumistange"] },
-            { name: "Gummischlangen", price: "0.50 Fr.", keywords: ["gummischlangen", "gummi", "süssigkeiten", "süsswaren", "gummischlange"] },
-            { name: "Snickers", price: "1.00 Fr.", keywords: ["snickers", "schokoriegel", "schokolade", "riegel", "snickerss"] },
-            { name: "Mars", price: "1.00 Fr.", keywords: ["mars", "schokoriegel", "schokolade", "riegel"] },
-            { name: "Twix", price: "1.00 Fr.", keywords: ["twix", "schokoriegel", "schokolade", "riegel", "karamel"] },
-            { name: "Bounty", price: "1.00 Fr.", keywords: ["bounty", "schokoriegel", "schokolade", "riegel", "kokos"] },
-            { name: "M&M's", price: "1.50 Fr.", keywords: ["m&m's", "mms", "schokolinsen", "linsen", "schokodragees"] },
-            { name: "Skittles", price: "1.50 Fr.", keywords: ["skittles", "fruchtgummi", "bonbons", "fruchtbonbons"] },
-            { name: "Oreo's", price: "1.50 Fr.", keywords: ["oreo's", "oreos", "kekse", "doppelkeks"] },
-            { name: "Reese's", price: "1.80 Fr.", keywords: ["reese's", "reeses", "erdnussbutter", "schokolade"] },
-            { name: "Pringels Rot", price: "1.50 Fr.", keywords: ["pringels rot", "pringels", "chips", "rot", "paprika", "pringles"] },
-            { name: "Pringels Orange", price: "1.50 Fr.", keywords: ["pringels orange", "pringels", "chips", "orange", "käse", "pringles"] },
-            { name: "Pringels Grün", price: "1.50 Fr.", keywords: ["pringels grün", "pringels", "chips", "grün", "sour cream", "onion", "zwiebel", "pringles"] },
-            { name: "Popcorn", price: "1.00 Fr.", keywords: ["popcorn", "snacks", "kino", "gesalzen"] },
-            { name: "Toast mit Käse", price: "1.50 Fr.", keywords: ["toast mit käse", "toast", "käse", "sandwich"] },
-            { name: "Toast mit Käse und Trutenschinken", price: "2.00 Fr.", keywords: ["toast mit käse und trutenschinken", "toast", "käse", "trutenschinken", "schinken", "sandwich"] },
-            { name: "Virgin Sunrise", price: "2.00 Fr.", keywords: ["virgin sunrise", "cocktail", "drink", "alkoholfrei", "orange", "sunrise"] },
-            { name: "Blue Dream", price: "2.00 Fr.", keywords: ["blue dream", "cocktail", "drink", "alkoholfrei", "blau"] }
+            { name: "Diverse Softdrinks", price: 1.50, keywords: ["diverse softdrinks", "softdrink", "softdrinks", "getränke", "rivella", "cola", "fanta", "sprite", "zitronenlimo", "apfelschorle", "eistee", "trinken"] },
+            { name: "Mineralwasser", price: 1.00, keywords: ["mineralwasser", "wasser", "mineral", "still", "sprudel"] },
+            { name: "Capri Sun", price: 0.80, keywords: ["capri sun", "caprisun", "saft", "fruchtsaft", "kindergetränk"] },
+            { name: "Gummistangen", price: 0.10, keywords: ["gummistangen", "gummi", "süssigkeiten", "süsswaren", "gumistange"] },
+            { name: "Gummischlangen", price: 0.50, keywords: ["gummischlangen", "gummi", "süssigkeiten", "süsswaren", "gummischlange"] },
+            { name: "Snickers", price: 1.00, keywords: ["snickers", "schokoriegel", "schokolade", "riegel", "snickerss"] },
+            { name: "Mars", price: 1.00, keywords: ["mars", "schokoriegel", "schokolade", "riegel"] },
+            { name: "Twix", price: 1.00, keywords: ["twix", "schokoriegel", "schokolade", "riegel", "karamel"] },
+            { name: "Bounty", price: 1.00, keywords: ["bounty", "schokoriegel", "schokolade", "riegel", "kokos"] },
+            { name: "M&M's", price: 1.50, keywords: ["m&m's", "mms", "schokolinsen", "linsen", "schokodragees"] },
+            { name: "Skittles", price: 1.50, keywords: ["skittles", "fruchtgummi", "bonbons", "fruchtbonbons"] },
+            { name: "Oreo's", price: 1.50, keywords: ["oreo's", "oreos", "kekse", "doppelkeks"] },
+            { name: "Reese's", price: 1.80, keywords: ["reese's", "reeses", "erdnussbutter", "schokolade"] },
+            { name: "Pringels Rot", price: 1.50, keywords: ["pringels rot", "pringels", "chips", "rot", "paprika", "pringles"] },
+            { name: "Pringels Orange", price: 1.50, keywords: ["pringels orange", "pringels", "chips", "orange", "käse", "pringles"] },
+            { name: "Pringels Grün", price: 1.50, keywords: ["pringels grün", "pringels", "chips", "grün", "sour cream", "onion", "zwiebel", "pringles"] },
+            { name: "Popcorn", price: 1.00, keywords: ["popcorn", "snacks", "kino", "gesalzen"] },
+            { name: "Toast mit Käse", price: 1.50, keywords: ["toast mit käse", "toast", "käse", "sandwich"] },
+            { name: "Toast mit Käse und Trutenschinken", price: 2.00, keywords: ["toast mit käse und trutenschinken", "toast", "käse", "trutenschinken", "schinken", "sandwich"] },
+            { name: "Virgin Sunrise", price: 2.00, keywords: ["virgin sunrise", "cocktail", "drink", "alkoholfrei", "orange", "sunrise"] },
+            { name: "Blue Dream", price: 2.00, keywords: ["blue dream", "cocktail", "drink", "alkoholfrei", "blau"] }
         ];
+
+        // Shopping list array
+        let shoppingList = [];
 
         // Referenzen auf HTML-Elemente
         const searchInput = document.getElementById('searchInput');
         const searchButton = document.getElementById('searchButton');
         const searchResultsDiv = document.getElementById('searchResults');
+        const shoppingListItemsUl = document.getElementById('shoppingListItems');
+        const shoppingListTotalSpan = document.getElementById('shoppingListTotal');
+        const clearShoppingListBtn = document.getElementById('clearShoppingListBtn');
+        const emptyListMessage = document.getElementById('emptyListMessage');
 
-        // Funktion zum Suchen von Produkten
+        // Funktion zum Aktualisieren der Anzeige der Einkaufsliste
+        function updateShoppingListDisplay() {
+            shoppingListItemsUl.innerHTML = ''; // Vorherige Einträge löschen
+
+            if (shoppingList.length === 0) {
+                emptyListMessage.classList.remove('hidden');
+                shoppingListItemsUl.classList.add('hidden');
+            } else {
+                emptyListMessage.classList.add('hidden');
+                shoppingListItemsUl.classList.remove('hidden');
+                shoppingList.forEach(item => {
+                    const listItem = document.createElement('li');
+                    listItem.classList.add('list-item'); // Eigene Klasse für Styling
+                    listItem.innerHTML = `
+                        <span class="flex-grow">${item.name} (${item.price.toFixed(2)} Fr. pro Stk.)</span>
+                        <div class="quantity-controls flex items-center">
+                            <button class="bg-gray-200 text-gray-800 px-2 py-1 rounded-md hover:bg-gray-300" data-action="decrease" data-name="${item.name}">-</button>
+                            <span class="px-2 font-semibold">${item.quantity}</span>
+                            <button class="bg-gray-200 text-gray-800 px-2 py-1 rounded-md hover:bg-gray-300" data-action="increase" data-name="${item.name}">+</button>
+                            <span class="ml-4 font-bold text-mojas-orange">Total: ${(item.price * item.quantity).toFixed(2)} Fr.</span>
+                            <button class="bg-red-500 text-white px-2 py-1 ml-4 rounded-md hover:bg-red-600" data-action="remove" data-name="${item.name}">X</button>
+                        </div>
+                    `;
+                    shoppingListItemsUl.appendChild(listItem);
+                });
+            }
+            calculateTotal(); // Gesamtsumme neu berechnen
+        }
+
+        // Funktion zur Berechnung der Gesamtsumme
+        function calculateTotal() {
+            let total = shoppingList.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            shoppingListTotalSpan.textContent = `${total.toFixed(2)} Fr.`;
+        }
+
+        // Funktion zum Hinzufügen/Aktualisieren von Elementen in der Einkaufsliste
+        function addToShoppingList(productName, targetButton) { // targetButton ist der 'Hinzufügen'-Button
+            const product = products.find(p => p.name === productName);
+            if (!product) return; // Produkt nicht gefunden
+
+            const existingItem = shoppingList.find(item => item.name === productName);
+
+            if (existingItem) {
+                existingItem.quantity++;
+            } else {
+                shoppingList.push({ ...product, quantity: 1 });
+            }
+            updateShoppingListDisplay();
+
+            // Lottie Animation anzeigen
+            if (targetButton) {
+                const productItemDiv = targetButton.closest('.product-item');
+                const lottieContainer = productItemDiv.querySelector('.lottie-container');
+                const lottiePlayer = productItemDiv.querySelector('lottie-player');
+
+                if (lottieContainer && lottiePlayer) {
+                    targetButton.style.display = 'none'; // "Hinzufügen"-Button ausblenden
+                    lottieContainer.style.display = 'block'; // Lottie Container einblenden
+
+                    // Spielt die Animation ab (setzt sie zurück und startet sie)
+                    lottiePlayer.play();
+
+                    // Blendet die Animation nach kurzer Zeit wieder aus und zeigt den Button wieder an
+                    setTimeout(() => {
+                        lottiePlayer.stop(); // Animation stoppen
+                        lottieContainer.style.display = 'none'; // Lottie Container ausblenden
+                        targetButton.style.display = 'inline-block'; // "Hinzufügen"-Button wieder einblenden
+                    }, 1500); // Animation für 1.5 Sekunden anzeigen
+                }
+            }
+        }
+
+        // Event Listener für Klicks auf der Einkaufsliste (für Mengenänderung und Entfernen)
+        shoppingListItemsUl.addEventListener('click', (event) => {
+            const target = event.target;
+            const action = target.dataset.action;
+            const productName = target.dataset.name;
+
+            if (action && productName) {
+                const itemIndex = shoppingList.findIndex(item => item.name === productName);
+                if (itemIndex === -1) return; // Artikel nicht gefunden
+
+                if (action === 'increase') {
+                    shoppingList[itemIndex].quantity++;
+                } else if (action === 'decrease') {
+                    if (shoppingList[itemIndex].quantity > 1) {
+                        shoppingList[itemIndex].quantity--;
+                    } else {
+                        // Wenn Menge 1 ist und verringert wird, Artikel entfernen
+                        shoppingList.splice(itemIndex, 1);
+                    }
+                } else if (action === 'remove') {
+                    shoppingList.splice(itemIndex, 1); // Artikel vollständig entfernen
+                }
+                updateShoppingListDisplay();
+            }
+        });
+
+        // Event Listener für den "Einkaufsliste leeren" Button
+        clearShoppingListBtn.addEventListener('click', () => {
+            shoppingList = [];
+            updateShoppingListDisplay();
+        });
+
+
+        // Funktion zum Suchen von Produkten (bestehend, mit Hinzufügen-Button erweitert)
         function searchProducts() {
-            const query = searchInput.value.toLowerCase().trim(); // Suchbegriff in Kleinbuchstaben
-            searchResultsDiv.innerHTML = ''; // Vorherige Ergebnisse löschen
+            const query = searchInput.value.toLowerCase().trim();
+            searchResultsDiv.innerHTML = '';
 
             if (query.length === 0) {
-                searchResultsDiv.classList.add('hidden'); // Ergebnisfeld ausblenden, wenn Suchfeld leer ist
+                searchResultsDiv.classList.add('hidden');
                 return;
             }
 
             const matchedProducts = products.filter(product => {
-                // Überprüfe, ob der Suchbegriff in einem der Schlüsselwörter des Produkts enthalten ist
                 return product.keywords.some(keyword => keyword.includes(query));
             });
 
             if (matchedProducts.length > 0) {
-                searchResultsDiv.classList.remove('hidden'); // Ergebnisfeld einblenden
+                searchResultsDiv.classList.remove('hidden');
                 matchedProducts.forEach(product => {
                     const resultItem = document.createElement('div');
-                    resultItem.classList.add('flex', 'justify-between', 'items-center', 'py-2'); // Tailwind-Klassen für Layout
-                    resultItem.innerHTML = `<span class="text-lg font-medium">${product.name}</span><span class="text-lg font-bold text-mojas-orange">${product.price}</span>`;
+                    resultItem.classList.add('product-item'); // Eigene Klasse für Styling
+                    resultItem.innerHTML = `
+                        <span class="text-lg font-medium">${product.name}</span>
+                        <span class="text-lg font-bold text-mojas-orange">${product.price.toFixed(2)} Fr.</span>
+                        <div class="relative w-24 h-10 flex items-center justify-center"> <!-- Fixed size container for button/lottie -->
+                            <button class="add-to-list-btn px-3 py-1 bg-mojas-orange text-white rounded-md hover:bg-opacity-90 transition duration-300" 
+                                    data-name="${product.name}">
+                                Hinzufügen
+                            </button>
+                            <div class="lottie-container">
+                                <lottie-player src="animations/checkmark_animation.json" background="transparent" speed="1" loop autoplay></lottie-player>
+                            </div>
+                        </div>
+                    `;
                     searchResultsDiv.appendChild(resultItem);
                 });
+                // Event Listener für alle "Hinzufügen"-Buttons
+                document.querySelectorAll('.add-to-list-btn').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        // Übergibt das Button-Element an die addToShoppingList Funktion
+                        addToShoppingList(event.target.dataset.name, event.target); 
+                    });
+                });
             } else {
-                searchResultsDiv.classList.remove('hidden'); // Ergebnisfeld einblenden, auch wenn nichts gefunden wurde
+                searchResultsDiv.classList.remove('hidden');
                 const noResultItem = document.createElement('div');
                 noResultItem.classList.add('py-2', 'text-gray-600', 'text-center', 'italic');
                 noResultItem.textContent = "Keine Produkte gefunden, die deiner Suche entsprechen. Probiere es mit anderen Begriffen.";
                 searchResultsDiv.appendChild(noResultItem);
             }
         }
+
+        // Initialisiere die Einkaufsliste beim Laden der Seite
+        updateShoppingListDisplay();
 
         // Event Listener für den Suchen-Button
         searchButton.addEventListener('click', searchProducts);
