@@ -318,7 +318,8 @@
                     targetButton.style.display = 'none'; // "Hinzufügen"-Button ausblenden
                     lottieContainer.style.display = 'block'; // Lottie Container einblenden
 
-                    // Spielt die Animation ab (setzt sie zurück und startet sie)
+                    // Setzt die Animation zurück auf den Anfang und spielt sie ab
+                    lottiePlayer.setDirection(1); // Stellt sicher, dass die Animation vorwärts läuft
                     lottiePlayer.play();
 
                     // Blendet die Animation nach kurzer Zeit wieder aus und zeigt den Button wieder an
@@ -326,7 +327,7 @@
                         lottiePlayer.stop(); // Animation stoppen
                         lottieContainer.style.display = 'none'; // Lottie Container ausblenden
                         targetButton.style.display = 'inline-block'; // "Hinzufügen"-Button wieder einblenden
-                    }, 1500); // Animation für 1.5 Sekunden anzeigen
+                    }, 350); // Animation für 0.35 Sekunden anzeigen
                 }
             }
         }
@@ -392,7 +393,7 @@
                                 Hinzufügen
                             </button>
                             <div class="lottie-container">
-                                <lottie-player src="animations/checkmark_animation.json" background="transparent" speed="1" loop autoplay></lottie-player>
+                                <lottie-player src="animations/checkmark_animation.json" background="transparent" speed="1"></lottie-player>
                             </div>
                         </div>
                     `;
