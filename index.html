@@ -366,11 +366,8 @@
             const emptyListMessage = document.getElementById('emptyListMessage');
 
             // Initialisiere die Authentifizierung (anonym) beim Laden der Seite
-            // Dies ist wichtig, damit Firestore-Operationen (Lesen und Schreiben der Initialprodukte)
-            // mit den notwendigen Berechtigungen ausgeführt werden können.
+            // Dies ist wichtig, damit Firestore-Operationen mit den notwendigen Berechtigungen ausgeführt werden können.
             try {
-                // Auf GitHub Pages existiert __initial_auth_token nicht, daher direkt anonym anmelden.
-                // In Canvas wird der auth-Status oft automatisch gesetzt, aber explizite Anmeldung schadet nicht.
                 await signInAnonymously(auth);
                 console.log("Anonyme Authentifizierung erfolgreich (Initialisierung)!");
             } catch (error) {
@@ -455,11 +452,8 @@
                     window.products = fetchedProducts.sort((a, b) => a.name.localeCompare(b.name));
                     console.log("Produkte von Firestore geladen:", window.products);
                     
-                    if (searchInput.value.length > 0) {
-                        searchProducts();
-                    } else {
-                        searchResultsDiv.classList.add('hidden');
-                    }
+                    // Wichtig: Suchfunktion immer aktualisieren, wenn sich die Produkte ändern
+                    searchProducts(); 
                     updateShoppingListDisplay();
                     updateAdminProductList();
                 }, (error) => {
@@ -497,7 +491,6 @@
                     isAdminLoggedIn = true; // Setze den Admin-Status
 
                     // Stelle sicher, dass *ein* Benutzer angemeldet ist, um Firestore-Schreibrechte zu haben
-                    // Hier versuchen wir eine anonyme Anmeldung, falls noch kein Benutzer angemeldet ist.
                     if (!auth.currentUser) {
                         try {
                             await signInAnonymously(auth);
