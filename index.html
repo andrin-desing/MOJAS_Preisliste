@@ -215,7 +215,7 @@
                 <!-- Preisliste 1 Image Upload -->
                 <div class="p-4 border rounded-lg shadow-sm">
                     <label for="uploadPriceList1" class="block text-gray-700 text-sm font-bold mb-2">Preisliste Snacks & Getränke (1.1.png)</label>
-                    <input type="file" id="uploadPriceList1" accept="image/png, image/jpeg" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-mojas-orange file:text-white hover:file:bg-opacity-90 mb-2">
+                    <input type="file" id="uploadPriceList1" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-mojas-orange file:text-white hover:file:bg-opacity-90 mb-2">
                     <button id="btnUploadPriceList1" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">Bild hochladen</button>
                     <p id="uploadStatus1" class="text-sm mt-2 text-gray-600"></p>
                 </div>
@@ -223,7 +223,7 @@
                 <!-- Preisliste 2 Image Upload -->
                 <div class="p-4 border rounded-lg shadow-sm">
                     <label for="uploadPriceList2" class="block text-gray-700 text-sm font-bold mb-2">Preisliste Drinks (2.1.png)</label>
-                    <input type="file" id="uploadPriceList2" accept="image/png, image/jpeg" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-mojas-orange file:text-white hover:file:bg-opacity-90 mb-2">
+                    <input type="file" id="uploadPriceList2" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-mojas-orange file:text-white hover:file:bg-opacity-90 mb-2">
                     <button id="btnUploadPriceList2" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">Bild hochladen</button>
                     <p id="uploadStatus2" class="text-sm mt-2 text-gray-600"></p>
                 </div>
@@ -764,28 +764,6 @@
 
             // Event-Listener für den Abbrechen-Button im Admin-Formular
             cancelEditBtn.addEventListener('click', resetAdminForm);
-
-            // Event-Listener für Bild-Uploads
-            btnUploadPriceList1.addEventListener('click', () => {
-                const file = uploadPriceList1Input.files[0];
-                if (file) {
-                    uploadAndSaveImage(file, 'price_list_1.png', uploadStatus1, priceList1Display);
-                } else {
-                    uploadStatus1.textContent = "Bitte eine Bilddatei auswählen.";
-                    uploadStatus1.style.color = "red";
-                }
-            });
-
-            btnUploadPriceList2.addEventListener('click', () => {
-                const file = uploadPriceList2Input.files[0];
-                if (file) {
-                    uploadAndSaveImage(file, 'price_list_2.png', uploadStatus2, priceList2Display);
-                } else {
-                    uploadStatus2.textContent = "Bitte eine Bilddatei auswählen.";
-                    uploadStatus2.style.color = "red";
-                }
-            });
-
 
             // --- Bestehende Such- und Einkaufslisten-Funktionen ---
 
