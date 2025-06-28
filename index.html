@@ -67,8 +67,9 @@
                 <img src="Logo.png" alt="Mojas Logo" class="logo-img">
                 <h1 class="text-3xl font-bold">MOJAS.ch</h1>
             </div>
-            <nav>
-                <ul class="flex space-x-6 text-lg items-center">
+            <nav class="w-full sm:w-auto mt-4 sm:mt-0">
+                <!-- Navigation links: stacked vertically on mobile, horizontal on small screens and up -->
+                <ul class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 text-lg items-center">
                     <li><a href="#preisliste" class="hover:underline text-mojas-orange">Preisliste</a></li>
                     <li><a href="#drinks" class="hover:underline text-mojas-orange">Drinks</a></li>
                     <li><a href="https://www.instagram.com/MOJAS.ch/" target="_blank" rel="noopener noreferrer" class="hover:underline text-mojas-orange flex items-center">
@@ -80,12 +81,12 @@
                         </svg>
                         @MOJAS.ch
                     </a></li>
-                    <!-- New button for MOJAS website -->
+                    <!-- Button for MOJAS website: full width on mobile, inline on small screens and up -->
                     <li>
                         <a href="https://www.mojas.ch/" target="_blank" rel="noopener noreferrer" 
-                           class="ml-4 px-4 py-2 bg-mojas-orange text-white rounded-lg shadow-md 
+                           class="w-full sm:w-auto mt-4 sm:ml-4 sm:mt-0 px-4 py-2 bg-mojas-orange text-white rounded-lg shadow-md 
                                   hover:bg-opacity-90 transition duration-300 ease-in-out 
-                                  flex items-center space-x-2">
+                                  flex items-center justify-center space-x-2">
                             <span>Zur MOJAS Website</span>
                             <!-- External Link Icon (from Lucide React, adapted for SVG) -->
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
@@ -125,7 +126,7 @@
     <footer class="bg-dark-accent text-white p-6 rounded-t-xl mt-8">
         <div class="container mx-auto text-center">
             <p>&copy; 2025 MOJAS.ch. Alle Rechte vorbehalten.</p>
-            <div class="flex justify-center items-center mt-3 space-x-4">
+            <div class="flex flex-col sm:flex-row justify-center items-center mt-3 space-y-2 sm:space-y-0 sm:space-x-4">
                 <a href="https://www.instagram.com/MOJAS.ch/" target="_blank" rel="noopener noreferrer" class="text-mojas-orange hover:text-white transition duration-300 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-1">
                         <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
