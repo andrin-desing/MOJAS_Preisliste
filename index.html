@@ -284,7 +284,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signOut, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Globale Variablen für Firebase (werden vom Canvas-Environment bereitgestellt)
@@ -365,6 +365,20 @@
             const clearShoppingListBtn = document.getElementById('clearShoppingListBtn');
             const emptyListMessage = document.getElementById('emptyListMessage');
 
+            // Initialisiere die Authentifizierung (anonym) beim Laden der Seite
+            // Dies ist wichtig, damit Firestore-Operationen (Lesen und Schreiben der Initialprodukte)
+            // mit den notwendigen Berechtigungen ausgeführt werden können.
+            try {
+                // Auf GitHub Pages existiert __initial_auth_token nicht, daher direkt anonym anmelden.
+                // In Canvas wird der auth-Status oft automatisch gesetzt, aber explizite Anmeldung schadet nicht.
+                await signInAnonymously(auth);
+                console.log("Anonyme Authentifizierung erfolgreich (Initialisierung)!");
+            } catch (error) {
+                console.error("Fehler bei der initialen Authentifizierung:", error);
+                // Wenn hier ein Fehler auftritt, könnte es ein Problem mit den Firebase-Einstellungen sein.
+                // Die App wird aber weiterhin versuchen, Daten zu laden/schreiben, was dann zu "Missing or insufficient permissions" führt.
+            }
+
             // Login-Status überwachen
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
@@ -396,14 +410,6 @@
                     adminAuthButton.textContent = "Admin Login";
                     adminPanel.classList.add('hidden'); // Adminbereich verstecken
                     adminLoginFormDiv.classList.add('hidden'); // Login-Formular verstecken
-                    
-                    // Versuch einer anonymen Anmeldung, wenn niemand angemeldet ist, um allgemeine Zugriffe zu ermöglichen
-                    try {
-                        await signInAnonymously(auth);
-                        console.log("Anonyme Authentifizierung als Fallback erfolgreich.");
-                    } catch (anonError) {
-                        console.error("Fehler bei anonymer Fallback-Authentifizierung:", anonError);
-                    }
                 }
             });
 
