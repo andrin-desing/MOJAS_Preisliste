@@ -426,14 +426,14 @@
         </div>
     </footer>
 
-    <!-- Custom Delete Confirmation Modal -->
-    <div id="deleteConfirmModal" class="modal-overlay hidden">
+    <!-- Custom Generic Confirmation Modal (repurposed from deleteConfirmModal) -->
+    <div id="confirmModal" class="modal-overlay hidden">
         <div class="modal-content">
-            <h3 class="text-xl font-bold text-dark-accent mb-4">Produkt löschen</h3>
-            <p class="text-gray-700 mb-6" id="confirmModalMessage">Möchten Sie "<span id="confirmProductName" class="font-semibold"></span>" wirklich löschen?</p>
+            <h3 class="text-xl font-bold text-dark-accent mb-4" id="confirmModalTitle">Bestätigung</h3>
+            <p class="text-gray-700 mb-6" id="confirmModalMessage">Möchten Sie diese Aktion wirklich ausführen?</p>
             <div class="flex justify-center space-x-4">
-                <button id="confirmDeleteBtn" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition duration-300">Löschen</button>
-                <button id="cancelDeleteBtn" class="bg-gray-300 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-400 transition duration-300">Abbrechen</button>
+                <button id="modalConfirmBtn" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition duration-300">Ja</button>
+                <button id="modalCancelBtn" class="bg-gray-300 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-400 transition duration-300">Abbrechen</button>
             </div>
         </div>
     </div>
@@ -518,6 +518,11 @@
         // Shopping list array (client-side only)
         let shoppingList = [];
 
+        // Variable to store the current action for the generic confirmation modal
+        let currentModalAction = null; // 'deleteProduct', 'resetPageViews', 'resetShoppingList'
+        let productToDeleteId = null; // Stores the ID of the product to delete
+
+
         // DOMContentLoaded ensures all HTML elements are loaded before running the script
         document.addEventListener('DOMContentLoaded', async () => {
             // Main content area containers
@@ -581,13 +586,12 @@
                 '#adminPanel input:not(#adminEmail):not(#adminPassword), #adminPanel button:not([type="submit"]), #adminPanel select, #adminPanel textarea'
             );
 
-            // Elements for custom delete confirmation modal
-            const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+            // Elements for generic confirmation modal
+            const confirmModal = document.getElementById('confirmModal');
+            const confirmModalTitle = document.getElementById('confirmModalTitle');
             const confirmModalMessage = document.getElementById('confirmModalMessage');
-            const confirmProductNameSpan = document.getElementById('confirmProductName');
-            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-            const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-            let productIdToDelete = null; 
+            const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+            const modalCancelBtn = document.getElementById('modalCancelBtn');
 
             // Existing search and shopping list UI elements (Public side)
             const searchInput = document.getElementById('searchInput');
@@ -611,8 +615,8 @@
             // UI-Elemente für Statistiken
             const totalPageViewsDisplay = document.getElementById('totalPageViewsDisplay');
             const shoppingListStatsList = document.getElementById('shoppingListStatsList');
-            const resetPageViewsBtn = document.getElementById('resetPageViewsBtn'); // NEU
-            const resetShoppingListStatsBtn = document.getElementById('resetShoppingListStatsBtn'); // NEU
+            const resetPageViewsBtn = document.getElementById('resetPageViewsBtn'); 
+            const resetShoppingListStatsBtn = document.getElementById('resetShoppingListStatsBtn'); 
 
 
             // Function to enable/disable admin form elements based on admin status
@@ -723,42 +727,61 @@
                 });
             }
 
-            // NEU: Reset-Funktion für Website-Aufrufe
-            resetPageViewsBtn.addEventListener('click', async () => {
+            // Funktion zum Zurücksetzen der Website-Aufrufe
+            async function resetPageViews() {
                 if (!isAdminLoggedIn) {
                     alert("Sie müssen als Admin angemeldet sein, um Statistiken zurückzusetzen.");
                     return;
                 }
-                const confirmation = confirm("Sind Sie sicher, dass Sie die Website-Aufrufe auf 0 zurücksetzen möchten?");
-                if (confirmation) {
-                    try {
-                        await setDoc(websiteTrafficDocRef, { totalPageViews: 0 });
-                        console.log("Website-Aufrufe zurückgesetzt.");
-                        alert("Website-Aufrufe erfolgreich zurückgesetzt.");
-                    } catch (error) {
-                        console.error("Fehler beim Zurücksetzen der Website-Aufrufe:", error);
-                        alert("Fehler beim Zurücksetzen der Website-Aufrufe: " + error.message);
-                    }
+                try {
+                    await setDoc(websiteTrafficDocRef, { totalPageViews: 0 });
+                    console.log("Website-Aufrufe zurückgesetzt.");
+                    // alert("Website-Aufrufe erfolgreich zurückgesetzt."); // Feedback über Modal geben
+                } catch (error) {
+                    console.error("Fehler beim Zurücksetzen der Website-Aufrufe:", error);
+                    // alert("Fehler beim Zurücksetzen der Website-Aufrufe: " + error.message);
                 }
+            }
+
+            // Funktion zum Zurücksetzen der Einkaufsliste-Statistiken
+            async function resetShoppingListStats() {
+                if (!isAdminLoggedIn) {
+                    alert("Sie müssen als Admin angemeldet sein, um Statistiken zurückzusetzen.");
+                    return;
+                }
+                try {
+                    await deleteDoc(shoppingListStatsDocRef); // Löscht das gesamte Dokument
+                    console.log("Einkaufslisten-Statistiken zurückgesetzt.");
+                    // alert("Einkaufslisten-Statistiken erfolgreich zurückgesetzt."); // Feedback über Modal geben
+                } catch (error) {
+                    console.error("Fehler beim Zurücksetzen der Einkaufslisten-Statistiken:", error);
+                    // alert("Fehler beim Zurücksetzen der Einkaufslisten-Statistiken: " + error.message);
+                }
+            }
+
+            // Event-Listener für Reset-Buttons, die das Bestätigungsmodal öffnen
+            resetPageViewsBtn.addEventListener('click', () => {
+                if (!isAdminLoggedIn) {
+                    alert("Sie müssen als Admin angemeldet sein, um Statistiken zurückzusetzen.");
+                    return;
+                }
+                currentModalAction = 'resetPageViews';
+                confirmModalTitle.textContent = "Statistik zurücksetzen";
+                confirmModalMessage.innerHTML = 'Möchten Sie die **Website-Aufrufe** wirklich auf 0 zurücksetzen?';
+                confirmModal.classList.add('visible');
+                confirmModal.classList.remove('hidden');
             });
 
-            // NEU: Reset-Funktion für Einkaufsliste-Statistiken
-            resetShoppingListStatsBtn.addEventListener('click', async () => {
+            resetShoppingListStatsBtn.addEventListener('click', () => {
                 if (!isAdminLoggedIn) {
                     alert("Sie müssen als Admin angemeldet sein, um Statistiken zurückzusetzen.");
                     return;
                 }
-                const confirmation = confirm("Sind Sie sicher, dass Sie die Einkaufslisten-Statistiken zurücksetzen möchten? Dadurch werden alle Zähler für Einkaufslisten-Artikel auf 0 gesetzt.");
-                if (confirmation) {
-                    try {
-                        await deleteDoc(shoppingListStatsDocRef); // Löscht das gesamte Dokument
-                        console.log("Einkaufslisten-Statistiken zurückgesetzt.");
-                        alert("Einkaufslisten-Statistiken erfolgreich zurückgesetzt.");
-                    } catch (error) {
-                        console.error("Fehler beim Zurücksetzen der Einkaufslisten-Statistiken:", error);
-                        alert("Fehler beim Zurücksetzen der Einkaufslisten-Statistiken: " + error.message);
-                    }
-                }
+                currentModalAction = 'resetShoppingList';
+                confirmModalTitle.textContent = "Statistik zurücksetzen";
+                confirmModalMessage.innerHTML = 'Möchten Sie die **Einkaufslisten-Statistiken** wirklich zurücksetzen?<br>Dadurch werden alle Zähler für Einkaufslisten-Artikel auf 0 gesetzt.';
+                confirmModal.classList.add('visible');
+                confirmModal.classList.remove('hidden');
             });
 
 
@@ -1122,18 +1145,13 @@
                     return;
                 }
 
-                const confirmation = confirm("Sind Sie sicher, dass Sie diese Kategorie löschen möchten?");
-                if (confirmation) {
-                    try {
-                        const categoryRef = doc(categoriesColRef, id);
-                        await deleteDoc(categoryRef); 
-                        console.log("Kategorie gelöscht:", id);
-                        resetCategoryForm();
-                    } catch (error) {
-                        console.error("Fehler beim Löschen der Kategorie:", error);
-                        alert("Fehler beim Löschen: " + error.message);
-                    }
-                }
+                currentModalAction = 'deleteCategory'; // Set action for modal
+                productToDeleteId = id; // Store ID for category deletion (reusing productToDeleteId)
+                confirmModalTitle.textContent = "Kategorie löschen";
+                const categoryToDelete = window.categories.find(c => c.id === id);
+                confirmModalMessage.innerHTML = `Möchten Sie die Kategorie "<span class="font-semibold">${categoryToDelete ? categoryToDelete.name : id}</span>" wirklich löschen?`;
+                confirmModal.classList.add('visible');
+                confirmModal.classList.remove('hidden');
             }
 
             function updateAdminCategoryList() {
@@ -1231,7 +1249,7 @@
                 try {
                     await addDoc(productsColRef, {
                         name: name,
-                        price: parseFloat(price),
+                        price: parseFloat(price), 
                         keywords: keywords.split(',').map(k => k.trim().toLowerCase()).filter(k => k.length > 0),
                         categoryIds: categoryIds, 
                         createdAt: new Date()
@@ -1270,47 +1288,68 @@
                 }
             }
 
-            async function deleteProductFromFirestore(id, confirmedFromModal = false) {
+            async function deleteProductFromFirestore(id, productNameForDisplay) {
                 if (!isAdminLoggedIn) { 
                     alert("Sie müssen als Admin angemeldet sein, um Produkte zu löschen.");
                     return;
                 }
-                if (!confirmedFromModal) {
-                    const productToDelete = window.products.find(p => p.id === id);
-                    if (productToDelete) {
-                        productIdToDelete = id;
-                        confirmProductNameSpan.textContent = productToDelete.name;
-                        deleteConfirmModal.classList.add('visible'); 
-                        deleteConfirmModal.classList.remove('hidden');
-                    }
-                    return; 
-                }
                 
-                try {
-                    const productRef = doc(db, `artifacts/${appId}/public/data/products`, id);
-                    await deleteDoc(productRef); 
-                    console.log("Produkt gelöscht:", id);
-                    resetAdminForm(); 
-                } catch (error) {
-                    console.error("Fehler beim Löschen des Produkts:", error);
-                    alert("Fehler beim Löschen: " + error.message);
-                } finally {
-                    deleteConfirmModal.classList.add('hidden');
-                    deleteConfirmModal.classList.remove('visible');
-                    productIdToDelete = null;
-                }
+                currentModalAction = 'deleteProduct';
+                productToDeleteId = id; // Store the ID of the product to delete
+                confirmModalTitle.textContent = "Produkt löschen";
+                confirmModalMessage.innerHTML = `Möchten Sie "<span class="font-semibold">${productNameForDisplay}</span>" wirklich löschen?`;
+                confirmModal.classList.add('visible');
+                confirmModal.classList.remove('hidden');
             }
 
-            confirmDeleteBtn.addEventListener('click', () => {
-                if (productIdToDelete) {
-                    deleteProductFromFirestore(productIdToDelete, true); 
+            // Event-Listener für den Bestätigungs-Button im generischen Modal
+            modalConfirmBtn.addEventListener('click', async () => {
+                confirmModal.classList.add('hidden');
+                confirmModal.classList.remove('visible');
+                
+                if (currentModalAction === 'deleteProduct') {
+                    try {
+                        const productRef = doc(db, `artifacts/${appId}/public/data/products`, productToDeleteId);
+                        await deleteDoc(productRef); 
+                        console.log("Produkt gelöscht:", productToDeleteId);
+                        resetAdminForm(); 
+                        alert("Produkt erfolgreich gelöscht!");
+                    } catch (error) {
+                        console.error("Fehler beim Löschen des Produkts:", error);
+                        alert("Fehler beim Löschen: " + error.message);
+                    }
+                } else if (currentModalAction === 'resetPageViews') {
+                    await resetPageViews();
+                    alert("Website-Aufrufe erfolgreich zurückgesetzt.");
+                } else if (currentModalAction === 'resetShoppingList') {
+                    await resetShoppingListStats();
+                    alert("Einkaufslisten-Statistiken erfolgreich zurückgesetzt.");
+                } else if (currentModalAction === 'deleteCategory') {
+                    // Logic for category deletion after confirmation
+                    try {
+                        const categoryRef = doc(categoriesColRef, productToDeleteId); // productToDeleteId holds category ID
+                        await deleteDoc(categoryRef); 
+                        console.log("Kategorie gelöscht:", productToDeleteId);
+                        resetCategoryForm(); // Reset category form if needed
+                        alert("Kategorie erfolgreich gelöscht!");
+                    } catch (error) {
+                        console.error("Fehler beim Löschen der Kategorie:", error);
+                        alert("Fehler beim Löschen: " + error.message);
+                    }
                 }
+
+                // Reset modal state
+                currentModalAction = null;
+                productToDeleteId = null;
             });
 
-            cancelDeleteBtn.addEventListener('click', () => {
-                deleteConfirmModal.classList.add('hidden');
-                deleteConfirmModal.classList.remove('visible');
-                productIdToDelete = null;
+            // Event-Listener für den Abbrechen-Button im generischen Modal
+            modalCancelBtn.addEventListener('click', () => {
+                confirmModal.classList.add('hidden');
+                confirmModal.classList.remove('visible');
+                // Reset modal state
+                currentModalAction = null;
+                productToDeleteId = null;
             });
 
 
@@ -1388,7 +1427,7 @@
                     button.addEventListener('click', (e) => {
                         const productId = e.target.dataset.id;
                         const productName = e.target.dataset.name;
-                        deleteProductFromFirestore(productId, false, productName); 
+                        deleteProductFromFirestore(productId, productName); 
                     });
                 });
             };
