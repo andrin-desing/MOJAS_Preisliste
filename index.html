@@ -114,6 +114,41 @@
             opacity: 0.6;
             cursor: not-allowed;
         }
+
+        /* Styles for the custom delete confirmation modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.visible .modal-content {
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body class="bg-light-cream flex flex-col min-h-screen">
@@ -288,6 +323,18 @@
         </div>
     </footer>
 
+    <!-- Custom Delete Confirmation Modal -->
+    <div id="deleteConfirmModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 class="text-xl font-bold text-dark-accent mb-4">Produkt löschen</h3>
+            <p class="text-gray-700 mb-6" id="confirmModalMessage">Möchten Sie "<span id="confirmProductName" class="font-semibold"></span>" wirklich löschen?</p>
+            <div class="flex justify-center space-x-4">
+                <button id="confirmDeleteBtn" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition duration-300">Löschen</button>
+                <button id="cancelDeleteBtn" class="bg-gray-300 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-400 transition duration-300">Abbrechen</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -369,7 +416,7 @@
             const cancelEditBtn = document.getElementById('cancelEditBtn');
             const adminProductListUl = document.getElementById('adminProductList');
 
-            // Elements for static image display (no upload related elements)
+            // Elements for static image display
             const priceList1Display = document.getElementById('priceList1Display');
             const priceList2Display = document.getElementById('priceList2Display');
 
@@ -377,6 +424,14 @@
             const adminControlElements = document.querySelectorAll(
                 '#adminPanel input:not(#adminEmail):not(#adminPassword), #adminPanel button:not([type="submit"]), #adminPanel select, #adminPanel textarea'
             );
+
+            // Elements for custom delete confirmation modal
+            const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+            const confirmModalMessage = document.getElementById('confirmModalMessage');
+            const confirmProductNameSpan = document.getElementById('confirmProductName');
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+            const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+            let productIdToDelete = null; // Variable to store the ID of the product to be deleted
 
             // Existing search and shopping list functions
             const searchInput = document.getElementById('searchInput');
@@ -397,15 +452,11 @@
             // Monitor login status
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
-                    // A user is signed in (could be email/password, or anonymous if it was enabled).
-                    // For this version, we assume if `user` exists and is not anonymous, it's our admin.
                     currentUserId = user.uid;
                     console.log("Benutzer angemeldet:", currentUserId);
                     
-                    isAdminLoggedIn = !user.isAnonymous; // Check if the user is NOT anonymous
+                    isAdminLoggedIn = !user.isAnonymous; 
 
-                    // Only initialize products if this is the first authentication check AND
-                    // if there's an actual user (not null) to potentially write data.
                     if (user && !initialProductsChecked) {
                         await initializeProductsInFirestore();
                         initialProductsChecked = true;
@@ -414,41 +465,34 @@
                     if (isAdminLoggedIn) { 
                         adminAuthButton.textContent = "Admin Logout";
                         adminPanel.classList.remove('hidden');
-                        adminLoginFormDiv.classList.add('hidden'); // Hide login form
-                        setAdminControlsDisabled(false); // Enable admin forms
+                        adminLoginFormDiv.classList.add('hidden'); 
+                        setAdminControlsDisabled(false); 
                     } else {
-                        // User is authenticated but is anonymous (shouldn't happen with anonymous sign-in removed).
-                        // Or a non-admin email/password user (if you had multiple users).
                         adminAuthButton.textContent = "Admin Login";
                         adminPanel.classList.add('hidden');
                         adminLoginFormDiv.classList.add('hidden'); 
-                        setAdminControlsDisabled(true); // Disable admin forms
+                        setAdminControlsDisabled(true); 
                     }
-                    setupFirestoreListener(); // Load/monitor data from Firestore for products
-                    // No loadAndDisplayImages() here, as images are static.
+                    setupFirestoreListener(); 
                 } else {
-                    // No user is signed in (unauthenticated)
                     currentUserId = null;
-                    isAdminLoggedIn = false; // Reset admin status on logout
+                    isAdminLoggedIn = false; 
                     console.log("Kein Benutzer angemeldet.");
                     adminAuthButton.textContent = "Admin Login";
-                    adminPanel.classList.add('hidden'); // Hide admin panel
-                    adminLoginFormDiv.classList.add('hidden'); // Hide login form
-                    setAdminControlsDisabled(true); // Disable admin forms
+                    adminPanel.classList.add('hidden'); 
+                    adminLoginFormDiv.classList.add('hidden'); 
+                    setAdminControlsDisabled(true); 
                     
-                    setupFirestoreListener(); // Load products (publicly readable)
-                    // No loadAndDisplayImages() here, as images are static.
+                    setupFirestoreListener(); 
                 }
             });
 
             // Function to initialize products in Firestore
             async function initializeProductsInFirestore() {
                 try {
-                    // This function should only be called if a user is logged in AND has write permissions.
-                    // Given our rules, only the email/password admin user will have write permission.
                     if (!auth.currentUser || auth.currentUser.isAnonymous) {
                          console.log("Nicht berechtigt zum Initialisieren der Produkte. Admin-Anmeldung erforderlich.");
-                         return; // Abort if not a logged-in admin.
+                         return; 
                     }
 
                     const snapshot = await getDocs(productsColRef);
@@ -469,13 +513,11 @@
                     }
                 } catch (error) {
                     console.error("Fehler beim Initialisieren der Produkte in Firestore:", error);
-                    // alert("Fehler beim Initialisieren der Produkte: " + error.message); // Only for debugging
                 }
             }
 
             // Function to monitor Firestore data (for products)
             function setupFirestoreListener() {
-                // This listener runs for all users (authenticated or not) because read access is 'if true'.
                 onSnapshot(productsColRef, (snapshot) => {
                     const fetchedProducts = snapshot.docs.map(doc => ({
                         id: doc.id,
@@ -486,7 +528,7 @@
                     
                     searchProducts(); 
                     updateShoppingListDisplay();
-                    updateAdminProductList(); // This updates based on isAdminLoggedIn state
+                    updateAdminProductList(); 
                 }, (error) => {
                     console.error("Fehler beim Laden der Produkte von Firestore:", error);
                 });
@@ -495,17 +537,14 @@
             // Admin Login / Logout Handler
             adminAuthButton.addEventListener('click', async () => {
                 if (isAdminLoggedIn) {
-                    // Logout function
                     try {
                         await signOut(auth);
-                        // isAdminLoggedIn will be reset by onAuthStateChanged
                         console.log("Admin abgemeldet.");
                     } catch (error) {
                         console.error("Fehler beim Abmelden:", error);
                         alert("Abmeldung fehlgeschlagen: " + error.message);
                     }
                 } else {
-                    // Show login form
                     adminLoginFormDiv.classList.remove('hidden');
                     adminPanel.classList.add('hidden'); 
                     loginErrorP.classList.add('hidden'); 
@@ -524,10 +563,9 @@
                 try {
                     await signInWithEmailAndPassword(auth, email, password);
                     console.log("Admin-Login erfolgreich!");
-                    // The onAuthStateChanged listener handles UI updates and isAdminLoggedIn state.
                 } catch (error) {
                     console.error("Fehler beim Admin-Login:", error);
-                    isAdminLoggedIn = false; // Reset for safety on error
+                    isAdminLoggedIn = false; 
                     let errorMessage = "Anmeldung fehlgeschlagen. Ungültige E-Mail oder Passwort.";
                     if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
                         errorMessage = "Ungültige E-Mail oder Passwort. Bitte überprüfen Sie Ihre Eingaben.";
@@ -541,7 +579,39 @@
                 }
             });
 
-            // Add product
+            // Funktion zum Anzeigen des Lösch-Bestätigungs-Modals
+            function showDeleteConfirmation(productId, productName) {
+                productIdToDelete = productId;
+                confirmProductNameSpan.textContent = productName;
+                deleteConfirmModal.classList.add('visible');
+                deleteConfirmModal.classList.remove('hidden');
+            }
+
+            // Funktion zum Verbergen des Lösch-Bestätigungs-Modals
+            function hideDeleteConfirmation() {
+                deleteConfirmModal.classList.remove('visible');
+                // Give some time for the transition before hiding completely
+                setTimeout(() => {
+                    deleteConfirmModal.classList.add('hidden');
+                }, 300);
+            }
+
+            // Event Listener für den Bestätigungs-Button im Modal
+            confirmDeleteBtn.addEventListener('click', async () => {
+                if (productIdToDelete) {
+                    await deleteProductFromFirestore(productIdToDelete, true); 
+                    productIdToDelete = null; // Reset
+                }
+                hideDeleteConfirmation();
+            });
+
+            // Event Listener für den Abbrechen-Button im Modal
+            cancelDeleteBtn.addEventListener('click', () => {
+                productIdToDelete = null; // Reset
+                hideDeleteConfirmation();
+            });
+
+            // Produkt hinzufügen
             async function addProductToFirestore(name, price, keywords) {
                 if (!name || isNaN(price)) {
                     alert("Name und Preis müssen gültig sein.");
@@ -566,8 +636,8 @@
                 }
             }
 
-            // Update product
-            async function updateProductInFirestore(id, name, price, keywords) {
+            // Produkt aktualisieren
+            async function updateProductInFirestore(id, name, price, keywords, targetButton) {
                 if (!id || !name || isNaN(price)) {
                     alert("Alle Felder müssen gültig sein.");
                     return;
@@ -591,23 +661,28 @@
                 }
             }
 
-            // Delete product
-            async function deleteProductFromFirestore(id) {
+            // Produkt löschen
+            async function deleteProductFromFirestore(id, confirmedFromModal = false) {
                 if (!isAdminLoggedIn) { 
                     alert("Sie müssen als Admin angemeldet sein, um Produkte zu löschen.");
                     return;
                 }
-                const confirmation = confirm("Sind Sie sicher, dass Sie dieses Produkt löschen möchten?");
-                if (confirmation) {
-                    try {
-                        const productRef = doc(db, `artifacts/${appId}/public/data/products`, id);
-                        await deleteDoc(productRef);
-                        console.log("Produkt gelöscht:", id);
-                        resetAdminForm();
-                    } catch (error) {
-                        console.error("Fehler beim Löschen des Produkts:", error);
-                        alert("Fehler beim Löschen: " + error.message);
+                if (!confirmedFromModal) {
+                    const productToDelete = window.products.find(p => p.id === id);
+                    if (productToDelete) {
+                        showDeleteConfirmation(id, productToDelete.name);
                     }
+                    return; 
+                }
+                
+                try {
+                    const productRef = doc(db, `artifacts/${appId}/public/data/products`, id);
+                    await deleteDoc(productRef);
+                    console.log("Produkt gelöscht:", id);
+                    resetAdminForm();
+                } catch (error) {
+                    console.error("Fehler beim Löschen des Produkts:", error);
+                    alert("Fehler beim Löschen: " + error.message);
                 }
             }
 
@@ -622,8 +697,13 @@
                     
                     // Show edit and delete buttons only if admin is logged in
                     const adminButtons = isAdminLoggedIn ? `
-                        <button class="edit-product-btn bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600" data-id="${product.id}">Bearbeiten</button>
-                        <button class="delete-product-btn bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600" data-id="${product.id}">Löschen</button>
+                        <div class="relative flex items-center space-x-2">
+                            <button class="edit-product-btn bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition" data-id="${product.id}">Bearbeiten</button>
+                            <div class="lottie-container-edit absolute hidden" style="left: 60px; top: -5px;">
+                                <lottie-player src="animations/checkmark_animation.json" background="transparent" speed="1" style="width: 40px; height: 40px;"></lottie-player>
+                            </div>
+                            <button class="delete-product-btn bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition" data-id="${product.id}" data-name="${product.name}">Löschen</button>
+                        </div>
                     ` : '';
 
                     listItem.innerHTML = `
@@ -657,7 +737,8 @@
                 document.querySelectorAll('.delete-product-btn').forEach(button => {
                     button.addEventListener('click', (e) => {
                         const productId = e.target.dataset.id;
-                        deleteProductFromFirestore(productId);
+                        const productName = e.target.dataset.name;
+                        deleteProductFromFirestore(productId, false, productName); 
                     });
                 });
             };
@@ -672,7 +753,7 @@
             }
 
             // Event listener for adding/saving product form in admin section
-            productForm.addEventListener('submit', (e) => {
+            productForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const productId = productIdInput.value;
                 const productName = productNameInput.value;
@@ -680,9 +761,35 @@
                 const productKeywords = productKeywordsInput.value;
 
                 if (productId) {
-                    updateProductInFirestore(productId, productName, productPrice, productKeywords);
+                    await updateProductInFirestore(productId, productName, productPrice, productKeywords);
+                    // Trigger the Lottie animation for the edited item after successful update
+                    // This needs to be done *after* the DOM updates via onSnapshot.
+                    // We will find the updated item and play its Lottie.
+                    const updatedProductElement = adminProductListUl.querySelector(`[data-id="${productId}"]`);
+                    if (updatedProductElement) {
+                        const lottieContainer = updatedProductElement.closest('li').querySelector('.lottie-container-edit');
+                        const lottiePlayer = lottieContainer ? lottieContainer.querySelector('lottie-player') : null;
+
+                        if (lottieContainer && lottiePlayer) {
+                            // Find the actual edit button within the list item that was just updated
+                            const editButton = updatedProductElement.closest('li').querySelector('.edit-product-btn');
+                            if (editButton) {
+                                editButton.style.display = 'none';
+                                lottieContainer.style.display = 'block';
+                                lottiePlayer.setDirection(1);
+                                lottiePlayer.play();
+
+                                setTimeout(() => {
+                                    lottiePlayer.stop();
+                                    lottieContainer.style.display = 'none';
+                                    editButton.style.display = 'inline-block';
+                                }, 1500); // Animation duration
+                            }
+                        }
+                    }
+
                 } else {
-                    addProductToFirestore(productName, productPrice, productKeywords);
+                    await addProductToFirestore(productName, productPrice, productKeywords);
                 }
             });
 
@@ -743,13 +850,14 @@
                 if (targetButton) {
                     const productItemDiv = targetButton.closest('.product-item');
                     const lottieContainer = productItemDiv.querySelector('.lottie-container');
-                    const lottiePlayer = productItemDiv.querySelector('lottie-player');
+                    const lottiePlayer = lottieContainer ? lottieContainer.querySelector('lottie-player') : null;
 
                     if (lottieContainer && lottiePlayer) {
                         targetButton.style.display = 'none';
                         lottieContainer.style.display = 'block';
 
                         lottiePlayer.setDirection(1);
+                        lottiePlayer.load("animations/checkmark_animation.json"); // Changed to use checkmark_animation.json
                         lottiePlayer.play();
 
                         setTimeout(() => {
