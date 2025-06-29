@@ -17,6 +17,1847 @@
     <!-- LottieFiles Web Player CDN (for playing Lottie animations) -->
     <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
 
+    <!-- Markdown Renderer (marked.js) CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif; /* Standard-Schriftart für Fliesstext */
+        }
+        /* Custom Tailwind Colors for Mojas Palette */
+        /* Primary Accent Orange */
+        .bg-mojas-orange {
+            background-color: #ee7719;
+        }
+        .text-mojas-orange {
+            color: #ee7719;
+        }
+        .border-mojas-orange {
+            border-color: #ee7719;
+        }
+
+        /* Darker, Sophisticated Accent (for Header/Footer) */
+        .bg-dark-accent {
+            background-color: #2c3e50; /* Ein tiefes, sattes Anthrazitblau */
+        }
+        .text-dark-accent {
+            color: #2c3e50;
+        }
+
+        /* Light, Warm Background */
+        .bg-light-cream {
+            background-color: #FDFBF8; /* Ein sehr subtiles, warmes Off-White */
+        }
+
+        /* Styling for the price list images to ensure they are responsive and well-displayed */
+        .price-list-img {
+            width: 100%;
+            height: auto;
+            max-width: 800px; /* Maximale Breite, um Bilder auf Desktops nicht zu gross werden zu lassen */
+            display: block;
+            margin: 0 auto;
+            border-radius: 1rem; /* Abgerundete Ecken */
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); /* Subtiler Schatten */
+        }
+        /* Styling for the logo image */
+        .logo-img {
+            height: 40px; /* Höhe nach Bedarf anpassen */
+            width: auto;
+            border-radius: 0.5rem; /* Leicht abgerundete Ecken für das Logo */
+        }
+        /* Apply Orbitron to headings for a distinct look */
+        h1, h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700; /* Eine fette Schriftstärke für mehr Wirkung */
+        }
+        /* Style for search results */
+        #searchResults .product-item, #shoppingListItems .list-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap; /* Elemente bei Bedarf umbrechen lassen */
+            gap: 0.5rem; /* Kleiner Abstand zwischen Elementen */
+        }
+        #searchResults .product-item:last-child, #shoppingListItems .list-item:last-child {
+            border-bottom: none;
+        }
+        #shoppingListItems .list-item span {
+            flex-grow: 1; /* Text kann wachsen */
+        }
+        #shoppingListItems .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        /* Styling for Lottie container */
+        .lottie-container {
+            width: 30px; /* Grösse des Lottie-Icons anpassen */
+            height: 30px;
+            /* Absolute Positionierung innerhalb des relativen Wrappers */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none; /* Standardmässig versteckt */
+        }
+        /* Style for login form */
+        #adminLoginForm {
+            max-width: 400px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        /* Disabled state for form elements */
+        #adminPanel input:disabled, #adminPanel button:disabled,
+        #adminPanel input[type="file"]:disabled + button { 
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Styles for the custom delete confirmation modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.visible .modal-content {
+            transform: translateY(0);
+        }
+        /* Spinner for AI analysis */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border-left-color: #ee7719; /* mojas-orange */
+            animation: spin 1s ease infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Styling for markdown rendered content in AI insights */
+        #aiInsightsDisplay h4 {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 600; /* font-semibold */
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            color: #2c3e50; /* dark-accent */
+        }
+        #aiInsightsDisplay ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        #aiInsightsDisplay li {
+            margin-bottom: 0.25rem;
+            color: #333;
+        }
+        #aiInsightsDisplay strong {
+            font-weight: 700;
+            color: #ee7719; /* mojas-orange */
+        }
+        #aiInsightsDisplay p {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body class="bg-light-cream flex flex-col min-h-screen">
+
+    <!-- Header Section -->
+    <header class="bg-dark-accent text-white p-6 shadow-lg rounded-b-xl">
+        <div class="container mx-auto flex flex-col sm:flex-row items-center justify-between">
+            <div class="flex items-center space-x-3 mb-4 sm:mb-0">
+                <!-- Mojas Logo -->
+                <img src="Logo.png" alt="Mojas Logo" class="logo-img">
+                <h1 class="text-3xl font-bold">MOJAS.ch</h1>
+            </div>
+            <nav class="w-full sm:w-auto mt-4 sm:mt-0">
+                <!-- Navigation links: stacked vertically on mobile, horizontal on small screens and up -->
+                <ul class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 text-lg items-center">
+                    <!-- Navigationslinks für den öffentlichen Bereich (immer sichtbar) -->
+                    <li id="navPreisliste" class="hidden-on-admin-view"><a href="#preisliste" class="hover:underline text-mojas-orange">Preisliste</a></li>
+                    <li id="navDrinks" class="hidden-on-admin-view"><a href="#drinks" class="hover:underline text-mojas-orange">Drinks</a></li>
+                    <li id="navShoppingList" class="hidden-on-admin-view"><a href="#shoppingListSection" class="hover:underline text-mojas-orange">Einkaufsliste</a></li>
+                    <li>
+                        <!-- Admin Login/Logout Button -->
+                        <button id="adminAuthButton" class="px-4 py-2 bg-mojas-orange text-white rounded-lg shadow-md hover:bg-opacity-90 transition duration-300 ease-in-out">Admin Login</button>
+                    </li>
+                    <li>
+                        <!-- Instagram Icon only, serves as link -->
+                        <a href="https://www.instagram.com/MOJAS.ch/" target="_blank" rel="noopener noreferrer" class="text-mojas-orange flex items-center justify-center p-1 rounded-full hover:bg-white hover:bg-opacity-20 transition duration-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-1">
+                                <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+                                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                                <line x1="17.5" x2="17.5" y1="6.5" y2="6.5"/>
+                            </svg>
+                        </a>
+                    </li>
+                    <!-- Button for MOJAS website: full width on mobile, inline on small screens and up -->
+                    <li>
+                        <a href="https://www.mojas.ch/" target="_blank" rel="noopener noreferrer" 
+                           class="w-full sm:w-auto mt-4 sm:ml-4 sm:mt-0 px-4 py-2 bg-mojas-orange text-white rounded-lg shadow-md 
+                                  hover:bg-opacity-90 transition duration-300 ease-in-out 
+                                  flex items-center justify-center space-x-2">
+                            <span>Zur MOJAS Website</span>
+                            <!-- External Link Icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0
+                                0 1 2-2h6"/>
+                                <polyline points="15 3 21 3 21 9"/>
+                                <line x1="10" x2="21" y1="14" y2="3"/>
+                            </svg>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Section -->
+    <main class="container mx-auto p-4 flex-grow">
+        <!-- Admin Area: Contains login form and admin panel, shown only for admins -->
+        <div id="adminArea" class="hidden">
+            <!-- Admin Login Form -->
+            <div id="adminLoginForm">
+                <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Admin Login</h2>
+                <form id="loginForm" class="grid grid-cols-1 gap-4">
+                    <div>
+                        <label for="adminEmail" class="block text-gray-700 text-sm font-bold mb-2">E-Mail:</label>
+                        <input type="email" id="adminEmail" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div>
+                        <label for="adminPassword" class="block text-gray-700 text-sm font-bold mb-2">Passwort:</label>
+                        <input type="password" id="adminPassword" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <button type="submit" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Login</button>
+                    <p id="loginError" class="text-red-500 text-center mt-2 hidden">Ungültige E-Mail oder Passwort.</p>
+                </form>
+            </div>
+
+            <!-- Admin Panel Section (initially hidden, shown after successful login) -->
+            <section id="adminPanel" class="my-8 bg-white p-6 rounded-2xl shadow-xl hidden">
+                <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Admin Bereich</h2>
+                
+                <!-- Allgemeine Website-Einstellungen -->
+                <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Website-Einstellungen</h3>
+                <form id="settingsForm" class="grid grid-cols-1 gap-4 mb-8">
+                    <div>
+                        <label for="footerText" class="block text-gray-700 text-sm font-bold mb-2">Footer-Text:</label>
+                        <input type="text" id="footerText" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div>
+                        <label for="drinksNote" class="block text-gray-700 text-sm font-bold mb-2">Hinweis bei Drinks:</label>
+                        <textarea id="drinksNote" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+                    </div>
+                    <button type="submit" id="saveSettingsBtn" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Einstellungen speichern</button>
+                    <p id="settingsStatus" class="text-sm mt-2 text-gray-600"></p>
+                </form>
+
+                <!-- Preislistenbilder verwalten -->
+                <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Preislistenbilder verwalten</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <!-- Bild 1.1.png Verwaltung -->
+                    <div class="p-4 border border-gray-200 rounded-lg">
+                        <h4 class="font-semibold text-lg mb-2">Preisliste 1 (Snacks & Getränke)</h4>
+                        <img id="adminPriceList1Preview" src="1.1.png" alt="Vorschau Preisliste 1" class="w-full h-auto max-h-48 object-contain rounded-md mb-3 border border-gray-300">
+                        <input type="file" id="priceList1FileInput" accept=".png" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-mojas-orange file:text-white hover:file:bg-opacity-90">
+                        <button id="uploadPriceList1Btn" class="mt-3 w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">Bild 1 hochladen</button>
+                        <p id="priceList1Status" class="text-sm mt-2"></p>
+                    </div>
+
+                    <!-- Bild 2.1.png Verwaltung -->
+                    <div class="p-4 border border-gray-200 rounded-lg">
+                        <h4 class="font-semibold text-lg mb-2">Preisliste 2 (Drinks)</h4>
+                        <img id="adminPriceList2Preview" src="2.1.png" alt="Vorschau Preisliste 2" class="w-full h-auto max-h-48 object-contain rounded-md mb-3 border border-gray-300">
+                        <input type="file" id="priceList2FileInput" accept=".png" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-mojas-orange file:text-white hover:file:bg-opacity-90">
+                        <button id="uploadPriceList2Btn" class="mt-3 w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">Bild 2 hochladen</button>
+                        <p id="priceList2Status" class="text-sm mt-2"></p>
+                    </div>
+                </div>
+
+
+                <!-- Kategorien verwalten -->
+                <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Kategorien verwalten</h3>
+                <form id="categoryForm" class="grid grid-cols-1 gap-4 mb-8">
+                    <input type="hidden" id="categoryId">
+                    <div>
+                        <label for="categoryName" class="block text-gray-700 text-sm font-bold mb-2">Kategoriename:</label>
+                        <input type="text" id="categoryName" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div class="flex justify-end space-x-2">
+                        <button type="submit" id="saveCategoryBtn" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Kategorie hinzufügen</button>
+                        <button type="button" id="cancelCategoryEditBtn" class="bg-gray-400 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-500 transition hidden">Abbrechen</button>
+                    </div>
+                </form>
+                <ul id="adminCategoryList" class="space-y-3 mb-8">
+                    <!-- Categories will be loaded here -->
+                </ul>
+
+
+                <!-- Produkte verwalten -->
+                <h3 id="productFormTitle" class="text-2xl font-semibold text-mojas-orange mb-4">Neues Produkt hinzufügen</h3>
+                <form id="productForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                    <input type="hidden" id="productId">
+                    <div>
+                        <label for="productName" class="block text-gray-700 text-sm font-bold mb-2">Produktname:</label>
+                        <input type="text" id="productName" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div>
+                        <label for="productPrice" class="block text-gray-700 text-sm font-bold mb-2">Preis (Fr.):</label>
+                        <input type="number" step="0.01" id="productPrice" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="productKeywords" class="block text-gray-700 text-sm font-bold mb-2">Schlüsselwörter (kommagetrennt):</label>
+                        <input type="text" id="productKeywords" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Kategorien:</label>
+                        <div id="productCategoriesCheckboxes" class="grid grid-cols-2 gap-2">
+                            <!-- Categories will be loaded here dynamically -->
+                        </div>
+                    </div>
+                    <div class="md:col-span-2 flex justify-end space-x-2">
+                        <button type="submit" id="saveProductBtn" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Produkt hinzufügen</button>
+                        <button type="button" id="cancelEditBtn" class="bg-gray-400 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-500 transition hidden">Abbrechen</button>
+                    </div>
+                </form>
+
+                <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Vorhandene Produkte</h3>
+                <!-- Verbesserte Such- und Filteroptionen -->
+                <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                    <input type="text" id="adminSearchInput" placeholder="Produkte suchen..." 
+                           class="w-full sm:w-1/2 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mojas-orange">
+                    <select id="adminSortSelect" class="w-full sm:w-1/4 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mojas-orange">
+                        <option value="nameAsc">Name (A-Z)</option>
+                        <option value="nameDesc">Name (Z-A)</option>
+                        <option value="priceAsc">Preis (Niedrigste)</option>
+                        <option value="priceDesc">Preis (Höchste)</option>
+                    </select>
+                    <select id="adminCategoryFilter" class="w-full sm:w-1/4 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mojas-orange">
+                        <option value="">Alle Kategorien</option>
+                        <!-- Categories will be loaded here -->
+                    </select>
+                </div>
+                <ul id="adminProductList" class="space-y-3 mb-8">
+                    <!-- Products will be loaded here from Firestore -->
+                </ul>
+
+                <!-- Statistikbereich -->
+                <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Statistiken</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                        <h4 class="font-semibold text-lg mb-2">Website-Aufrufe</h4>
+                        <p class="text-3xl font-bold text-dark-accent" id="totalPageViewsDisplay">0</p>
+                        <button id="resetPageViewsBtn" class="mt-3 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">Reset Aufrufe</button>
+                    </div>
+                    <div class="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                        <h4 class="font-semibold text-lg mb-2">Beliebteste Einkaufslisten-Artikel (Gesamtmenge)</h4>
+                        <ul id="shoppingListStatsList" class="list-disc list-inside text-gray-700">
+                            <!-- Popular items will be displayed here -->
+                        </ul>
+                        <button id="resetShoppingListStatsBtn" class="mt-3 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">Reset Einkaufsliste</button>
+                    </div>
+                </div>
+
+                <!-- NEUER BEREICH: KI-Analyse -->
+                <h3 class="text-2xl font-semibold text-mojas-orange mb-4 mt-8">KI-Analyse der Produktstatistiken</h3>
+                <div class="p-4 border border-gray-200 rounded-lg bg-gray-50 mb-8">
+                    <p class="text-gray-700 mb-4">Generiere Erkenntnisse und mögliche Trends basierend auf den aktuellen Einkaufslisten-Statistiken.</p>
+                    <button id="generateAiInsightsBtn" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                        KI-Analyse generieren <span id="aiLoadingSpinner" class="spinner hidden"></span>
+                    </button>
+                    <div id="aiInsightsDisplay" class="mt-4 p-4 bg-white rounded-md border border-gray-300 text-gray-800 hidden">
+                        <!-- AI insights will be displayed here, will be rendered from Markdown -->
+                    </div>
+                    <p id="aiInsightStatus" class="text-sm mt-2"></p>
+                </div>
+
+            </section>
+        </div> <!-- End of adminArea -->
+
+        <!-- Public Content Area: Hidden when admin logged in -->
+        <div id="publicContent">
+            <!-- Search Function Section (Public) -->
+            <section class="my-8 bg-white p-6 rounded-2xl shadow-xl">
+                <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Finde deinen Preis</h2>
+                <div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                    <input type="text" id="searchInput" placeholder="Z.B. Rivella, Schokoriegel, Chips..." 
+                           class="w-full sm:w-2/3 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mojas-orange">
+                    <button id="searchButton" 
+                            class="w-full sm:w-auto px-6 py-3 bg-mojas-orange text-white rounded-lg shadow-md 
+                                   hover:bg-opacity-90 transition duration-300 ease-in-out">
+                        Suchen
+                    </button>
+                </div>
+                <!-- Search Results Display Area -->
+                <div id="searchResults" class="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200 hidden">
+                    <!-- Results will be injected here by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Shopping List Section -->
+            <section id="shoppingListSection" class="my-8 bg-white p-6 rounded-2xl shadow-xl">
+                <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Deine Einkaufsliste</h2>
+                <ul id="shoppingListItems" class="mb-4">
+                    <!-- Shopping list items will be injected here -->
+                </ul>
+                <div id="shoppingListSummary" class="text-right text-2xl font-bold text-mojas-orange mt-4 pt-4 border-t-2 border-gray-200">
+                    Gesamt: <span id="shoppingListTotal">0.00 Fr.</span>
+                </div>
+                <button id="clearShoppingListBtn" 
+                    class="mt-4 px-6 py-3 bg-gray-300 text-gray-800 rounded-lg shadow-md 
+                           hover:bg-gray-400 transition duration-300 ease-in-out w-full sm:w-auto mx-auto block">
+                    Einkaufsliste leeren
+                </button>
+                <div id="emptyListMessage" class="text-center text-gray-600 mt-4 italic">Deine Einkaufsliste ist leer.</div>
+            </section>
+
+            <section id="preisliste" class="my-8 bg-white p-6 rounded-2xl shadow-xl">
+                <h2 class="text-4xl font-bold text-mojas-orange mb-6 text-center">Unsere Preisliste</h2>
+                <p class="text-gray-700 text-center mb-8">Hier findest du eine Übersicht über unsere köstlichen Snacks und Getränke.</p>
+                <!-- Preisliste Image 1 (dynamisch geladen aus Firestore/Storage) -->
+                <img id="priceList1Display" src="1.1.png" alt="Mojas Preisliste Snacks & Getränke" class="price-list-img">
+            </section>
+
+            <section id="drinks" class="my-8 bg-white p-6 rounded-2xl shadow-xl">
+                <h2 class="text-4xl font-bold text-mojas-orange mb-6 text-center">Unsere Drinks</h2>
+                <!-- Information about drink availability in a small box -->
+                <div id="drinksNoteDisplay" class="bg-orange-50 p-4 mb-6 rounded-lg border border-mojas-orange text-center mx-auto max-w-sm">
+                    <p class="text-gray-700">Diese Drinks sind nur während Partys und kurz danach erhältlich.</p>
+                </div>
+                <p class="text-gray-700 text-center mb-8">Erfrischende Drinks für jeden Geschmack.</p>
+                <!-- Preisliste Image 2 (dynamisch geladen aus Firestore/Storage) -->
+                <img id="priceList2Display" src="2.1.png" alt="Mojas Drinks" class="price-list-img">
+            </section>
+        </div> <!-- End of publicContent -->
+    </main>
+
+    <!-- Footer Section -->
+    <footer class="bg-dark-accent text-white p-6 rounded-t-xl mt-8">
+        <div class="container mx-auto text-center">
+            <p id="footerTextDisplay">&copy; 2025 MOJAS.ch. Alle Rechte vorbehalten.</p>
+            <div class="flex flex-col sm:flex-row justify-center items-center mt-3 space-y-2 sm:space-y-0 sm:space-x-4">
+                <a href="https://www.instagram.com/MOJAS.ch/" target="_blank" rel="noopener noreferrer" class="text-mojas-orange flex items-center justify-center p-1 rounded-full hover:bg-white hover:bg-opacity-20 transition duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-1">
+                        <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                        <line x1="17.5" x2="17.5" y1="6.5" y2="6.5"/>
+                    </svg>
+                    <span class="text-lg">Folge uns auf Instagram!</span>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Custom Generic Confirmation Modal (repurposed from deleteConfirmModal) -->
+    <div id="confirmModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 class="text-xl font-bold text-dark-accent mb-4" id="confirmModalTitle">Bestätigung</h3>
+            <p class="text-gray-700 mb-6" id="confirmModalMessage">Möchten Sie diese Aktion wirklich ausführen?</p>
+            <div class="flex justify-center space-x-4">
+                <button id="modalConfirmBtn" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition duration-300">Ja</button>
+                <button id="modalCancelBtn" class="bg-gray-300 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-400 transition duration-300">Abbrechen</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signOut, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, deleteDoc, getDocs, getDoc, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+
+        // Ihre tatsächliche Firebase-Konfiguration von der Firebase Console
+        const firebaseConfig = {
+            apiKey: "AIzaSyCzVeUMKWfax8Gi3wdisQEj35lQEeKc6B0",
+            authDomain: "mojas-preisliste-a01be.firebaseapp.com",
+            projectId: "mojas-preisliste-a01be",
+            storageBucket: "mojas-preisliste-a01be.firebasestorage.app", 
+            messagingSenderId: "667994628903",
+            appId: "1:667994628903:web:aabf099f890ca9e5d07f02"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const storage = getStorage(app); 
+        
+        const appId = firebaseConfig.appId; 
+        console.log("Verwendete Firebase App ID:", appId); 
+
+        // Firestore collection references
+        const productsColRef = collection(db, `artifacts/${appId}/public/data/products`);
+        const categoriesColRef = collection(db, `artifacts/${appId}/public/data/categories`); 
+        const settingsDocRef = doc(db, `artifacts/${appId}/public/data/settings`, 'generalSettings'); 
+
+        // Firestore-Referenzen für Statistiken
+        const statisticsColRef = collection(db, `artifacts/${appId}/public/data/statistics`);
+        const websiteTrafficDocRef = doc(statisticsColRef, 'websiteTraffic');
+        const shoppingListStatsDocRef = doc(statisticsColRef, 'shoppingListItemsAdded');
+
+        // Global variables
+        window.products = []; 
+        window.categories = []; 
+        let currentUserId = null;
+        let isAdminLoggedIn = false; 
+        let initialProductsChecked = false; 
+        let initialCategoriesChecked = false; 
+
+        // Initial product data (only for populating Firestore if empty)
+        const initialProductsData = [
+            { name: "Diverse Softdrinks", price: 1.50, keywords: ["diverse softdrinks", "softdrink", "softdrinks", "getränke", "rivella", "cola", "fanta", "sprite", "zitronenlimo", "apfelschorle", "eistee", "trinken"], categoryIds: ["getraenke"] },
+            { name: "Mineralwasser", price: 1.00, keywords: ["mineralwasser", "wasser", "mineral", "still", "sprudel"], categoryIds: ["getraenke"] },
+            { name: "Capri Sun", price: 0.80, keywords: ["capri sun", "caprisun", "saft", "fruchtsaft", "kindergetränk"], categoryIds: ["getraenke"] },
+            { name: "Gummistangen", price: 0.10, keywords: ["gummistangen", "gummi", "süssigkeiten", "süsswaren", "gumistange"], categoryIds: ["suessigkeiten"] },
+            { name: "Gummischlangen", price: 0.50, keywords: ["gummischlangen", "gummi", "süssigkeiten", "süsswaren", "gummischlange"], categoryIds: ["suessigkeiten"] },
+            { name: "Snickers", price: 1.00, keywords: ["snickers", "schokoriegel", "schokolade", "riegel", "snickerss"], categoryIds: ["snacks", "suessigkeiten"] },
+            { name: "Mars", price: 1.00, keywords: ["mars", "schokoriegel", "schokolade", "riegel"], categoryIds: ["snacks", "suessigkeiten"] },
+            { name: "Twix", price: 1.00, keywords: ["twix", "schokoriegel", "schokolade", "riegel", "karamel"], categoryIds: ["snacks", "suessigkeiten"] },
+            { name: "Bounty", price: 1.00, keywords: ["bounty", "schokoriegel", "schokolade", "riegel", "kokos"], categoryIds: ["snacks", "suessigkeiten"] },
+            { name: "M&M's", price: 1.50, keywords: ["m&m's", "mms", "schokolinsen", "linsen", "schokodragees"], categoryIds: ["suessigkeiten"] },
+            { name: "Skittles", price: 1.50, keywords: ["skittles", "fruchtgummi", "bonbons", "fruchtbonbons"], categoryIds: ["suessigkeiten"] },
+            { name: "Oreo's", price: 1.50, keywords: ["oreo's", "oreos", "kekse", "doppelkeks"], categoryIds: ["snacks", "suessigkeiten"] },
+            { name: "Reese's", price: 1.80, keywords: ["reese's", "reeses", "erdnussbutter", "schokolade"], categoryIds: ["snacks", "suessigkeiten"] },
+            { name: "Pringels Rot", price: 1.50, keywords: ["pringels rot", "pringels", "chips", "rot", "paprika", "pringles"], categoryIds: ["snacks"] },
+            { name: "Pringels Orange", price: 1.50, keywords: ["pringels orange", "pringels", "chips", "orange", "käse", "pringles"], categoryIds: ["snacks"] },
+            { name: "Pringels Grün", price: 1.50, keywords: ["pringels grün", "pringels", "chips", "grün", "sour cream", "onion", "zwiebel", "pringles"], categoryIds: ["snacks"] },
+            { name: "Popcorn", price: 1.00, keywords: ["popcorn", "snacks", "kino", "gesalzen"], categoryIds: ["snacks"] },
+            { name: "Toast mit Käse", price: 1.50, keywords: ["toast mit käse", "toast", "käse", "sandwich"], categoryIds: ["speisen"] },
+            { name: "Toast mit Käse und Trutenschinken", price: 2.00, keywords: ["toast mit käse und trutenschinken", "toast", "käse", "trutenschinken", "schinken", "sandwich"], categoryIds: ["speisen"] },
+            { name: "Virgin Sunrise", price: 2.00, keywords: ["virgin sunrise", "cocktail", "drink", "alkoholfrei", "orange", "sunrise"], categoryIds: ["drinks"] },
+            { name: "Blue Dream", price: 2.00, keywords: ["blue dream", "cocktail", "drink", "alkoholfrei", "blau"], categoryIds: ["drinks"] }
+        ];
+
+        // Initial categories data (only for populating Firestore if empty)
+        const initialCategoriesData = [ 
+            { id: "getraenke", name: "Getränke" },
+            { id: "suessigkeiten", name: "Süssigkeiten" },
+            { id: "snacks", name: "Snacks" },
+            { id: "speisen", name: "Speisen" },
+            { id: "drinks", name: "Cocktails/Drinks" }
+        ];
+
+        // Shopping list array (client-side only)
+        let shoppingList = [];
+
+        // Variable to store the current action for the generic confirmation modal
+        let currentModalAction = null; // 'deleteProduct', 'resetPageViews', 'resetShoppingList', 'deleteCategory'
+        let modalTargetId = null; // Stores the ID of the item (product/category) to delete or reset
+
+
+        // DOMContentLoaded ensures all HTML elements are loaded before running the script
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Main content area containers
+            const publicContentDiv = document.getElementById('publicContent');
+            const adminAreaDiv = document.getElementById('adminArea');
+
+            // UI Elements for the admin section
+            const adminPanel = document.getElementById('adminPanel');
+            const adminAuthButton = document.getElementById('adminAuthButton');
+            const adminLoginFormDiv = document.getElementById('adminLoginForm');
+            const loginForm = document.getElementById('loginForm');
+            const adminEmailInput = document.getElementById('adminEmail');
+            const adminPasswordInput = document.getElementById('adminPassword');
+            const loginErrorP = document.getElementById('loginError');
+
+            // General Settings UI elements
+            const settingsForm = document.getElementById('settingsForm'); 
+            const footerText = document.getElementById('footerText'); 
+            const drinksNote = document.getElementById('drinksNote'); 
+            const settingsStatus = document.getElementById('settingsStatus'); 
+            const footerTextDisplay = document.getElementById('footerTextDisplay'); 
+            const drinksNoteDisplay = document.getElementById('drinksNoteDisplay'); 
+
+            // Price List Image Upload UI elements
+            const priceList1FileInput = document.getElementById('priceList1FileInput');
+            const uploadPriceList1Btn = document.getElementById('uploadPriceList1Btn');
+            const priceList1Status = document.getElementById('priceList1Status');
+            const adminPriceList1Preview = document.getElementById('adminPriceList1Preview');
+
+            const priceList2FileInput = document.getElementById('priceList2FileInput');
+            const uploadPriceList2Btn = document.getElementById('uploadPriceList2Btn');
+            const priceList2Status = document.getElementById('priceList2Status');
+            const adminPriceList2Preview = document.getElementById('adminPriceList2Preview');
+
+            // Category Management UI elements
+            const categoryForm = document.getElementById('categoryForm'); 
+            const categoryIdInput = document.getElementById('categoryId'); 
+            const categoryNameInput = document.getElementById('categoryName'); 
+            const saveCategoryBtn = document.getElementById('saveCategoryBtn'); 
+            const cancelCategoryEditBtn = document.getElementById('cancelCategoryEditBtn'); 
+            const adminCategoryList = document.getElementById('adminCategoryList'); 
+            const productCategoriesCheckboxes = document.getElementById('productCategoriesCheckboxes'); 
+
+            // Product Management UI elements
+            const productForm = document.getElementById('productForm');
+            const productIdInput = document.getElementById('productId');
+            const productNameInput = document.getElementById('productName');
+            const productPriceInput = document.getElementById('productPrice');
+            const productKeywordsInput = document.getElementById('productKeywords');
+            const productFormTitle = document.getElementById('productFormTitle');
+            const saveProductBtn = document.getElementById('saveProductBtn');
+            const cancelEditBtn = document.getElementById('cancelEditBtn');
+            const adminProductListUl = document.getElementById('adminProductList');
+
+            // Elements for static image display
+            const priceList1Display = document.getElementById('priceList1Display');
+            const priceList2Display = document.getElementById('priceList2Display');
+
+            // Query Selectors for all administrable elements to disable them when not logged in as admin
+            const adminControlElements = document.querySelectorAll(
+                '#adminPanel input:not(#adminEmail):not(#adminPassword), #adminPanel button:not([type="submit"]), #adminPanel select, #adminPanel textarea'
+            );
+
+            // Elements for generic confirmation modal
+            const confirmModal = document.getElementById('confirmModal');
+            const confirmModalTitle = document.getElementById('confirmModalTitle');
+            const confirmModalMessage = document.getElementById('confirmModalMessage');
+            const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+            const modalCancelBtn = document.getElementById('modalCancelBtn');
+
+            // Existing search and shopping list UI elements (Public side)
+            const searchInput = document.getElementById('searchInput');
+            const searchButton = document.getElementById('searchButton');
+            const searchResultsDiv = document.getElementById('searchResults');
+            const shoppingListItemsUl = document.getElementById('shoppingListItems');
+            const shoppingListTotalSpan = document.getElementById('shoppingListTotal');
+            const clearShoppingListBtn = document.getElementById('clearShoppingListBtn');
+            const emptyListMessage = document.getElementById('emptyListMessage');
+
+            // Admin Product List Search/Sort/Filter UI elements
+            const adminSearchInput = document.getElementById('adminSearchInput');
+            const adminSortSelect = document.getElementById('adminSortSelect');
+            const adminCategoryFilter = document.getElementById('adminCategoryFilter');
+
+            // Navigation elements
+            const navPreisliste = document.getElementById('navPreisliste');
+            const navDrinks = document.getElementById('navDrinks');
+            const navShoppingList = document.getElementById('navShoppingList');
+
+            // UI-Elemente für Statistiken
+            const totalPageViewsDisplay = document.getElementById('totalPageViewsDisplay');
+            const shoppingListStatsList = document.getElementById('shoppingListStatsList');
+            const resetPageViewsBtn = document.getElementById('resetPageViewsBtn'); 
+            const resetShoppingListStatsBtn = document.getElementById('resetShoppingListStatsBtn'); 
+
+            // NEUE KI-Elemente
+            const generateAiInsightsBtn = document.getElementById('generateAiInsightsBtn');
+            const aiLoadingSpinner = document.getElementById('aiLoadingSpinner');
+            const aiInsightsDisplay = document.getElementById('aiInsightsDisplay');
+            const aiInsightStatus = document.getElementById('aiInsightStatus');
+
+
+            // Function to enable/disable admin form elements based on admin status
+            function setAdminControlsDisabled(disabled) {
+                adminControlElements.forEach(el => {
+                    el.disabled = disabled;
+                });
+            }
+
+            // Function to show/hide public and admin sections
+            function showView(viewName) {
+                if (viewName === 'admin') {
+                    publicContentDiv.classList.add('hidden');
+                    adminAreaDiv.classList.remove('hidden');
+                    adminPanel.classList.remove('hidden'); 
+                    adminLoginFormDiv.classList.add('hidden'); 
+                    // Hide public nav links
+                    navPreisliste.classList.add('hidden');
+                    navDrinks.classList.add('hidden');
+                    navShoppingList.classList.add('hidden');
+                } else { // viewName === 'public'
+                    publicContentDiv.classList.remove('hidden');
+                    adminAreaDiv.classList.add('hidden');
+                    adminPanel.classList.add('hidden'); 
+                    adminLoginFormDiv.classList.add('hidden'); 
+                    // Show public nav links
+                    navPreisliste.classList.remove('hidden');
+                    navDrinks.classList.remove('hidden');
+                    navShoppingList.classList.remove('hidden');
+                }
+            } // FIX: Changed '});' to '}'
+
+
+            // Authentication state change listener
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUserId = user.uid;
+                    console.log("Benutzer angemeldet:", currentUserId);
+                    isAdminLoggedIn = true; 
+                    adminAuthButton.textContent = "Admin Logout";
+                    showView('admin'); // Show admin area
+                    setAdminControlsDisabled(false); // Enable admin controls
+
+                    // Attempt to initialize products/categories if they haven't been.
+                    if (!initialProductsChecked) initializeProductsInFirestore();
+                    if (!initialCategoriesChecked) initializeCategoriesInFirestore();
+
+                } else {
+                    currentUserId = null;
+                    isAdminLoggedIn = false; 
+                    console.log("Kein Benutzer angemeldet.");
+                    adminAuthButton.textContent = "Admin Login";
+                    showView('public'); // Show public area
+                    setAdminControlsDisabled(true); 
+                    
+                    // Continue listening to public data even when logged out
+                    setupFirestoreListeners(); 
+                    loadSettings(); 
+                }
+            });
+
+            // --- Statistikfunktionen ---
+
+            // Funktion zum Erhöhen des Seitenaufruf-Zählers
+            async function incrementPageView() {
+                try {
+                    await setDoc(websiteTrafficDocRef, { totalPageViews: increment(1) }, { merge: true });
+                    console.log("Seitenaufruf inkrementiert.");
+                } catch (error) {
+                    console.error("Fehler beim Erhöhen des Seitenaufruf-Zählers:", error);
+                }
+            }
+
+            // Funktion zum Laden und Anzeigen der Statistiken im Admin-Panel
+            function setupStatisticsListeners() {
+                // Live-Update für Seitenaufrufe
+                onSnapshot(websiteTrafficDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        totalPageViewsDisplay.textContent = docSnap.data().totalPageViews || 0;
+                    } else {
+                        totalPageViewsDisplay.textContent = 0;
+                    }
+                }, (error) => {
+                    console.error("Fehler beim Laden der Seitenaufruf-Statistik:", error);
+                });
+
+                // Live-Update für Einkaufsliste-Statistiken
+                onSnapshot(shoppingListStatsDocRef, (docSnap) => {
+                    shoppingListStatsList.innerHTML = ''; // Clear previous list
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        // Convert object to array of [productName, count] pairs and sort by count (descending)
+                        const sortedItems = Object.entries(data).sort(([, countA], [, countB]) => countB - countA);
+                        
+                        sortedItems.forEach(([productName, count]) => {
+                            const listItem = document.createElement('li');
+                            // Replace '_' back to space for display
+                            listItem.textContent = `${productName.replace(/_/g, ' ')}: ${count}`;
+                            shoppingListStatsList.appendChild(listItem);
+                        });
+                    } else {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = "Keine Daten vorhanden.";
+                        shoppingListStatsList.appendChild(listItem);
+                    }
+                }, (error) => {
+                    console.error("Fehler beim Laden der Einkaufsliste-Statistik:", error);
+                });
+            }
+
+            // Funktion zum Zurücksetzen der Website-Aufrufe
+            async function resetPageViewsFunction() {
+                if (!isAdminLoggedIn) {
+                    alert("Sie müssen als Admin angemeldet sein, um Statistiken zurückzusetzen.");
+                    return;
+                }
+                try {
+                    await setDoc(websiteTrafficDocRef, { totalPageViews: 0 });
+                    console.log("Website-Aufrufe zurückgesetzt.");
+                } catch (error) {
+                    console.error("Fehler beim Zurücksetzen der Website-Aufrufe:", error);
+                    alert("Fehler beim Zurücksetzen der Website-Aufrufe: " + error.message);
+                }
+            }
+
+            // Funktion zum Zurücksetzen der Einkaufsliste-Statistiken
+            async function resetShoppingListStatsFunction() {
+                if (!isAdminLoggedIn) {
+                    alert("Sie müssen als Admin angemeldet sein, um Statistiken zurückzusetzen.");
+                    return;
+                }
+                try {
+                    await deleteDoc(shoppingListStatsDocRef); // Löscht das gesamte Dokument
+                    console.log("Einkaufslisten-Statistiken zurückgesetzt.");
+                } catch (error) {
+                    console.error("Fehler beim Zurücksetzen der Einkaufslisten-Statistiken:", error);
+                    alert("Fehler beim Zurücksetzen der Einkaufslisten-Statistiken: " + error.message);
+                }
+            }
+
+            // Event-Listener für Reset-Buttons, die das Bestätigungsmodal öffnen
+            resetPageViewsBtn.addEventListener('click', () => {
+                if (!isAdminLoggedIn) {
+                    alert("Sie müssen als Admin angemeldet sein, um Statistiken zurückzusetzen.");
+                    return;
+                }
+                currentModalAction = 'resetPageViews';
+                confirmModalTitle.textContent = "Statistik zurücksetzen";
+                confirmModalMessage.innerHTML = 'Möchten Sie die **Website-Aufrufe** wirklich auf 0 zurücksetzen?';
+                confirmModal.classList.add('visible');
+                confirmModal.classList.remove('hidden');
+            });
+
+            resetShoppingListStatsBtn.addEventListener('click', () => {
+                if (!isAdminLoggedIn) {
+                    alert("Sie müssen als Admin angemeldet sein, um Statistiken zurückzusetzen.");
+                    return;
+                }
+                currentModalAction = 'resetShoppingList';
+                confirmModalTitle.textContent = "Statistik zurücksetzen";
+                confirmModalMessage.innerHTML = 'Möchten Sie die **Einkaufslisten-Statistiken** wirklich zurücksetzen?<br>Dadurch werden alle Zähler für Einkaufslisten-Artikel auf 0 gesetzt.';
+                confirmModal.classList.add('visible');
+                confirmModal.classList.remove('hidden');
+            });
+
+
+            // --- KI-Analyse Funktion (NEU) ---
+            async function generateAiInsights() {
+                if (!isAdminLoggedIn) {
+                    aiInsightStatus.textContent = "Sie müssen als Admin angemeldet sein, um KI-Analysen zu generieren.";
+                    aiInsightStatus.style.color = "red";
+                    return;
+                }
+
+                aiInsightsDisplay.classList.add('hidden'); // Verstecke alte Ergebnisse
+                aiInsightsDisplay.innerHTML = ''; // Leere alte Ergebnisse (wichtig für Markdown)
+                aiInsightStatus.textContent = "Generiere Analyse...";
+                aiInsightStatus.style.color = "orange";
+                aiLoadingSpinner.classList.remove('hidden'); // Zeige Spinner
+
+                try {
+                    const docSnap = await getDoc(shoppingListStatsDocRef);
+                    let popularItemsData = {};
+                    if (docSnap.exists()) {
+                        popularItemsData = docSnap.data();
+                    }
+
+                    const sortedItems = Object.entries(popularItemsData)
+                                            .sort(([, countA], [, countB]) => countB - countA)
+                                            .map(([name, count]) => `${name.replace(/_/g, ' ')}: ${count} Mal hinzugefügt`);
+
+                    let prompt = `Analysiere die folgenden Daten der meist hinzugefügten Artikel zur Einkaufsliste und gib Erkenntnisse, mögliche Trends oder Empfehlungen. Was könnten die Zahlen über die Beliebtheit aussagen und welche Schlüsse könnten für das Sortiment oder Marketing gezogen werden? Antworte kurz und prägnant, in Stichpunkten oder einem kurzen Absatz, ausschliesslich auf Deutsch. Verwende Markdown-Formatierung für Überschriften (z.B. #### Erkenntnisse) und Listenpunkte. Die Daten sind kumulativ seit dem letzten Reset.\n\nBeliebteste Artikel:\n`;
+                    
+                    if (sortedItems.length > 0) {
+                        prompt += sortedItems.join('\n');
+                    } else {
+                        prompt += "Keine Daten vorhanden.";
+                    }
+
+                    console.log("Prompt an Gemini:", prompt);
+
+                    const apiKey = "AIzaSyDfjeEwgXH5SQG3cbloEogcFoY2xnAbpzE"; 
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                    
+                    let chatHistory = [];
+                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                    const payload = { contents: chatHistory };
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+                    
+                    let aiResponseMarkdown = "Keine Analyse verfügbar.";
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        aiResponseMarkdown = result.candidates[0].content.parts[0].text;
+                    } else if (result.error) {
+                        aiResponseMarkdown = `Fehler von Gemini: ${result.error.message}`;
+                        console.error("Gemini API Fehler:", result.error);
+                    }
+
+                    // Rendere den Markdown-Text in HTML
+                    aiInsightsDisplay.innerHTML = marked.parse(aiResponseMarkdown);
+                    aiInsightsDisplay.classList.remove('hidden');
+                    aiInsightStatus.textContent = "Analyse abgeschlossen.";
+                    aiInsightStatus.style.color = "green";
+
+                } catch (error) {
+                    console.error("Fehler bei der KI-Analyse:", error);
+                    aiInsightStatus.textContent = "Fehler bei der KI-Analyse: " + error.message;
+                    aiInsightStatus.style.color = "red";
+                } finally {
+                    aiLoadingSpinner.classList.add('hidden'); // Spinner verstecken
+                }
+            }
+
+            generateAiInsightsBtn.addEventListener('click', generateAiInsights);
+
+
+            // --- Allgemeine Firestore-Listener und Initialisierungen ---
+            
+            // Call incrementPageView right at the start of DOMContentLoaded for every page load
+            incrementPageView();
+
+            // Initialize all Firestore listeners once DOM is ready
+            function setupFirestoreListeners() {
+                setupStatisticsListeners(); // Setup statistics listeners first
+
+                onSnapshot(productsColRef, (snapshot) => {
+                    const fetchedProducts = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    window.products = fetchedProducts.sort((a, b) => a.name.localeCompare(b.name));
+                    console.log("Produkte von Firestore geladen:", window.products);
+                    
+                    searchProducts(); 
+                    updateShoppingListDisplay();
+                    filterAndSortAdminProducts(); 
+                }, (error) => {
+                    console.error("Fehler beim Laden der Produkte von Firestore:", error);
+                });
+
+                onSnapshot(categoriesColRef, (snapshot) => {
+                    window.categories = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    })).sort((a, b) => a.name.localeCompare(b.name));
+                    console.log("Kategorien von Firestore geladen:", window.categories);
+                    populateCategoryCheckboxes(); 
+                    populateAdminCategoryFilter(); 
+                    filterAndSortAdminProducts(); 
+                }, (error) => {
+                    console.error("Fehler beim Laden der Kategorien von Firestore:", error);
+                });
+            }
+
+            setupFirestoreListeners(); // Call the main listener setup
+
+            // Function to initialize categories in Firestore with initial data if the collection is empty
+            async function initializeCategoriesInFirestore() {
+                try {
+                    const snapshot = await getDocs(categoriesColRef);
+                    if (snapshot.empty) {
+                        console.log("Firestore Categories-Sammlung ist leer. Fülle mit Initialdaten...");
+                        const addPromises = initialCategoriesData.map(category => 
+                            setDoc(doc(categoriesColRef, category.id), { 
+                                name: category.name,
+                                createdAt: new Date() 
+                            })
+                        );
+                        await Promise.all(addPromises);
+                        console.log("Initialdaten für Kategorien erfolgreich zu Firestore hinzugefügt.");
+                        initialCategoriesChecked = true; 
+                    } else {
+                        console.log("Firestore Categories-Sammlung ist bereits gefüllt.");
+                        initialCategoriesChecked = true; 
+                    }
+                } catch (error) {
+                    console.error("Fehler beim Initialisieren der Kategorien in Firestore:", error);
+                }
+            }
+
+
+            // Function to initialize products in Firestore with initial data if the collection is empty
+            async function initializeProductsInFirestore() {
+                try {
+                    const snapshot = await getDocs(productsColRef);
+                    if (snapshot.empty) {
+                        console.log("Firestore Products-Sammlung ist leer. Fülle mit Initialdaten...");
+                        const addPromises = initialProductsData.map(product => 
+                            addDoc(productsColRef, {
+                                name: product.name,
+                                price: parseFloat(product.price), 
+                                keywords: product.keywords,
+                                categoryIds: product.categoryIds || [], 
+                                createdAt: new Date() 
+                            })
+                        );
+                        await Promise.all(addPromises);
+                        console.log("Initialdaten erfolgreich zu Firestore hinzugefügt.");
+                        initialProductsChecked = true; 
+                    } else {
+                        console.log("Firestore Products-Sammlung ist bereits gefüllt.");
+                        initialProductsChecked = true; 
+                    }
+                } catch (error) {
+                    console.error("Fehler beim Initialisieren der Produkte in Firestore:", error);
+                }
+            }
+
+            function loadSettings() {
+                onSnapshot(settingsDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        // Update Footer Text
+                        if (data.footerText) {
+                            footerTextDisplay.textContent = data.footerText;
+                            if (footerText) footerText.value = data.footerText; 
+                        } else {
+                            footerTextDisplay.textContent = "&copy; 2025 MOJAS.ch. Alle Rechte vorbehalten.";
+                            if (footerText) footerText.value = "";
+                        }
+                        // Update Drinks Note
+                        if (data.drinksNote) {
+                            drinksNoteDisplay.querySelector('p').textContent = data.drinksNote;
+                            if (drinksNote) drinksNote.value = data.drinksNote; 
+                        } else {
+                            drinksNoteDisplay.querySelector('p').textContent = "Diese Drinks sind nur während Partys und kurz danach erhältlich.";
+                            if (drinksNote) drinksNote.value = "";
+                        }
+                        // Update Price List Image 1
+                        if (data.priceList1Url) {
+                            priceList1Display.src = data.priceList1Url;
+                            adminPriceList1Preview.src = data.priceList1Url; 
+                        } else {
+                            priceList1Display.src = "1.1.png"; 
+                            adminPriceList1Preview.src = "1.1.png"; 
+                        }
+                        // Update Price List Image 2
+                        if (data.priceList2Url) {
+                            priceList2Display.src = data.priceList2Url;
+                            adminPriceList2Preview.src = data.priceList2Url; 
+                        } else {
+                            priceList2Display.src = "2.1.png"; 
+                            adminPriceList2Preview.src = "2.1.png"; 
+                        }
+
+                    } else {
+                        console.log("Keine allgemeinen Einstellungen in Firestore gefunden. Verwende Standardtexte und Bilder.");
+                        footerTextDisplay.textContent = "&copy; 2025 MOJAS.ch. Alle Rechte vorbehalten.";
+                        drinksNoteDisplay.querySelector('p').textContent = "Diese Drinks sind nur während Partys und kurz danach erhältlich.";
+                        if (footerText) footerText.value = ""; 
+                        if (drinksNote) drinksNote.value = ""; 
+                        priceList1Display.src = "1.1.png";
+                        adminPriceList1Preview.src = "1.1.png";
+                        priceList2Display.src = "2.1.png";
+                        adminPriceList2Preview.src = "2.1.png";
+                    }
+                }, (error) => {
+                    console.error("Fehler beim Laden der Einstellungen von Firestore:", error);
+                });
+            }
+
+            // Admin Login / Logout button handler
+            adminAuthButton.addEventListener('click', async () => {
+                if (isAdminLoggedIn) {
+                    try {
+                        await signOut(auth);
+                        console.log("Admin abgemeldet.");
+                    } catch (error) {
+                        console.error("Fehler beim Abmelden:", error);
+                        alert("Abmeldung fehlgeschlagen: " + error.message);
+                    }
+                } else {
+                    showView('admin'); 
+                    adminLoginFormDiv.classList.remove('hidden'); 
+                    adminPanel.classList.add('hidden'); 
+                    loginErrorP.classList.add('hidden'); 
+                    setAdminControlsDisabled(true); 
+                }
+            });
+
+            // Login Form Handler (for real Firebase email/password login)
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = adminEmailInput.value;
+                const password = adminPasswordInput.value;
+
+                loginErrorP.classList.add('hidden'); 
+
+                try {
+                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                    console.log("Login-Versuch erfolgreich.");
+                } catch (error) {
+                    console.error("Fehler beim Admin-Login:", error);
+                    let errorMessage = "Anmeldung fehlgeschlagen. Ungültige E-Mail oder Passwort.";
+                    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                        errorMessage = "Ungültige E-Mail oder Passwort. Bitte überprüfen Sie Ihre Eingaben.";
+                    } else if (error.code === 'auth/invalid-email') {
+                        errorMessage = "Ungültiges E-Mail-Format. Bitte geben Sie eine gültige E-Mail-Adresse ein.";
+                    } else if (error.code === 'auth/operation-not-allowed') {
+                        errorMessage = "E-Mail/Passwort-Anmeldung ist in Firebase nicht aktiviert. Bitte aktivieren Sie dies in der Firebase Console unter 'Authentifizierung' -> 'Anmeldemethode'.";
+                    } else if (error.code === 'auth/too-many-requests') {
+                         errorMessage = "Zu viele fehlgeschlagene Anmeldeversuche. Bitte versuchen Sie es später erneut.";
+                    }
+                    loginErrorP.textContent = errorMessage;
+                    loginErrorP.classList.remove('hidden'); 
+                }
+            });
+
+            // General Settings Form Handler (for saving footer and drinks note)
+            settingsForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!isAdminLoggedIn) {
+                    settingsStatus.textContent = "Sie müssen als Admin angemeldet sein, um Einstellungen zu speichern.";
+                    settingsStatus.style.color = "red";
+                    return;
+                }
+                settingsStatus.textContent = "Speichere Einstellungen...";
+                settingsStatus.style.color = "orange";
+                try {
+                    await setDoc(settingsDocRef, {
+                        footerText: footerText.value.trim(),
+                        drinksNote: drinksNote.value.trim()
+                    }, { merge: true }); 
+                    settingsStatus.textContent = "Einstellungen erfolgreich gespeichert!";
+                    settingsStatus.style.color = "green";
+                } catch (error) {
+                    console.error("Fehler beim Speichern der Einstellungen:", error);
+                    settingsStatus.textContent = "Fehler beim Speichern: " + error.message;
+                    settingsStatus.style.color = "red";
+                }
+            });
+
+            // --- Price List Image Upload Functions ---
+            async function uploadPriceListImage(file, imageFileName, statusElement, previewElement) {
+                if (!isAdminLoggedIn) {
+                    statusElement.textContent = "Sie müssen als Admin angemeldet sein, um Bilder hochzuladen.";
+                    statusElement.style.color = "red";
+                    return;
+                }
+                if (!file) {
+                    statusElement.textContent = "Bitte wählen Sie eine Datei aus.";
+                    statusElement.style.color = "red";
+                    return;
+                }
+                if (file.type !== 'image/png') {
+                    statusElement.textContent = "Nur .png Dateien sind erlaubt.";
+                    statusElement.style.color = "red";
+                    return;
+                }
+
+                statusElement.textContent = "Lade hoch...";
+                statusElement.style.color = "orange";
+
+                try {
+                    const storageRef = ref(storage, `price_lists/${imageFileName}`);
+                    const uploadTask = await uploadBytes(storageRef, file);
+                    const downloadURL = await getDownloadURL(uploadTask.ref);
+
+                    const updateData = {};
+                    if (imageFileName === '1.1.png') {
+                        updateData.priceList1Url = downloadURL;
+                    } else if (imageFileName === '2.1.png') {
+                        updateData.priceList2Url = downloadURL;
+                    }
+                    await setDoc(settingsDocRef, updateData, { merge: true });
+
+                    statusElement.textContent = "Bild erfolgreich hochgeladen!";
+                    statusElement.style.color = "green";
+                    previewElement.src = downloadURL; 
+                } catch (error) {
+                    console.error("Fehler beim Hochladen des Bildes:", error);
+                    statusElement.textContent = "Fehler beim Hochladen: " + error.message;
+                    statusElement.style.color = "red";
+                }
+            }
+
+            priceList1FileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file && file.type === 'image/png') {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        adminPriceList1Preview.src = event.target.result;
+                        priceList1Status.textContent = file.name + " ausgewählt.";
+                        priceList1Status.style.color = "gray";
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    adminPriceList1Preview.src = "1.1.png"; 
+                    priceList1Status.textContent = "Bitte wählen Sie eine .png Datei.";
+                    priceList1Status.style.color = "red";
+                    e.target.value = ''; 
+                }
+            });
+
+            priceList2FileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file && file.type === 'image/png') {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        adminPriceList2Preview.src = event.target.result;
+                        priceList2Status.textContent = file.name + " ausgewählt.";
+                        priceList2Status.style.color = "gray";
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    adminPriceList2Preview.src = "2.1.png"; 
+                    priceList2Status.textContent = "Bitte wählen Sie eine .png Datei.";
+                    priceList2Status.style.color = "red";
+                    e.target.value = ''; 
+                }
+            });
+
+            uploadPriceList1Btn.addEventListener('click', () => {
+                uploadPriceListImage(priceList1FileInput.files[0], '1.1.png', priceList1Status, adminPriceList1Preview);
+            });
+
+            uploadPriceList2Btn.addEventListener('click', () => {
+                uploadPriceListImage(priceList2FileInput.files[0], '2.1.png', priceList2Status, adminPriceList2Preview);
+            });
+
+
+            // Category Management Functions
+            async function addCategoryToFirestore(name) {
+                if (!isAdminLoggedIn) {
+                    alert("Sie müssen als Admin angemeldet sein, um Kategorien hinzuzufügen/zu bearbeiten.");
+                    return;
+                }
+                if (!name || window.categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+                    alert("Kategoriename ist ungültig oder existiert bereits.");
+                    return;
+                }
+                try {
+                    const categoryId = name.toLowerCase().replace(/[^a-z0-9]+/g, ''); 
+                    await setDoc(doc(categoriesColRef, categoryId), { 
+                        name: name,
+                        createdAt: new Date()
+                    });
+                    console.log("Kategorie hinzugefügt:", name);
+                    resetCategoryForm();
+                } catch (error) {
+                    console.error("Fehler beim Hinzufügen der Kategorie:", error);
+                    alert("Fehler beim Hinzufügen: " + error.message);
+                }
+            }
+
+            async function updateCategoryInFirestore(id, name) {
+                if (!isAdminLoggedIn) {
+                    alert("Sie müssen als Admin angemeldet sein, um Kategorien hinzuzufügen/zu bearbeiten.");
+                    return;
+                }
+                if (!id || !name || (window.categories.some(c => c.name.toLowerCase() === name.toLowerCase() && c.id !== id))) {
+                    alert("Kategoriename ist ungültig oder existiert bereits für eine andere Kategorie.");
+                    return;
+                }
+                try {
+                    const categoryRef = doc(categoriesColRef, id);
+                    await updateDoc(categoryRef, { name: name }); 
+                    console.log("Kategorie aktualisiert:", name);
+                    resetCategoryForm();
+                } catch (error) {
+                    console.error("Fehler beim Aktualisieren der Kategorie:", error);
+                    alert("Fehler beim Aktualisieren: " + error.message);
+                }
+            }
+
+            async function deleteCategoryFromFirestore(id) {
+                if (!isAdminLoggedIn) {
+                    alert("Sie müssen als Admin angemeldet sein, um Kategorien zu löschen.");
+                    return;
+                }
+                const productsUsingCategory = window.products.filter(p => p.categoryIds && p.categoryIds.includes(id));
+                if (productsUsingCategory.length > 0) {
+                    alert(`Diese Kategorie wird noch von ${productsUsingCategory.length} Produkten verwendet und kann nicht gelöscht werden.`);
+                    return;
+                }
+
+                currentModalAction = 'deleteCategory'; // Set action for modal
+                modalTargetId = id; // Store ID for category deletion (reusing productToDeleteId)
+                confirmModalTitle.textContent = "Kategorie löschen";
+                const categoryToDelete = window.categories.find(c => c.id === id);
+                confirmModalMessage.innerHTML = `Möchten Sie die Kategorie "<span class="font-semibold">${categoryToDelete ? categoryToDelete.name : id}</span>" wirklich löschen?`;
+                confirmModal.classList.add('visible');
+                confirmModal.classList.remove('hidden');
+            }
+
+            function updateAdminCategoryList() {
+                if (!adminCategoryList) return;
+                adminCategoryList.innerHTML = ''; 
+                window.categories.forEach(category => {
+                    const listItem = document.createElement('li');
+                    listItem.classList.add('flex', 'items-center', 'justify-between', 'border-b', 'border-gray-200', 'py-2');
+                    listItem.innerHTML = `
+                        <span>${category.name} (${category.id})</span>
+                        <div class="flex space-x-2">
+                            <button class="edit-category-btn bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600" data-id="${category.id}">Bearbeiten</button>
+                            <button class="delete-category-btn bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600" data-id="${category.id}">Löschen</button>
+                        </div>
+                    `;
+                    adminCategoryList.appendChild(listItem);
+                });
+
+                document.querySelectorAll('.edit-category-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const categoryId = e.target.dataset.id;
+                        const categoryToEdit = window.categories.find(c => c.id === categoryId);
+                        if (categoryToEdit) {
+                            categoryIdInput.value = categoryToEdit.id;
+                            categoryNameInput.value = categoryToEdit.name;
+                            saveCategoryBtn.textContent = "Kategorie speichern"; 
+                            cancelCategoryEditBtn.classList.remove('hidden'); 
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.delete-category-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        deleteCategoryFromFirestore(e.target.dataset.id);
+                    });
+                });
+            }
+
+            function resetCategoryForm() {
+                categoryForm.reset(); 
+                categoryIdInput.value = ''; 
+                saveCategoryBtn.textContent = "Kategorie hinzufügen"; 
+                cancelCategoryEditBtn.classList.add('hidden'); 
+            }
+
+            categoryForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const categoryId = categoryIdInput.value;
+                const categoryName = categoryNameInput.value.trim();
+
+                if (categoryId) {
+                    updateCategoryInFirestore(categoryId, categoryName);
+                } else {
+                    addCategoryToFirestore(categoryName);
+                }
+            });
+
+            cancelCategoryEditBtn.addEventListener('click', resetCategoryForm);
+
+            function populateCategoryCheckboxes() {
+                if (!productCategoriesCheckboxes) return;
+                productCategoriesCheckboxes.innerHTML = ''; 
+                window.categories.forEach(category => {
+                    const checkboxDiv = document.createElement('div');
+                    checkboxDiv.innerHTML = `
+                        <input type="checkbox" id="cat-${category.id}" value="${category.id}" class="category-checkbox mr-2">
+                        <label for="cat-${category.id}">${category.name}</label>
+                    `;
+                    productCategoriesCheckboxes.appendChild(checkboxDiv);
+                });
+            }
+
+            function populateAdminCategoryFilter() {
+                if (!adminCategoryFilter) return;
+                adminCategoryFilter.innerHTML = '<option value="">Alle Kategorien</option>'; 
+                window.categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category.id;
+                    option.textContent = category.name;
+                    adminCategoryFilter.appendChild(option);
+                });
+            }
+
+            // --- Product Management ---
+            
+            async function addProductToFirestore(name, price, keywords, categoryIds) { 
+                if (!name || isNaN(price)) {
+                    alert("Name und Preis müssen gültig sein.");
+                    return;
+                }
+                if (!isAdminLoggedIn) { 
+                    alert("Sie müssen als Admin angemeldet sein, um Produkte hinzuzufügen/zu bearbeiten.");
+                    return;
+                }
+                try {
+                    await addDoc(productsColRef, {
+                        name: name,
+                        price: parseFloat(price), 
+                        keywords: keywords.split(',').map(k => k.trim().toLowerCase()).filter(k => k.length > 0),
+                        categoryIds: categoryIds, 
+                        createdAt: new Date()
+                    });
+                    console.log("Produkt hinzugefügt:", name);
+                    resetAdminForm(); 
+                } 
+                catch (error) {
+                    console.error("Fehler beim Hinzufügen des Produkts:", error);
+                    alert("Fehler beim Hinzufügen: " + error.message);
+                }
+            }
+           
+            async function updateProductInFirestore(id, name, price, keywords, categoryIds) { 
+                if (!id || !name || isNaN(price)) {
+                    alert("Alle Felder müssen gültig sein.");
+                    return;
+                }
+                if (!isAdminLoggedIn) { 
+                    alert("Sie müssen als Admin angemeldet sein, um Produkte hinzuzufügen/zu bearbeiten.");
+                    return;
+                }
+                try {
+                    const productRef = doc(db, `artifacts/${appId}/public/data/products`, id);
+                    await setDoc(productRef, { 
+                        name: name,
+                        price: parseFloat(price),
+                        keywords: keywords.split(',').map(k => k.trim().toLowerCase()).filter(k => k.length > 0),
+                        categoryIds: categoryIds 
+                    }, { merge: true });
+                    console.log("Produkt aktualisiert:", name);
+                    resetAdminForm(); 
+                } catch (error) {
+                    console.error("Fehler beim Aktualisieren des Produkts:", error);
+                    alert("Fehler beim Aktualisieren: " + error.message);
+                }
+            }
+
+            async function deleteProductFromFirestore(id, productNameForDisplay) {
+                if (!isAdminLoggedIn) { 
+                    alert("Sie müssen als Admin angemeldet sein, um Produkte zu löschen.");
+                    return;
+                }
+                
+                currentModalAction = 'deleteProduct';
+                modalTargetId = id; // Store the ID of the product to delete
+                confirmModalTitle.textContent = "Produkt löschen";
+                confirmModalMessage.innerHTML = `Möchten Sie "<span class="font-semibold">${productNameForDisplay}</span>" wirklich löschen?`;
+                confirmModal.classList.add('visible');
+                confirmModal.classList.remove('hidden');
+            }
+
+            // Event-Listener für den Bestätigungs-Button im generischen Modal
+            modalConfirmBtn.addEventListener('click', async () => {
+                confirmModal.classList.add('hidden');
+                confirmModal.classList.remove('visible');
+                
+                if (currentModalAction === 'deleteProduct') {
+                    try {
+                        const productRef = doc(db, `artifacts/${appId}/public/data/products`, modalTargetId);
+                        await deleteDoc(productRef); 
+                        console.log("Produkt gelöscht:", modalTargetId);
+                        resetAdminForm(); 
+                        alert("Produkt erfolgreich gelöscht!");
+                    } catch (error) {
+                        console.error("Fehler beim Löschen des Produkts:", error);
+                        alert("Fehler beim Löschen: " + error.message);
+                    }
+                } else if (currentModalAction === 'resetPageViews') {
+                    await resetPageViewsFunction();
+                    alert("Website-Aufrufe erfolgreich zurückgesetzt.");
+                } else if (currentModalAction === 'resetShoppingList') {
+                    await resetShoppingListStatsFunction();
+                    alert("Einkaufslisten-Statistiken erfolgreich zurückgesetzt.");
+                } else if (currentModalAction === 'deleteCategory') {
+                    // Logic for category deletion after confirmation
+                    try {
+                        const categoryRef = doc(categoriesColRef, modalTargetId); 
+                        await deleteDoc(categoryRef); 
+                        console.log("Kategorie gelöscht:", modalTargetId);
+                        resetCategoryForm(); 
+                        alert("Kategorie erfolgreich gelöscht!");
+                    } catch (error) {
+                        console.error("Fehler beim Löschen der Kategorie:", error);
+                        alert("Fehler beim Löschen: " + error.message);
+                    }
+                }
+
+                // Reset modal state
+                currentModalAction = null;
+                modalTargetId = null;
+            });
+
+            // Event-Listener für den Abbrechen-Button im generischen Modal
+            modalCancelBtn.addEventListener('click', () => {
+                confirmModal.classList.add('hidden');
+                confirmModal.classList.remove('visible');
+                // Reset modal state
+                currentModalAction = null;
+                modalTargetId = null;
+            });
+
+
+            window.updateAdminProductList = (filteredProducts = null) => {
+                if (!adminProductListUl) return;
+
+                const productsToDisplay = filteredProducts || window.products; 
+
+                adminProductListUl.innerHTML = ''; 
+                productsToDisplay.forEach(product => {
+                    const listItem = document.createElement('li');
+                    listItem.classList.add('flex', 'flex-col', 'sm:flex-row', 'items-start', 'sm:items-center', 'justify-between', 'border-b', 'border-gray-200', 'py-3', 'gap-2');
+                    
+                    const adminButtons = isAdminLoggedIn ? `
+                        <div class="relative flex items-center space-x-2">
+                            <button class="edit-product-btn bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition" 
+                                    data-id="${product.id}">Bearbeiten
+                            </button>
+                            <button class="delete-product-btn bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition" data-id="${product.id}" data-name="${product.name}">Löschen</button>
+                        </div>
+                    ` : '';
+
+                    const categoryNames = (product.categoryIds || [])
+                        .map(id => {
+                            const category = window.categories.find(c => c.id === id);
+                            return category ? category.name : id; 
+                        })
+                        .join(', ');
+
+                    listItem.innerHTML = `
+                        <div class="flex-grow">
+                            <span class="font-semibold">${product.name}</span> - ${product.price.toFixed(2)} Fr.
+                            <div class="text-sm text-gray-500">
+                                Keywords: ${product.keywords ? product.keywords.join(', ') : 'Keine'}<br>
+                                Kategorien: ${categoryNames || 'Keine'}
+                            </div>
+                        </div>
+                        <div class="flex space-x-2 mt-2 sm:mt-0">
+                            ${adminButtons}
+                        </div>
+                    `;
+                    adminProductListUl.appendChild(listItem);
+
+                    if (isAdminLoggedIn) { 
+                        const editButton = listItem.querySelector('.edit-product-btn');
+                        if (editButton) {
+                            editButton.addEventListener('click', () => {
+                                adminPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            });
+                        }
+                    }
+                });
+
+                document.querySelectorAll('.edit-product-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const productId = e.target.dataset.id;
+                        const productToEdit = window.products.find(p => p.id === productId);
+                        if (productToEdit) {
+                            productIdInput.value = productToEdit.id;
+                            productNameInput.value = productToEdit.name;
+                            productPriceInput.value = productToEdit.price;
+                            productKeywordsInput.value = productToEdit.keywords.join(', ');
+                            productFormTitle.textContent = "Produkt bearbeiten"; 
+                            saveProductBtn.textContent = "Änderungen speichern"; 
+                            cancelEditBtn.classList.remove('hidden'); 
+
+                            document.querySelectorAll('.category-checkbox').forEach(checkbox => {
+                                checkbox.checked = (productToEdit.categoryIds || []).includes(checkbox.value);
+                            });
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.delete-product-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const productId = e.target.dataset.id;
+                        const productName = e.target.dataset.name;
+                        deleteProductFromFirestore(productId, productName); 
+                    });
+                });
+            };
+
+            function filterAndSortAdminProducts() {
+                let filtered = [...window.products]; 
+
+                const searchTerm = adminSearchInput.value.toLowerCase().trim();
+                if (searchTerm) {
+                    filtered = filtered.filter(product => 
+                        product.name.toLowerCase().includes(searchTerm) ||
+                        (product.keywords && product.keywords.some(keyword => keyword.includes(searchTerm)))
+                    );
+                }
+
+                const selectedCategoryId = adminCategoryFilter.value;
+                if (selectedCategoryId) {
+                    filtered = filtered.filter(product => 
+                        product.categoryIds && product.categoryIds.includes(selectedCategoryId)
+                    );
+                }
+
+                const sortOption = adminSortSelect.value;
+                filtered.sort((a, b) => {
+                    if (sortOption === 'nameAsc') {
+                        return a.name.localeCompare(b.name);
+                    } else if (sortOption === 'nameDesc') {
+                        return b.name.localeCompare(a.name);
+                    } else if (sortOption === 'priceAsc') {
+                        return a.price - b.price;
+                    } else if (sortOption === 'priceDesc') {
+                        return b.price - a.price;
+                    }
+                    return 0; 
+                });
+
+                updateAdminProductList(filtered); 
+            }
+
+            adminSearchInput.addEventListener('input', filterAndSortAdminProducts);
+            adminSortSelect.addEventListener('change', filterAndSortAdminProducts);
+            adminCategoryFilter.addEventListener('change', filterAndSortAdminProducts);
+
+
+            function resetAdminForm() {
+                productForm.reset(); 
+                productIdInput.value = ''; 
+                productFormTitle.textContent = "Neues Produkt hinzufügen"; 
+                saveProductBtn.textContent = "Produkt hinzufügen"; 
+                cancelEditBtn.classList.add('hidden'); 
+                document.querySelectorAll('.category-checkbox').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+            }
+
+            productForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const productId = productIdInput.value;
+                const productName = productNameInput.value;
+                const productPrice = productPriceInput.value;
+                const productKeywords = productKeywordsInput.value;
+                
+                const selectedCategoryIds = Array.from(document.querySelectorAll('.category-checkbox:checked'))
+                                                .map(checkbox => checkbox.value);
+
+                if (productId) {
+                    await updateProductInFirestore(productId, productName, productPrice, productKeywords, selectedCategoryIds);
+                } else {
+                    await addProductToFirestore(productName, productPrice, productKeywords, selectedCategoryIds);
+                }
+            });
+
+            cancelEditBtn.addEventListener('click', resetAdminForm);
+
+            // --- Existing search and shopping list functions (Public facing) ---
+
+            window.updateShoppingListDisplay = function() {
+                shoppingListItemsUl.innerHTML = ''; 
+
+                if (shoppingList.length === 0) {
+                    emptyListMessage.classList.remove('hidden');
+                    shoppingListItemsUl.classList.add('hidden');
+                } else {
+                    emptyListMessage.classList.add('hidden');
+                    shoppingListItemsUl.classList.remove('hidden');
+                    shoppingList.forEach(item => {
+                        const listItem = document.createElement('li');
+                        listItem.classList.add('list-item');
+                        listItem.innerHTML = `
+                            <span class="flex-grow">${item.name} (${item.price.toFixed(2)} Fr. pro Stk.)</span>
+                            <div class="quantity-controls flex items-center">
+                                <button class="bg-gray-200 text-gray-800 px-2 py-1 rounded-md hover:bg-gray-300" data-action="decrease" data-name="${item.name}">-</button>
+                                <span class="px-2 font-semibold">${item.quantity}</span>
+                                <button class="bg-gray-200 text-gray-800 px-2 py-1 rounded-md hover:bg-gray-300" data-action="increase" data-name="${item.name}">+</button>
+                                <span class="ml-4 font-bold text-mojas-orange">Total: ${(item.price * item.quantity).toFixed(2)} Fr.</span>
+                                <button class="bg-red-500 text-white px-2 py-1 ml-4 rounded-md hover:bg-red-600" data-action="remove" data-name="${item.name}">X</button>
+                            </div>
+                        `;
+                        shoppingListItemsUl.appendChild(listItem);
+                    });
+                }
+                calculateTotal(); 
+            };
+
+            function calculateTotal() {
+                let total = shoppingList.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                shoppingListTotalSpan.textContent = `${total.toFixed(2)} Fr.`;
+            }
+
+            window.addToShoppingList = async function(productName, targetButton) { 
+                const product = window.products.find(p => p.name === productName);
+                if (!product) return; 
+
+                const existingItem = shoppingList.find(item => item.name === productName);
+
+                if (existingItem) {
+                    existingItem.quantity++; 
+                } else {
+                    shoppingList.push({ ...product, quantity: 1 }); 
+                }
+                updateShoppingListDisplay(); 
+
+                // Statistik für Einkaufsliste-Artikel aktualisieren (immer um 1 inkrementieren, da nur 1 über "Hinzufügen" Button addiert wird)
+                try {
+                    const sanitizedProductName = String(productName).replace(/[.#$[\]]/g, '_'); 
+                    await setDoc(shoppingListStatsDocRef, { [sanitizedProductName]: increment(1) }, { merge: true });
+                    console.log(`Statistik für '${productName}' (sanitisiert: ${sanitizedProductName}) inkrementiert (Hinzufügen).`);
+                } catch (error) {
+                    console.error("Fehler beim Aktualisieren der Einkaufsliste-Statistik:", error);
+                }
+
+                if (targetButton) {
+                    const productItemDiv = targetButton.closest('.product-item');
+                    const lottieContainer = productItemDiv.querySelector('.lottie-container');
+                    const lottiePlayer = lottieContainer ? lottieContainer.querySelector('lottie-player') : null;
+
+                    if (lottieContainer && lottiePlayer) {
+                        targetButton.style.display = 'none'; 
+                        lottieContainer.style.display = 'block'; 
+
+                        lottiePlayer.setDirection(1); 
+                        lottiePlayer.load("animations/checkmark_animation.json"); 
+                        lottiePlayer.play();
+
+                        setTimeout(() => {
+                            lottiePlayer.stop();
+                            lottieContainer.style.display = 'none'; 
+                            targetButton.style.display = 'inline-block'; 
+                            
+                            searchInput.value = ''; 
+                            searchProducts(); 
+                        }, 5000); 
+                    }
+                }
+            };
+
+            // Event Listener für Klicks auf die Einkaufsliste (für Mengenänderung und Entfernung)
+            shoppingListItemsUl.addEventListener('click', async (event) => { // Wichtig: Diese Funktion muss async sein!
+                const target = event.target;
+                const action = target.dataset.action; 
+                const productName = target.dataset.name; 
+
+                if (action && productName) {
+                    const itemIndex = shoppingList.findIndex(item => item.name === productName);
+                    if (itemIndex === -1) return; 
+
+                    const sanitizedProductName = String(productName).replace(/[.#$[\]]/g, '_'); // Produktnamen sanitieren
+
+                    try {
+                        if (action === 'increase') {
+                            shoppingList[itemIndex].quantity++;
+                            await setDoc(shoppingListStatsDocRef, { [sanitizedProductName]: increment(1) }, { merge: true });
+                            console.log(`Statistik für '${productName}' (sanitisiert: ${sanitizedProductName}) inkrementiert (+1).`);
+                        } else if (action === 'decrease') {
+                            if (shoppingList[itemIndex].quantity > 1) {
+                                shoppingList[itemIndex].quantity--;
+                                await setDoc(shoppingListStatsDocRef, { [sanitizedProductName]: increment(-1) }, { merge: true });
+                                console.log(`Statistik für '${productName}' (sanitisiert: ${sanitizedProductName}) dekrementiert (-1).`);
+                            } else {
+                                // Wenn Menge 1 ist und dekrementiert wird, wird das Produkt entfernt
+                                const removedQuantity = shoppingList[itemIndex].quantity; // Sollte 1 sein
+                                shoppingList.splice(itemIndex, 1);
+                                if (removedQuantity > 0) { // Sicherstellen, dass nur positive Mengen dekrementiert werden
+                                    await setDoc(shoppingListStatsDocRef, { [sanitizedProductName]: increment(-removedQuantity) }, { merge: true });
+                                    console.log(`Statistik für '${productName}' (sanitisiert: ${sanitizedProductName}) dekrementiert (-${removedQuantity}) bei Entfernung (durch Dekrementieren).`);
+                                }
+                            }
+                        } else if (action === 'remove') {
+                            const removedQuantity = shoppingList[itemIndex].quantity;
+                            shoppingList.splice(itemIndex, 1);
+                            if (removedQuantity > 0) { // Sicherstellen, dass nur positive Mengen dekrementiert werden
+                                await setDoc(shoppingListStatsDocRef, { [sanitizedProductName]: increment(-removedQuantity) }, { merge: true });
+                                console.log(`Statistik für '${productName}' (sanitisiert: ${sanitizedProductName}) dekrementiert (-${removedQuantity}) bei direkter Entfernung.`);
+                            }
+                        }
+                    } catch (error) {
+                        console.error(`Fehler beim Aktualisieren der Einkaufsliste-Statistik (Aktion: ${action}):`, error);
+                    }
+                    updateShoppingListDisplay(); 
+                }
+            });
+
+            clearShoppingListBtn.addEventListener('click', async () => {
+                const confirmation = confirm("Möchten Sie die gesamte lokale Einkaufsliste leeren?");
+                if (confirmation) {
+                    // ACHTUNG: Das Leeren der lokalen Liste hat KEINEN direkten Einfluss auf die Firestore-Statistik hier,
+                    // da diese die aggregierte Menge über alle Sitzungen hinweg speichert.
+                    // Ein vollständiger Reset der Firestore-Statistik muss über den Admin-Button erfolgen.
+                    shoppingList = []; 
+                    updateShoppingListDisplay(); 
+                    alert("Einkaufsliste wurde geleert.");
+                }
+            });
+
+            window.searchProducts = function() {
+                const query = searchInput.value.toLowerCase().trim();
+                searchResultsDiv.innerHTML = ''; 
+
+                if (query.length === 0) {
+                    searchResultsDiv.classList.add('hidden'); 
+                    return;
+                }
+
+                const matchedProducts = window.products.filter(product => {
+                    return product.name.toLowerCase().includes(query) ||
+                           (product.keywords && product.keywords.some(keyword => keyword.includes(query)));
+                });
+
+                if (matchedProducts.length > 0) {
+                    searchResultsDiv.classList.remove('hidden'); 
+                    matchedProducts.forEach(product => {
+                        const resultItem = document.createElement('div');
+                        resultItem.classList.add('product-item');
+                        resultItem.innerHTML = `
+                            <span class="text-lg font-medium">${product.name}</span>
+                            <span class="text-lg font-bold text-mojas-orange">${product.price.toFixed(2)} Fr.</span>
+                            <div class="relative w-24 h-10 flex items-center justify-center">
+                                <button class="add-to-list-btn px-3 py-1 bg-mojas-orange text-white rounded-md hover:bg-opacity-90 transition duration-300" 
+                                        data-name="${product.name}">
+                                    Hinzufügen
+                                </button>
+                                <div class="lottie-container">
+                                    <lottie-player src="animations/checkmark_animation.json" background="transparent" speed="1"></lottie-player>
+                                </div>
+                            </div>
+                        `;
+                        searchResultsDiv.appendChild(resultItem);
+                    });
+                    document.querySelectorAll('.add-to-list-btn').forEach(button => {
+                        button.addEventListener('click', (event) => {
+                            addToShoppingList(event.target.dataset.name, event.target); 
+                        });
+                    });
+                } else {
+                    searchResultsDiv.classList.remove('hidden'); 
+                    const noResultItem = document.createElement('div');
+                    noResultItem.classList.add('py-2', 'text-gray-600', 'text-center', 'italic');
+                    noResultItem.textContent = "Keine Produkte gefunden, die deiner Suche entsprechen. Probiere es mit anderen Begriffen.";
+                    searchResultsDiv.appendChild(noResultItem);
+                }
+            };
+
+            searchButton.addEventListener('click', searchProducts);
+            searchInput.addEventListener('input', searchProducts);
+
+            updateShoppingListDisplay(); 
+        }); // End DOMContentLoaded
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mojas Preislisten</title>
+    <!-- Favicon Link - Wichtig für das Logo in der Taskleiste/im Tab -->
+    <link rel="icon" href="Logo.png" type="image/png">
+    
+    <!-- Google Fonts Links -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- LottieFiles Web Player CDN (for playing Lottie animations) -->
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+
     <style>
         body {
             font-family: 'Inter', sans-serif; /* Standard-Schriftart für Fliesstext */<!DOCTYPE html>
