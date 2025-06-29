@@ -164,9 +164,10 @@
             <nav class="w-full sm:w-auto mt-4 sm:mt-0">
                 <!-- Navigation links: stacked vertically on mobile, horizontal on small screens and up -->
                 <ul class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 text-lg items-center">
-                    <li><a href="#preisliste" class="hover:underline text-mojas-orange">Preisliste</a></li>
-                    <li><a href="#drinks" class="hover:underline text-mojas-orange">Drinks</a></li>
-                    <li><a href="#shoppingListSection" class="hover:underline text-mojas-orange">Einkaufsliste</a></li>
+                    <!-- Navigationslinks für den öffentlichen Bereich (immer sichtbar) -->
+                    <li id="navPreisliste" class="hidden-on-admin-view"><a href="#preisliste" class="hover:underline text-mojas-orange">Preisliste</a></li>
+                    <li id="navDrinks" class="hidden-on-admin-view"><a href="#drinks" class="hover:underline text-mojas-orange">Drinks</a></li>
+                    <li id="navShoppingList" class="hidden-on-admin-view"><a href="#shoppingListSection" class="hover:underline text-mojas-orange">Einkaufsliste</a></li>
                     <li>
                         <!-- Admin Login/Logout Button -->
                         <button id="adminAuthButton" class="px-4 py-2 bg-mojas-orange text-white rounded-lg shadow-md hover:bg-opacity-90 transition duration-300 ease-in-out">Admin Login</button>
@@ -204,184 +205,190 @@
 
     <!-- Main Content Section -->
     <main class="container mx-auto p-4 flex-grow">
-        <!-- Admin Login Form (initially hidden) -->
-        <div id="adminLoginForm" class="hidden">
-            <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Admin Login</h2>
-            <form id="loginForm" class="grid grid-cols-1 gap-4">
-                <div>
-                    <label for="adminEmail" class="block text-gray-700 text-sm font-bold mb-2">E-Mail:</label>
-                    <input type="email" id="adminEmail" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                <div>
-                    <label for="adminPassword" class="block text-gray-700 text-sm font-bold mb-2">Passwort:</label>
-                    <input type="password" id="adminPassword" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                <button type="submit" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Login</button>
-                <p id="loginError" class="text-red-500 text-center mt-2 hidden">Ungültige E-Mail oder Passwort.</p>
-            </form>
-        </div>
-
-        <!-- Admin Panel Section (initially hidden) -->
-        <section id="adminPanel" class="my-8 bg-white p-6 rounded-2xl shadow-xl hidden">
-            <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Admin Bereich</h2>
-            
-            <!-- Allgemeine Website-Einstellungen -->
-            <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Website-Einstellungen</h3>
-            <form id="settingsForm" class="grid grid-cols-1 gap-4 mb-8">
-                <div>
-                    <label for="footerText" class="block text-gray-700 text-sm font-bold mb-2">Footer-Text:</label>
-                    <input type="text" id="footerText" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                <div>
-                    <label for="drinksNote" class="block text-gray-700 text-sm font-bold mb-2">Hinweis bei Drinks:</label>
-                    <textarea id="drinksNote" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
-                </div>
-                <button type="submit" id="saveSettingsBtn" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Einstellungen speichern</button>
-                <p id="settingsStatus" class="text-sm mt-2 text-gray-600"></p>
-            </form>
-
-            <!-- Preislistenbilder verwalten -->
-            <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Preislistenbilder verwalten</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <!-- Bild 1.1.png Verwaltung -->
-                <div class="p-4 border border-gray-200 rounded-lg">
-                    <h4 class="font-semibold text-lg mb-2">Preisliste 1 (Snacks & Getränke)</h4>
-                    <img id="adminPriceList1Preview" src="1.1.png" alt="Vorschau Preisliste 1" class="w-full h-auto max-h-48 object-contain rounded-md mb-3 border border-gray-300">
-                    <input type="file" id="priceList1FileInput" accept=".png" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-mojas-orange file:text-white hover:file:bg-opacity-90">
-                    <button id="uploadPriceList1Btn" class="mt-3 w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">Bild 1 hochladen</button>
-                    <p id="priceList1Status" class="text-sm mt-2"></p>
-                </div>
-
-                <!-- Bild 2.1.png Verwaltung -->
-                <div class="p-4 border border-gray-200 rounded-lg">
-                    <h4 class="font-semibold text-lg mb-2">Preisliste 2 (Drinks)</h4>
-                    <img id="adminPriceList2Preview" src="2.1.png" alt="Vorschau Preisliste 2" class="w-full h-auto max-h-48 object-contain rounded-md mb-3 border border-gray-300">
-                    <input type="file" id="priceList2FileInput" accept=".png" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-mojas-orange file:text-white hover:file:bg-opacity-90">
-                    <button id="uploadPriceList2Btn" class="mt-3 w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">Bild 2 hochladen</button>
-                    <p id="priceList2Status" class="text-sm mt-2"></p>
-                </div>
+        <!-- Admin Area: Contains login form and admin panel, shown only for admins -->
+        <div id="adminArea" class="hidden">
+            <!-- Admin Login Form -->
+            <div id="adminLoginForm">
+                <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Admin Login</h2>
+                <form id="loginForm" class="grid grid-cols-1 gap-4">
+                    <div>
+                        <label for="adminEmail" class="block text-gray-700 text-sm font-bold mb-2">E-Mail:</label>
+                        <input type="email" id="adminEmail" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div>
+                        <label for="adminPassword" class="block text-gray-700 text-sm font-bold mb-2">Passwort:</label>
+                        <input type="password" id="adminPassword" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <button type="submit" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Login</button>
+                    <p id="loginError" class="text-red-500 text-center mt-2 hidden">Ungültige E-Mail oder Passwort.</p>
+                </form>
             </div>
 
+            <!-- Admin Panel Section (initially hidden, shown after successful login) -->
+            <section id="adminPanel" class="my-8 bg-white p-6 rounded-2xl shadow-xl hidden">
+                <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Admin Bereich</h2>
+                
+                <!-- Allgemeine Website-Einstellungen -->
+                <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Website-Einstellungen</h3>
+                <form id="settingsForm" class="grid grid-cols-1 gap-4 mb-8">
+                    <div>
+                        <label for="footerText" class="block text-gray-700 text-sm font-bold mb-2">Footer-Text:</label>
+                        <input type="text" id="footerText" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div>
+                        <label for="drinksNote" class="block text-gray-700 text-sm font-bold mb-2">Hinweis bei Drinks:</label>
+                        <textarea id="drinksNote" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+                    </div>
+                    <button type="submit" id="saveSettingsBtn" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Einstellungen speichern</button>
+                    <p id="settingsStatus" class="text-sm mt-2 text-gray-600"></p>
+                </form>
 
-            <!-- Kategorien verwalten -->
-            <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Kategorien verwalten</h3>
-            <form id="categoryForm" class="grid grid-cols-1 gap-4 mb-8">
-                <input type="hidden" id="categoryId">
-                <div>
-                    <label for="categoryName" class="block text-gray-700 text-sm font-bold mb-2">Kategoriename:</label>
-                    <input type="text" id="categoryName" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                <div class="flex justify-end space-x-2">
-                    <button type="submit" id="saveCategoryBtn" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Kategorie hinzufügen</button>
-                    <button type="button" id="cancelCategoryEditBtn" class="bg-gray-400 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-500 transition hidden">Abbrechen</button>
-                </div>
-            </form>
-            <ul id="adminCategoryList" class="space-y-3 mb-8">
-                <!-- Categories will be loaded here -->
-            </ul>
+                <!-- Preislistenbilder verwalten -->
+                <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Preislistenbilder verwalten</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <!-- Bild 1.1.png Verwaltung -->
+                    <div class="p-4 border border-gray-200 rounded-lg">
+                        <h4 class="font-semibold text-lg mb-2">Preisliste 1 (Snacks & Getränke)</h4>
+                        <img id="adminPriceList1Preview" src="1.1.png" alt="Vorschau Preisliste 1" class="w-full h-auto max-h-48 object-contain rounded-md mb-3 border border-gray-300">
+                        <input type="file" id="priceList1FileInput" accept=".png" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-mojas-orange file:text-white hover:file:bg-opacity-90">
+                        <button id="uploadPriceList1Btn" class="mt-3 w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">Bild 1 hochladen</button>
+                        <p id="priceList1Status" class="text-sm mt-2"></p>
+                    </div>
 
-
-            <!-- Produkte verwalten -->
-            <h3 id="productFormTitle" class="text-2xl font-semibold text-mojas-orange mb-4">Neues Produkt hinzufügen</h3>
-            <form id="productForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                <input type="hidden" id="productId">
-                <div>
-                    <label for="productName" class="block text-gray-700 text-sm font-bold mb-2">Produktname:</label>
-                    <input type="text" id="productName" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                <div>
-                    <label for="productPrice" class="block text-gray-700 text-sm font-bold mb-2">Preis (Fr.):</label>
-                    <input type="number" step="0.01" id="productPrice" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                <div class="md:col-span-2">
-                    <label for="productKeywords" class="block text-gray-700 text-sm font-bold mb-2">Schlüsselwörter (kommagetrennt):</label>
-                    <input type="text" id="productKeywords" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                <div class="md:col-span-2">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Kategorien:</label>
-                    <div id="productCategoriesCheckboxes" class="grid grid-cols-2 gap-2">
-                        <!-- Categories will be loaded here dynamically -->
+                    <!-- Bild 2.1.png Verwaltung -->
+                    <div class="p-4 border border-gray-200 rounded-lg">
+                        <h4 class="font-semibold text-lg mb-2">Preisliste 2 (Drinks)</h4>
+                        <img id="adminPriceList2Preview" src="2.1.png" alt="Vorschau Preisliste 2" class="w-full h-auto max-h-48 object-contain rounded-md mb-3 border border-gray-300">
+                        <input type="file" id="priceList2FileInput" accept=".png" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-mojas-orange file:text-white hover:file:bg-opacity-90">
+                        <button id="uploadPriceList2Btn" class="mt-3 w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">Bild 2 hochladen</button>
+                        <p id="priceList2Status" class="text-sm mt-2"></p>
                     </div>
                 </div>
-                <div class="md:col-span-2 flex justify-end space-x-2">
-                    <button type="submit" id="saveProductBtn" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Produkt hinzufügen</button>
-                    <button type="button" id="cancelEditBtn" class="bg-gray-400 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-500 transition hidden">Abbrechen</button>
-                </div>
-            </form>
 
-            <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Vorhandene Produkte</h3>
-            <!-- Verbesserte Such- und Filteroptionen -->
-            <div class="flex flex-col sm:flex-row gap-4 mb-4">
-                <input type="text" id="adminSearchInput" placeholder="Produkte suchen..." 
-                       class="w-full sm:w-1/2 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mojas-orange">
-                <select id="adminSortSelect" class="w-full sm:w-1/4 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mojas-orange">
-                    <option value="nameAsc">Name (A-Z)</option>
-                    <option value="nameDesc">Name (Z-A)</option>
-                    <option value="priceAsc">Preis (Niedrigste)</option>
-                    <option value="priceDesc">Preis (Höchste)</option>
-                </select>
-                <select id="adminCategoryFilter" class="w-full sm:w-1/4 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mojas-orange">
-                    <option value="">Alle Kategorien</option>
+
+                <!-- Kategorien verwalten -->
+                <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Kategorien verwalten</h3>
+                <form id="categoryForm" class="grid grid-cols-1 gap-4 mb-8">
+                    <input type="hidden" id="categoryId">
+                    <div>
+                        <label for="categoryName" class="block text-gray-700 text-sm font-bold mb-2">Kategoriename:</label>
+                        <input type="text" id="categoryName" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div class="flex justify-end space-x-2">
+                        <button type="submit" id="saveCategoryBtn" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Kategorie hinzufügen</button>
+                        <button type="button" id="cancelCategoryEditBtn" class="bg-gray-400 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-500 transition hidden">Abbrechen</button>
+                    </div>
+                </form>
+                <ul id="adminCategoryList" class="space-y-3 mb-8">
                     <!-- Categories will be loaded here -->
-                </select>
-            </div>
-            <ul id="adminProductList" class="space-y-3 mb-8">
-                <!-- Products will be loaded here from Firestore -->
-            </ul>
-        </section>
+                </ul>
 
-        <!-- Search Function Section (Public) -->
-        <section class="my-8 bg-white p-6 rounded-2xl shadow-xl">
-            <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Finde deinen Preis</h2>
-            <div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-                <input type="text" id="searchInput" placeholder="Z.B. Rivella, Schokoriegel, Chips..." 
-                       class="w-full sm:w-2/3 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mojas-orange">
-                <button id="searchButton" 
-                        class="w-full sm:w-auto px-6 py-3 bg-mojas-orange text-white rounded-lg shadow-md 
-                               hover:bg-opacity-90 transition duration-300 ease-in-out">
-                    Suchen
+
+                <!-- Produkte verwalten -->
+                <h3 id="productFormTitle" class="text-2xl font-semibold text-mojas-orange mb-4">Neues Produkt hinzufügen</h3>
+                <form id="productForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                    <input type="hidden" id="productId">
+                    <div>
+                        <label for="productName" class="block text-gray-700 text-sm font-bold mb-2">Produktname:</label>
+                        <input type="text" id="productName" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div>
+                        <label for="productPrice" class="block text-gray-700 text-sm font-bold mb-2">Preis (Fr.):</label>
+                        <input type="number" step="0.01" id="productPrice" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="productKeywords" class="block text-gray-700 text-sm font-bold mb-2">Schlüsselwörter (kommagetrennt):</label>
+                        <input type="text" id="productKeywords" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Kategorien:</label>
+                        <div id="productCategoriesCheckboxes" class="grid grid-cols-2 gap-2">
+                            <!-- Categories will be loaded here dynamically -->
+                        </div>
+                    </div>
+                    <div class="md:col-span-2 flex justify-end space-x-2">
+                        <button type="submit" id="saveProductBtn" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Produkt hinzufügen</button>
+                        <button type="button" id="cancelEditBtn" class="bg-gray-400 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-500 transition hidden">Abbrechen</button>
+                    </div>
+                </form>
+
+                <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Vorhandene Produkte</h3>
+                <!-- Verbesserte Such- und Filteroptionen -->
+                <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                    <input type="text" id="adminSearchInput" placeholder="Produkte suchen..." 
+                           class="w-full sm:w-1/2 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mojas-orange">
+                    <select id="adminSortSelect" class="w-full sm:w-1/4 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mojas-orange">
+                        <option value="nameAsc">Name (A-Z)</option>
+                        <option value="nameDesc">Name (Z-A)</option>
+                        <option value="priceAsc">Preis (Niedrigste)</option>
+                        <option value="priceDesc">Preis (Höchste)</option>
+                    </select>
+                    <select id="adminCategoryFilter" class="w-full sm:w-1/4 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mojas-orange">
+                        <option value="">Alle Kategorien</option>
+                        <!-- Categories will be loaded here -->
+                    </select>
+                </div>
+                <ul id="adminProductList" class="space-y-3 mb-8">
+                    <!-- Products will be loaded here from Firestore -->
+                </ul>
+            </section>
+        </div> <!-- End of adminArea -->
+
+        <!-- Public Content Area: Hidden when admin logged in -->
+        <div id="publicContent">
+            <!-- Search Function Section (Public) -->
+            <section class="my-8 bg-white p-6 rounded-2xl shadow-xl">
+                <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Finde deinen Preis</h2>
+                <div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                    <input type="text" id="searchInput" placeholder="Z.B. Rivella, Schokoriegel, Chips..." 
+                           class="w-full sm:w-2/3 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mojas-orange">
+                    <button id="searchButton" 
+                            class="w-full sm:w-auto px-6 py-3 bg-mojas-orange text-white rounded-lg shadow-md 
+                                   hover:bg-opacity-90 transition duration-300 ease-in-out">
+                        Suchen
+                    </button>
+                </div>
+                <!-- Search Results Display Area -->
+                <div id="searchResults" class="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200 hidden">
+                    <!-- Results will be injected here by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Shopping List Section -->
+            <section id="shoppingListSection" class="my-8 bg-white p-6 rounded-2xl shadow-xl">
+                <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Deine Einkaufsliste</h2>
+                <ul id="shoppingListItems" class="mb-4">
+                    <!-- Shopping list items will be injected here -->
+                </ul>
+                <div id="shoppingListSummary" class="text-right text-2xl font-bold text-mojas-orange mt-4 pt-4 border-t-2 border-gray-200">
+                    Gesamt: <span id="shoppingListTotal">0.00 Fr.</span>
+                </div>
+                <button id="clearShoppingListBtn" 
+                        class="mt-4 px-6 py-3 bg-gray-300 text-gray-800 rounded-lg shadow-md 
+                               hover:bg-gray-400 transition duration-300 ease-in-out w-full sm:w-auto mx-auto block">
+                    Einkaufsliste leeren
                 </button>
-            </div>
-            <!-- Search Results Display Area -->
-            <div id="searchResults" class="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200 hidden">
-                <!-- Results will be injected here by JavaScript -->
-            </div>
-        </section>
+                <div id="emptyListMessage" class="text-center text-gray-600 mt-4 italic">Deine Einkaufsliste ist leer.</div>
+            </section>
 
-        <!-- Shopping List Section -->
-        <section id="shoppingListSection" class="my-8 bg-white p-6 rounded-2xl shadow-xl">
-            <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Deine Einkaufsliste</h2>
-            <ul id="shoppingListItems" class="mb-4">
-                <!-- Shopping list items will be injected here -->
-            </ul>
-            <div id="shoppingListSummary" class="text-right text-2xl font-bold text-mojas-orange mt-4 pt-4 border-t-2 border-gray-200">
-                Gesamt: <span id="shoppingListTotal">0.00 Fr.</span>
-            </div>
-            <button id="clearShoppingListBtn" 
-                    class="mt-4 px-6 py-3 bg-gray-300 text-gray-800 rounded-lg shadow-md 
-                           hover:bg-gray-400 transition duration-300 ease-in-out w-full sm:w-auto mx-auto block">
-                Einkaufsliste leeren
-            </button>
-            <div id="emptyListMessage" class="text-center text-gray-600 mt-4 italic">Deine Einkaufsliste ist leer.</div>
-        </section>
+            <section id="preisliste" class="my-8 bg-white p-6 rounded-2xl shadow-xl">
+                <h2 class="text-4xl font-bold text-mojas-orange mb-6 text-center">Unsere Preisliste</h2>
+                <p class="text-gray-700 text-center mb-8">Hier findest du eine Übersicht über unsere köstlichen Snacks und Getränke.</p>
+                <!-- Preisliste Image 1 (dynamisch geladen aus Firestore/Storage) -->
+                <img id="priceList1Display" src="1.1.png" alt="Mojas Preisliste Snacks & Getränke" class="price-list-img">
+            </section>
 
-        <section id="preisliste" class="my-8 bg-white p-6 rounded-2xl shadow-xl">
-            <h2 class="text-4xl font-bold text-mojas-orange mb-6 text-center">Unsere Preisliste</h2>
-            <p class="text-gray-700 text-center mb-8">Hier findest du eine Übersicht über unsere köstlichen Snacks und Getränke.</p>
-            <!-- Preisliste Image 1 (dynamisch geladen aus Firestore/Storage) -->
-            <img id="priceList1Display" src="1.1.png" alt="Mojas Preisliste Snacks & Getränke" class="price-list-img">
-        </section>
-
-        <section id="drinks" class="my-8 bg-white p-6 rounded-2xl shadow-xl">
-            <h2 class="text-4xl font-bold text-mojas-orange mb-6 text-center">Unsere Drinks</h2>
-            <!-- Information about drink availability in a small box -->
-            <div id="drinksNoteDisplay" class="bg-orange-50 p-4 mb-6 rounded-lg border border-mojas-orange text-center mx-auto max-w-sm">
-                <p class="text-gray-700">Diese Drinks sind nur während Partys und kurz danach erhältlich.</p>
-            </div>
-            <p class="text-gray-700 text-center mb-8">Erfrischende Drinks für jeden Geschmack.</p>
-            <!-- Preisliste Image 2 (dynamisch geladen aus Firestore/Storage) -->
-            <img id="priceList2Display" src="2.1.png" alt="Mojas Drinks" class="price-list-img">
-        </section>
+            <section id="drinks" class="my-8 bg-white p-6 rounded-2xl shadow-xl">
+                <h2 class="text-4xl font-bold text-mojas-orange mb-6 text-center">Unsere Drinks</h2>
+                <!-- Information about drink availability in a small box -->
+                <div id="drinksNoteDisplay" class="bg-orange-50 p-4 mb-6 rounded-lg border border-mojas-orange text-center mx-auto max-w-sm">
+                    <p class="text-gray-700">Diese Drinks sind nur während Partys und kurz danach erhältlich.</p>
+                </div>
+                <p class="text-gray-700 text-center mb-8">Erfrischende Drinks für jeden Geschmack.</p>
+                <!-- Preisliste Image 2 (dynamisch geladen aus Firestore/Storage) -->
+                <img id="priceList2Display" src="2.1.png" alt="Mojas Drinks" class="price-list-img">
+            </section>
+        </div> <!-- End of publicContent -->
     </main>
 
     <!-- Footer Section -->
@@ -417,7 +424,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js"; // Import Firebase Storage functions
+        import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         // Ihre tatsächliche Firebase-Konfiguration von der Firebase Console
         const firebaseConfig = {
@@ -433,26 +440,23 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        const storage = getStorage(app); // Initialize Firebase Storage
-
-        // Extract appId from firebaseConfig for use in Firestore paths
+        const storage = getStorage(app); 
+        
         const appId = firebaseConfig.appId; 
-        console.log("Verwendete Firebase App ID:", appId); // Log the App ID for verification
+        console.log("Verwendete Firebase App ID:", appId); 
 
         // Firestore collection references
-        // Using `artifacts/${appId}/public/data/` for all public collections
         const productsColRef = collection(db, `artifacts/${appId}/public/data/products`);
         const categoriesColRef = collection(db, `artifacts/${appId}/public/data/categories`); 
         const settingsDocRef = doc(db, `artifacts/${appId}/public/data/settings`, 'generalSettings'); 
-        // Die adminsColRef Sammlung wird nicht mehr benötigt, da jeder authentifizierte Benutzer Admin ist.
 
         // Global variables
-        window.products = []; // Array to store all products
-        window.categories = []; // Array to store all categories
-        let currentUserId = null; // Stores the UID of the currently logged-in user
-        let isAdminLoggedIn = false; // Flag to check if the current user is an admin
-        let initialProductsChecked = false; // Flag to ensure initial data is only added once
-        let initialCategoriesChecked = false; // Flag to ensure initial categories are only added once
+        window.products = []; 
+        window.categories = []; 
+        let currentUserId = null;
+        let isAdminLoggedIn = false; 
+        let initialProductsChecked = false; 
+        let initialCategoriesChecked = false; 
 
         // Initial product data (only for populating Firestore if empty)
         const initialProductsData = [
@@ -493,6 +497,10 @@
 
         // DOMContentLoaded ensures all HTML elements are loaded before running the script
         document.addEventListener('DOMContentLoaded', async () => {
+            // Main content area containers
+            const publicContentDiv = document.getElementById('publicContent');
+            const adminAreaDiv = document.getElementById('adminArea');
+
             // UI Elements for the admin section
             const adminPanel = document.getElementById('adminPanel');
             const adminAuthButton = document.getElementById('adminAuthButton');
@@ -556,7 +564,7 @@
             const confirmProductNameSpan = document.getElementById('confirmProductName');
             const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
             const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-            let productIdToDelete = null; // Variable to store the ID of the product to be deleted by the modal
+            let productIdToDelete = null; 
 
             // Existing search and shopping list UI elements (Public side)
             const searchInput = document.getElementById('searchInput');
@@ -572,6 +580,11 @@
             const adminSortSelect = document.getElementById('adminSortSelect');
             const adminCategoryFilter = document.getElementById('adminCategoryFilter');
 
+            // Navigation elements
+            const navPreisliste = document.getElementById('navPreisliste');
+            const navDrinks = document.getElementById('navDrinks');
+            const navShoppingList = document.getElementById('navShoppingList');
+
 
             // Function to enable/disable admin form elements based on admin status
             function setAdminControlsDisabled(disabled) {
@@ -580,33 +593,50 @@
                 });
             }
 
+            // Function to show/hide public and admin sections
+            function showView(viewName) {
+                if (viewName === 'admin') {
+                    publicContentDiv.classList.add('hidden');
+                    adminAreaDiv.classList.remove('hidden');
+                    adminPanel.classList.remove('hidden'); // Ensure admin panel is visible
+                    adminLoginFormDiv.classList.add('hidden'); // Hide login form if already logged in
+                    // Hide public nav links
+                    navPreisliste.classList.add('hidden');
+                    navDrinks.classList.add('hidden');
+                    navShoppingList.classList.add('hidden');
+                } else { // viewName === 'public'
+                    publicContentDiv.classList.remove('hidden');
+                    adminAreaDiv.classList.add('hidden');
+                    adminPanel.classList.add('hidden'); // Hide admin panel
+                    adminLoginFormDiv.classList.add('hidden'); // Hide login form
+                    // Show public nav links
+                    navPreisliste.classList.remove('hidden');
+                    navDrinks.classList.remove('hidden');
+                    navShoppingList.classList.remove('hidden');
+                }
+            }
+
+
             // Authentication state change listener
-            // This listener reacts to user login/logout and updates the UI accordingly
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     currentUserId = user.uid;
                     console.log("Benutzer angemeldet:", currentUserId);
-                    
-                    // Set isAdminLoggedIn to true directly if a user is authenticated
                     isAdminLoggedIn = true; 
                     adminAuthButton.textContent = "Admin Logout";
-                    adminPanel.classList.remove('hidden');
-                    adminLoginFormDiv.classList.add('hidden');
+                    showView('admin'); // Show admin area
                     setAdminControlsDisabled(false); // Enable admin controls
 
                     // Attempt to initialize products/categories if they haven't been.
-                    // Now directly called without adminUids check.
                     if (!initialProductsChecked) initializeProductsInFirestore();
                     if (!initialCategoriesChecked) initializeCategoriesInFirestore();
 
                 } else {
-                    // User is logged out
                     currentUserId = null;
                     isAdminLoggedIn = false; 
                     console.log("Kein Benutzer angemeldet.");
                     adminAuthButton.textContent = "Admin Login";
-                    adminPanel.classList.add('hidden'); 
-                    adminLoginFormDiv.classList.add('hidden'); 
+                    showView('public'); // Show public area
                     setAdminControlsDisabled(true); 
                     
                     // Continue listening to public data even when logged out
@@ -616,7 +646,6 @@
             });
 
             // Initialize all Firestore listeners once DOM is ready
-            // These listeners will update the UI reactively as data and auth state changes
             setupFirestoreListener(); 
             loadSettings(); 
 
@@ -675,7 +704,6 @@
 
             // Function to set up real-time listeners for Firestore data
             function setupFirestoreListener() {
-                // Listen to products collection for real-time updates
                 onSnapshot(productsColRef, (snapshot) => {
                     const fetchedProducts = snapshot.docs.map(doc => ({
                         id: doc.id,
@@ -691,7 +719,6 @@
                     console.error("Fehler beim Laden der Produkte von Firestore:", error);
                 });
 
-                // Listen to categories collection for real-time updates
                 onSnapshot(categoriesColRef, (snapshot) => {
                     window.categories = snapshot.docs.map(doc => ({
                         id: doc.id,
@@ -730,18 +757,18 @@
                         // Update Price List Image 1
                         if (data.priceList1Url) {
                             priceList1Display.src = data.priceList1Url;
-                            adminPriceList1Preview.src = data.priceList1Url; // Update admin preview too
+                            adminPriceList1Preview.src = data.priceList1Url; 
                         } else {
-                            priceList1Display.src = "1.1.png"; // Fallback to local default
-                            adminPriceList1Preview.src = "1.1.png"; // Fallback to local default
+                            priceList1Display.src = "1.1.png"; 
+                            adminPriceList1Preview.src = "1.1.png"; 
                         }
                         // Update Price List Image 2
                         if (data.priceList2Url) {
                             priceList2Display.src = data.priceList2Url;
-                            adminPriceList2Preview.src = data.priceList2Url; // Update admin preview too
+                            adminPriceList2Preview.src = data.priceList2Url; 
                         } else {
-                            priceList2Display.src = "2.1.png"; // Fallback to local default
-                            adminPriceList2Preview.src = "2.1.png"; // Fallback to local default
+                            priceList2Display.src = "2.1.png"; 
+                            adminPriceList2Preview.src = "2.1.png"; 
                         }
 
                     } else {
@@ -771,8 +798,9 @@
                         alert("Abmeldung fehlgeschlagen: " + error.message);
                     }
                 } else {
-                    adminLoginFormDiv.classList.remove('hidden');
-                    adminPanel.classList.add('hidden'); 
+                    showView('admin'); // Temporarily show admin area to reveal login form
+                    adminLoginFormDiv.classList.remove('hidden'); // Show login form
+                    adminPanel.classList.add('hidden'); // Hide admin panel until logged in
                     loginErrorP.classList.add('hidden'); 
                     setAdminControlsDisabled(true); 
                 }
@@ -789,8 +817,7 @@
                 try {
                     const userCredential = await signInWithEmailAndPassword(auth, email, password);
                     console.log("Login-Versuch erfolgreich.");
-                    // isAdminLoggedIn will now be set to true directly by onAuthStateChanged listener
-                    // as any authenticated user is now an admin.
+                    // onAuthStateChanged listener will now handle showing the admin view
                 } catch (error) {
                     console.error("Fehler beim Admin-Login:", error);
                     let errorMessage = "Anmeldung fehlgeschlagen. Ungültige E-Mail oder Passwort.";
@@ -932,13 +959,11 @@
                     alert("Sie müssen als Admin angemeldet sein, um Kategorien hinzuzufügen/zu bearbeiten.");
                     return;
                 }
-                // Basic validation: name must not be empty and must be unique (case-insensitive)
                 if (!name || window.categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
                     alert("Kategoriename ist ungültig oder existiert bereits.");
                     return;
                 }
                 try {
-                    // Generate a simple ID from the name (lowercase, no spaces/special chars)
                     const categoryId = name.toLowerCase().replace(/[^a-z0-9]+/g, ''); 
                     await setDoc(doc(categoriesColRef, categoryId), { 
                         name: name,
@@ -957,7 +982,6 @@
                     alert("Sie müssen als Admin angemeldet sein, um Kategorien hinzuzufügen/zu bearbeiten.");
                     return;
                 }
-                // Basic validation
                 if (!id || !name || (window.categories.some(c => c.name.toLowerCase() === name.toLowerCase() && c.id !== id))) {
                     alert("Kategoriename ist ungültig oder existiert bereits für eine andere Kategorie.");
                     return;
@@ -978,7 +1002,6 @@
                     alert("Sie müssen als Admin angemeldet sein, um Kategorien zu löschen.");
                     return;
                 }
-                // Optional: Check if any product is using this category (good practice to prevent orphaned data)
                 const productsUsingCategory = window.products.filter(p => p.categoryIds && p.categoryIds.includes(id));
                 if (productsUsingCategory.length > 0) {
                     alert(`Diese Kategorie wird noch von ${productsUsingCategory.length} Produkten verwendet und kann nicht gelöscht werden.`);
@@ -999,7 +1022,6 @@
                 }
             }
 
-            // Function to update the displayed list of categories in the admin panel
             function updateAdminCategoryList() {
                 if (!adminCategoryList) return;
                 adminCategoryList.innerHTML = ''; 
@@ -1016,7 +1038,6 @@
                     adminCategoryList.appendChild(listItem);
                 });
 
-                // Add event listeners to new edit and delete buttons
                 document.querySelectorAll('.edit-category-btn').forEach(button => {
                     button.addEventListener('click', (e) => {
                         const categoryId = e.target.dataset.id;
@@ -1037,7 +1058,6 @@
                 });
             }
 
-            // Function to reset the category form to its default state
             function resetCategoryForm() {
                 categoryForm.reset(); 
                 categoryIdInput.value = ''; 
@@ -1045,7 +1065,6 @@
                 cancelCategoryEditBtn.classList.add('hidden'); 
             }
 
-            // Event listener for the category form submission (add/update)
             categoryForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const categoryId = categoryIdInput.value;
@@ -1058,10 +1077,8 @@
                 }
             });
 
-            // Event listener for the cancel button in the category form
             cancelCategoryEditBtn.addEventListener('click', resetCategoryForm);
 
-            // Function to dynamically populate category checkboxes in the product form
             function populateCategoryCheckboxes() {
                 if (!productCategoriesCheckboxes) return;
                 productCategoriesCheckboxes.innerHTML = ''; 
@@ -1075,7 +1092,6 @@
                 });
             }
 
-            // Function to dynamically populate the category filter dropdown in the admin product list
             function populateAdminCategoryFilter() {
                 if (!adminCategoryFilter) return;
                 adminCategoryFilter.innerHTML = '<option value="">Alle Kategorien</option>'; 
@@ -1087,9 +1103,8 @@
                 });
             }
 
-            // --- Product Management (existing and enhanced) ---
+            // --- Product Management ---
             
-            // Function to add a new product to Firestore
             async function addProductToFirestore(name, price, keywords, categoryIds) { 
                 if (!name || isNaN(price)) {
                     alert("Name und Preis müssen gültig sein.");
@@ -1116,7 +1131,6 @@
                 }
             }
            
-            // Function to update an existing product in Firestore
             async function updateProductInFirestore(id, name, price, keywords, categoryIds) { 
                 if (!id || !name || isNaN(price)) {
                     alert("Alle Felder müssen gültig sein.");
@@ -1142,13 +1156,11 @@
                 }
             }
 
-            // Function to delete a product from Firestore
             async function deleteProductFromFirestore(id, confirmedFromModal = false) {
                 if (!isAdminLoggedIn) { 
                     alert("Sie müssen als Admin angemeldet sein, um Produkte zu löschen.");
                     return;
                 }
-                // Show custom confirmation modal if not already confirmed
                 if (!confirmedFromModal) {
                     const productToDelete = window.products.find(p => p.id === id);
                     if (productToDelete) {
@@ -1175,14 +1187,12 @@
                 }
             }
 
-            // Event listener for confirm delete button in modal
             confirmDeleteBtn.addEventListener('click', () => {
                 if (productIdToDelete) {
                     deleteProductFromFirestore(productIdToDelete, true); 
                 }
             });
 
-            // Event listener for cancel delete button in modal
             cancelDeleteBtn.addEventListener('click', () => {
                 deleteConfirmModal.classList.add('hidden');
                 deleteConfirmModal.classList.remove('visible');
@@ -1190,7 +1200,6 @@
             });
 
 
-            // Helper function to update the admin product list display
             window.updateAdminProductList = (filteredProducts = null) => {
                 if (!adminProductListUl) return;
 
@@ -1201,7 +1210,6 @@
                     const listItem = document.createElement('li');
                     listItem.classList.add('flex', 'flex-col', 'sm:flex-row', 'items-start', 'sm:items-center', 'justify-between', 'border-b', 'border-gray-200', 'py-3', 'gap-2');
                     
-                    // Conditionally render edit and delete buttons based on admin status
                     const adminButtons = isAdminLoggedIn ? `
                         <div class="relative flex items-center space-x-2">
                             <button class="edit-product-btn bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition" 
@@ -1211,7 +1219,6 @@
                         </div>
                     ` : '';
 
-                    // Get category names from IDs
                     const categoryNames = (product.categoryIds || [])
                         .map(id => {
                             const category = window.categories.find(c => c.id === id);
@@ -1233,7 +1240,6 @@
                     `;
                     adminProductListUl.appendChild(listItem);
 
-                    // Scroll to admin panel when "Bearbeiten" is clicked
                     if (isAdminLoggedIn) { 
                         const editButton = listItem.querySelector('.edit-product-btn');
                         if (editButton) {
@@ -1244,7 +1250,6 @@
                     }
                 });
 
-                // Add event listeners for edit and delete buttons in the admin list
                 document.querySelectorAll('.edit-product-btn').forEach(button => {
                     button.addEventListener('click', (e) => {
                         const productId = e.target.dataset.id;
@@ -1258,7 +1263,6 @@
                             saveProductBtn.textContent = "Änderungen speichern"; 
                             cancelEditBtn.classList.remove('hidden'); 
 
-                            // Setzt die Checkboxen der Kategorien basierend auf den Produktkategorien
                             document.querySelectorAll('.category-checkbox').forEach(checkbox => {
                                 checkbox.checked = (productToEdit.categoryIds || []).includes(checkbox.value);
                             });
@@ -1275,11 +1279,9 @@
                 });
             };
 
-            // Filtering and Sorting logic for the Admin Product List
             function filterAndSortAdminProducts() {
                 let filtered = [...window.products]; 
 
-                // 1. Filter by Search Input
                 const searchTerm = adminSearchInput.value.toLowerCase().trim();
                 if (searchTerm) {
                     filtered = filtered.filter(product => 
@@ -1288,7 +1290,6 @@
                     );
                 }
 
-                // 2. Filter by Category
                 const selectedCategoryId = adminCategoryFilter.value;
                 if (selectedCategoryId) {
                     filtered = filtered.filter(product => 
@@ -1296,7 +1297,6 @@
                     );
                 }
 
-                // 3. Sort
                 const sortOption = adminSortSelect.value;
                 filtered.sort((a, b) => {
                     if (sortOption === 'nameAsc') {
@@ -1314,26 +1314,22 @@
                 updateAdminProductList(filtered); 
             }
 
-            // Event Listeners for Admin Filter/Sort controls
             adminSearchInput.addEventListener('input', filterAndSortAdminProducts);
             adminSortSelect.addEventListener('change', filterAndSortAdminProducts);
             adminCategoryFilter.addEventListener('change', filterAndSortAdminProducts);
 
 
-            // Function to reset the product form in the admin section
             function resetAdminForm() {
                 productForm.reset(); 
                 productIdInput.value = ''; 
                 productFormTitle.textContent = "Neues Produkt hinzufügen"; 
                 saveProductBtn.textContent = "Produkt hinzufügen"; 
                 cancelEditBtn.classList.add('hidden'); 
-                // Uncheck all category checkboxes
                 document.querySelectorAll('.category-checkbox').forEach(checkbox => {
                     checkbox.checked = false;
                 });
             }
 
-            // Event listener for adding/saving product form submission in admin section
             productForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const productId = productIdInput.value;
@@ -1341,7 +1337,6 @@
                 const productPrice = productPriceInput.value;
                 const productKeywords = productKeywordsInput.value;
                 
-                // Get selected category IDs from checkboxes
                 const selectedCategoryIds = Array.from(document.querySelectorAll('.category-checkbox:checked'))
                                                 .map(checkbox => checkbox.value);
 
@@ -1352,12 +1347,10 @@
                 }
             });
 
-            // Event listener for the cancel button in the admin product form
             cancelEditBtn.addEventListener('click', resetAdminForm);
 
             // --- Existing search and shopping list functions (Public facing) ---
 
-            // Function to update the display of the shopping list
             window.updateShoppingListDisplay = function() {
                 shoppingListItemsUl.innerHTML = ''; 
 
@@ -1386,13 +1379,11 @@
                 calculateTotal(); 
             };
 
-            // Function to calculate the total sum of items in the shopping list
             function calculateTotal() {
                 let total = shoppingList.reduce((sum, item) => sum + (item.price * item.quantity), 0);
                 shoppingListTotalSpan.textContent = `${total.toFixed(2)} Fr.`;
             }
 
-            // Function to add/update items in the shopping list (from search results)
             window.addToShoppingList = function(productName, targetButton) {
                 const product = window.products.find(p => p.name === productName);
                 if (!product) return; 
@@ -1406,7 +1397,6 @@
                 }
                 updateShoppingListDisplay(); 
 
-                // Lottie animation feedback for "Hinzufügen" button
                 if (targetButton) {
                     const productItemDiv = targetButton.closest('.product-item');
                     const lottieContainer = productItemDiv.querySelector('.lottie-container');
@@ -1432,7 +1422,6 @@
                 }
             };
 
-            // Event Listener for clicks on the shopping list (for quantity change and removal)
             shoppingListItemsUl.addEventListener('click', (event) => {
                 const target = event.target;
                 const action = target.dataset.action; 
@@ -1457,13 +1446,11 @@
                 }
             });
 
-            // Event Listener for the "Clear shopping list" button
             clearShoppingListBtn.addEventListener('click', () => {
                 shoppingList = []; 
                 updateShoppingListDisplay(); 
             });
 
-            // Function to search for products (Public side)
             window.searchProducts = function() {
                 const query = searchInput.value.toLowerCase().trim();
                 searchResultsDiv.innerHTML = ''; 
@@ -1512,13 +1499,9 @@
                 }
             };
 
-            // Event Listener for the search button click
             searchButton.addEventListener('click', searchProducts);
-
-            // Event Listener for the search input field (searches on every input)
             searchInput.addEventListener('input', searchProducts);
 
-            // Initialize the shopping list display on page load
             updateShoppingListDisplay(); 
         }); // End DOMContentLoaded
     </script>
