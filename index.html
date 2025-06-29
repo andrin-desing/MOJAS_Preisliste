@@ -4,17 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mojas Preislisten</title>
-    <!-- Favicon Link - Wichtig für das Logo in der Taskleiste/im Tab -->
     <link rel="icon" href="Logo.png" type="image/png">
     
-    <!-- Google Fonts Links -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&display=swap" rel="stylesheet">
     
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- LottieFiles Web Player CDN (for playing Lottie animations) -->
     <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
 
     <style>
@@ -153,26 +149,21 @@
 </head>
 <body class="bg-light-cream flex flex-col min-h-screen">
 
-    <!-- Header Section -->
     <header class="bg-dark-accent text-white p-6 shadow-lg rounded-b-xl">
         <div class="container mx-auto flex flex-col sm:flex-row items-center justify-between">
             <div class="flex items-center space-x-3 mb-4 sm:mb-0">
-                <!-- Mojas Logo -->
                 <img src="Logo.png" alt="Mojas Logo" class="logo-img">
                 <h1 class="text-3xl font-bold">MOJAS.ch</h1>
             </div>
             <nav class="w-full sm:w-auto mt-4 sm:mt-0">
-                <!-- Navigation links: stacked vertically on mobile, horizontal on small screens and up -->
                 <ul class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 text-lg items-center">
                     <li><a href="#preisliste" class="hover:underline text-mojas-orange">Preisliste</a></li>
                     <li><a href="#drinks" class="hover:underline text-mojas-orange">Drinks</a></li>
                     <li><a href="#shoppingListSection" class="hover:underline text-mojas-orange">Einkaufsliste</a></li>
                     <li>
-                        <!-- Admin Login/Logout Button -->
                         <button id="adminAuthButton" class="px-4 py-2 bg-mojas-orange text-white rounded-lg shadow-md hover:bg-opacity-90 transition duration-300 ease-in-out">Admin Login</button>
                     </li>
                     <li>
-                        <!-- Instagram Icon only, serves as link -->
                         <a href="https://www.instagram.com/MOJAS.ch/" target="_blank" rel="noopener noreferrer" class="text-mojas-orange flex items-center justify-center p-1 rounded-full hover:bg-white hover:bg-opacity-20 transition duration-300">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-1">
                                 <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
@@ -181,14 +172,12 @@
                             </svg>
                         </a>
                     </li>
-                    <!-- Button for MOJAS website: full width on mobile, inline on small screens and up -->
                     <li>
                         <a href="https://www.mojas.ch/" target="_blank" rel="noopener noreferrer" 
                            class="w-full sm:w-auto mt-4 sm:ml-4 sm:mt-0 px-4 py-2 bg-mojas-orange text-white rounded-lg shadow-md 
                                   hover:bg-opacity-90 transition duration-300 ease-in-out 
                                   flex items-center justify-center space-x-2">
                             <span>Zur MOJAS Website</span>
-                            <!-- External Link Icon -->
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
                                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0
                                 0 1 2-2h6"/>
@@ -202,9 +191,7 @@
         </div>
     </header>
 
-    <!-- Main Content Section -->
     <main class="container mx-auto p-4 flex-grow">
-        <!-- Admin Login Form (initially hidden) -->
         <div id="adminLoginForm" class="hidden">
             <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Admin Login</h2>
             <form id="loginForm" class="grid grid-cols-1 gap-4">
@@ -221,7 +208,6 @@
             </form>
         </div>
 
-        <!-- Admin Panel Section (initially hidden) -->
         <section id="adminPanel" class="my-8 bg-white p-6 rounded-2xl shadow-xl hidden">
             <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Admin Bereich</h2>
             
@@ -248,11 +234,9 @@
 
             <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Vorhandene Produkte</h3>
             <ul id="adminProductList" class="space-y-3 mb-8">
-                <!-- Products will be loaded here from Firestore -->
-            </ul>
+                </ul>
         </section>
 
-        <!-- Search Function Section -->
         <section class="my-8 bg-white p-6 rounded-2xl shadow-xl">
             <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Finde deinen Preis</h2>
             <div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
@@ -264,18 +248,14 @@
                     Suchen
                 </button>
             </div>
-            <!-- Search Results Display Area -->
             <div id="searchResults" class="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200 hidden">
-                <!-- Results will be injected here by JavaScript -->
-            </div>
+                </div>
         </section>
 
-        <!-- Shopping List Section -->
         <section id="shoppingListSection" class="my-8 bg-white p-6 rounded-2xl shadow-xl">
             <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Deine Einkaufsliste</h2>
             <ul id="shoppingListItems" class="mb-4">
-                <!-- Shopping list items will be injected here -->
-            </ul>
+                </ul>
             <div id="shoppingListSummary" class="text-right text-2xl font-bold text-mojas-orange mt-4 pt-4 border-t-2 border-gray-200">
                 Gesamt: <span id="shoppingListTotal">0.00 Fr.</span>
             </div>
@@ -290,23 +270,19 @@
         <section id="preisliste" class="my-8 bg-white p-6 rounded-2xl shadow-xl">
             <h2 class="text-4xl font-bold text-mojas-orange mb-6 text-center">Unsere Preisliste</h2>
             <p class="text-gray-700 text-center mb-8">Hier findest du eine Übersicht über unsere köstlichen Snacks und Getränke.</p>
-            <!-- Preisliste Image 1 (statisch geladen) -->
             <img id="priceList1Display" src="1.1.png" alt="Mojas Preisliste Snacks & Getränke" class="price-list-img">
         </section>
 
         <section id="drinks" class="my-8 bg-white p-6 rounded-2xl shadow-xl">
             <h2 class="text-4xl font-bold text-mojas-orange mb-6 text-center">Unsere Drinks</h2>
-            <!-- Information about drink availability in a small box -->
             <div class="bg-orange-50 p-4 mb-6 rounded-lg border border-mojas-orange text-center mx-auto max-w-sm">
                 <p class="text-gray-700">Diese Drinks sind nur während Partys und kurz danach erhältlich.</p>
             </div>
             <p class="text-gray-700 text-center mb-8">Erfrischende Drinks für jeden Geschmack.</p>
-            <!-- Preisliste Image 2 (statisch geladen) -->
             <img id="priceList2Display" src="2.1.png" alt="Mojas Drinks" class="price-list-img">
         </section>
     </main>
 
-    <!-- Footer Section -->
     <footer class="bg-dark-accent text-white p-6 rounded-t-xl mt-8">
         <div class="container mx-auto text-center">
             <p>&copy; 2025 MOJAS.ch. Alle Rechte vorbehalten.</p>
@@ -323,7 +299,6 @@
         </div>
     </footer>
 
-    <!-- Custom Delete Confirmation Modal -->
     <div id="deleteConfirmModal" class="modal-overlay hidden">
         <div class="modal-content">
             <h3 class="text-xl font-bold text-dark-accent mb-4">Produkt löschen</h3>
@@ -366,6 +341,9 @@
         let currentUserId = null;
         let isAdminLoggedIn = false; // Status for admin login
         let initialProductsChecked = false; // Flag to ensure product initialization runs only once
+
+        // NEU: Set zum Verfolgen von Produkt-IDs, die gerade animiert werden sollen
+        const animatingProductIds = new Set();
 
         // Initial product data if Firestore is empty
         const initialProductsData = [
@@ -637,7 +615,7 @@
             }
 
             // Produkt aktualisieren
-            async function updateProductInFirestore(id, name, price, keywords, targetButton) {
+            async function updateProductInFirestore(id, name, price, keywords) { // targetButton ist hier nicht mehr nötig
                 if (!id || !name || isNaN(price)) {
                     alert("Alle Felder müssen gültig sein.");
                     return;
@@ -654,7 +632,11 @@
                         keywords: keywords.split(',').map(k => k.trim().toLowerCase()).filter(k => k.length > 0)
                     }, { merge: true });
                     console.log("Produkt aktualisiert:", name);
-                    resetAdminForm();
+                    
+                    // Fügen Sie die ID zum Set hinzu, damit die Animation beim nächsten Rendern ausgelöst wird
+                    animatingProductIds.add(id);
+
+                    resetAdminForm(); // Dies triggert den onSnapshot, der dann updateAdminProductList aufruft
                 } catch (error) {
                     console.error("Fehler beim Aktualisieren des Produkts:", error);
                     alert("Fehler beim Aktualisieren: " + error.message);
@@ -692,14 +674,20 @@
 
                 adminProductListUl.innerHTML = '';
                 window.products.forEach(product => {
+                    // Überprüfen, ob dieses Produkt gerade animiert werden soll
+                    const isAnimating = animatingProductIds.has(product.id);
+
                     const listItem = document.createElement('li');
                     listItem.classList.add('flex', 'flex-col', 'sm:flex-row', 'items-start', 'sm:items-center', 'justify-between', 'border-b', 'border-gray-200', 'py-3', 'gap-2');
                     
                     // Show edit and delete buttons only if admin is logged in
                     const adminButtons = isAdminLoggedIn ? `
                         <div class="relative flex items-center space-x-2">
-                            <button class="edit-product-btn bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition" data-id="${product.id}">Bearbeiten</button>
-                            <div class="lottie-container-edit absolute hidden" style="left: 60px; top: -5px;">
+                            <button class="edit-product-btn bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition" 
+                                    data-id="${product.id}"
+                                    style="${isAnimating ? 'display: none;' : ''}"> Bearbeiten
+                            </button>
+                            <div class="lottie-container-edit absolute" style="left: 60px; top: -5px; ${isAnimating ? 'display: block;' : 'display: none;'}">
                                 <lottie-player src="animations/checkmark_animation.json" background="transparent" speed="1" style="width: 40px; height: 40px;"></lottie-player>
                             </div>
                             <button class="delete-product-btn bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition" data-id="${product.id}" data-name="${product.name}">Löschen</button>
@@ -716,6 +704,26 @@
                         </div>
                     `;
                     adminProductListUl.appendChild(listItem);
+
+                    // NEU: Logik zum Starten/Beenden der Animation nach dem Rendern
+                    if (isAnimating) {
+                        const lottieContainer = listItem.querySelector('.lottie-container-edit');
+                        const lottiePlayer = lottieContainer ? lottieContainer.querySelector('lottie-player') : null;
+                        const editButton = listItem.querySelector('.edit-product-btn');
+
+                        if (lottieContainer && lottiePlayer && editButton) {
+                            lottiePlayer.setDirection(1); // Stellt sicher, dass die Animation vorwärts läuft
+                            lottiePlayer.play();
+
+                            // Setzt die Animation zurück und zeigt den Button wieder an
+                            setTimeout(() => {
+                                lottiePlayer.stop();
+                                lottieContainer.style.display = 'none';
+                                editButton.style.display = 'inline-block';
+                                animatingProductIds.delete(product.id); // Entfernt ID aus dem Set
+                            }, 1500); // Dauer der Animation in Millisekunden
+                        }
+                    }
                 });
 
                 document.querySelectorAll('.edit-product-btn').forEach(button => {
@@ -762,32 +770,7 @@
 
                 if (productId) {
                     await updateProductInFirestore(productId, productName, productPrice, productKeywords);
-                    // Trigger the Lottie animation for the edited item after successful update
-                    // This needs to be done *after* the DOM updates via onSnapshot.
-                    // We will find the updated item and play its Lottie.
-                    const updatedProductElement = adminProductListUl.querySelector(`[data-id="${productId}"]`);
-                    if (updatedProductElement) {
-                        const lottieContainer = updatedProductElement.closest('li').querySelector('.lottie-container-edit');
-                        const lottiePlayer = lottieContainer ? lottieContainer.querySelector('lottie-player') : null;
-
-                        if (lottieContainer && lottiePlayer) {
-                            // Find the actual edit button within the list item that was just updated
-                            const editButton = updatedProductElement.closest('li').querySelector('.edit-product-btn');
-                            if (editButton) {
-                                editButton.style.display = 'none';
-                                lottieContainer.style.display = 'block';
-                                lottiePlayer.setDirection(1);
-                                lottiePlayer.play();
-
-                                setTimeout(() => {
-                                    lottiePlayer.stop();
-                                    lottieContainer.style.display = 'none';
-                                    editButton.style.display = 'inline-block';
-                                }, 1500); // Animation duration
-                            }
-                        }
-                    }
-
+                    // Die Animation wird nun in updateAdminProductList gehandhabt
                 } else {
                     await addProductToFirestore(productName, productPrice, productKeywords);
                 }
@@ -857,7 +840,7 @@
                         lottieContainer.style.display = 'block';
 
                         lottiePlayer.setDirection(1);
-                        lottiePlayer.load("animations/checkmark_animation.json"); // Changed to use checkmark_animation.json
+                        lottiePlayer.load("animations/checkmark_animation.json"); 
                         lottiePlayer.play();
 
                         setTimeout(() => {
