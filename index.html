@@ -240,17 +240,17 @@
                 <p id="settingsStatus" class="text-sm mt-2 text-gray-600"></p>
             </form>
 
-            <!-- Admin-UIDs verwalten (vereinfacht) -->
-            <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Admin-Benutzer-IDs (UIDs)</h3>
-            <p class="text-gray-700 mb-4 text-sm">Fügen Sie hier die UID eines Benutzers hinzu, um ihm Admin-Rechte zu geben. Diese UIDs finden Sie in der Firebase Console unter "Authentifizierung" bei jedem Benutzer. **Seien Sie vorsichtig, dies ist eine vereinfachte Verwaltung.**</p>
+            <!-- Admin-UIDs verwalten (DIESER ABSCHNITT IST JETZT ÜBERFLÜSSIG, DA JEDER AUTHENTIFIZIERTE BENUTZER ADMIN IST. NUR ZUR VERANSCHAULICHUNG ENTHALTEN) -->
+            <!-- <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Admin-Benutzer-IDs (UIDs)</h3>
+            <p class="text-gray-700 mb-4 text-sm">Dieser Abschnitt ist jetzt überflüssig, da jeder authentifizierte Benutzer Admin-Rechte hat.</p>
             <div class="flex gap-2 mb-4">
-                <input type="text" id="newAdminUidInput" placeholder="Neue Admin-UID hier einfügen" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                <button id="addAdminUidBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">Hinzufügen</button>
+                <input type="text" id="newAdminUidInput" placeholder="Neue Admin-UID hier einfügen" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" disabled>
+                <button id="addAdminUidBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition" disabled>Hinzufügen</button>
             </div>
             <ul id="adminUidList" class="space-y-2 mb-8">
-                <!-- Admin UIDs will be loaded here -->
+                <li><span class="text-gray-500">Diese Liste ist nicht mehr relevant.</span></li>
             </ul>
-            <p id="adminUidStatus" class="text-sm mt-2 text-gray-600"></p>
+            <p id="adminUidStatus" class="text-sm mt-2 text-gray-600"></p> -->
 
 
             <!-- Kategorien verwalten -->
@@ -432,7 +432,7 @@
         const productsColRef = collection(db, `artifacts/${appId}/public/data/products`);
         const categoriesColRef = collection(db, `artifacts/${appId}/public/data/categories`); 
         const settingsDocRef = doc(db, `artifacts/${appId}/public/data/settings`, 'generalSettings'); 
-        const adminsColRef = collection(db, `artifacts/${appId}/public/data/admins`); 
+        // const adminsColRef = collection(db, `artifacts/${appId}/public/data/admins`); // Diese Sammlung wird nicht mehr benötigt
 
         // Global variables
         window.products = []; // Array to store all products
@@ -498,12 +498,12 @@
             const footerTextDisplay = document.getElementById('footerTextDisplay'); 
             const drinksNoteDisplay = document.getElementById('drinksNoteDisplay'); 
 
-            // Admin UID Management UI elements
-            const newAdminUidInput = document.getElementById('newAdminUidInput'); 
-            const addAdminUidBtn = document.getElementById('addAdminUidBtn'); 
-            const adminUidList = document.getElementById('adminUidList'); 
-            const adminUidStatus = document.getElementById('adminUidStatus'); 
-            let adminUids = []; // Local array to hold admin UIDs fetched from Firestore
+            // Admin UID Management UI elements - REMOVED AS IT'S NO LONGER NEEDED
+            // const newAdminUidInput = document.getElementById('newAdminUidInput'); 
+            // const addAdminUidBtn = document.getElementById('addAdminUidBtn'); 
+            // const adminUidList = document.getElementById('adminUidList'); 
+            // const adminUidStatus = document.getElementById('adminUidStatus'); 
+            // let adminUids = []; // Local array to hold admin UIDs fetched from Firestore
 
             // Category Management UI elements
             const categoryForm = document.getElementById('categoryForm'); 
@@ -571,12 +571,18 @@
                     currentUserId = user.uid;
                     console.log("Benutzer angemeldet:", currentUserId);
                     
-                    // Admin status is determined by checking if current user's UID is in adminUids array
-                    // This array is kept up-to-date by the onSnapshot listener for 'adminsColRef'
-                    // The UI update for admin panel visibility will happen when adminUids changes.
+                    // Set isAdminLoggedIn to true directly if a user is authenticated
+                    isAdminLoggedIn = true; 
+                    adminAuthButton.textContent = "Admin Logout";
+                    adminPanel.classList.remove('hidden');
+                    adminLoginFormDiv.classList.add('hidden');
+                    setAdminControlsDisabled(false); // Enable admin controls
+                    // No need to updateAdminUidList() or related admin UIDs logic here anymore
 
-                    // Attempt to initialize products/categories if they haven't been and user is an admin.
-                    // This call is now inside the onSnapshot for adminsColRef to ensure adminUids is ready.
+                    // Attempt to initialize products/categories if they haven't been.
+                    // Now directly called without adminUids check.
+                    if (!initialProductsChecked) initializeProductsInFirestore();
+                    if (!initialCategoriesChecked) initializeCategoriesInFirestore();
 
                 } else {
                     // User is logged out
@@ -587,8 +593,7 @@
                     adminPanel.classList.add('hidden'); 
                     adminLoginFormDiv.classList.add('hidden'); 
                     setAdminControlsDisabled(true); 
-                    adminUids = []; // Clear admin UIDs list on logout 
-                    adminUidList.innerHTML = ''; // Clear display of admin UIDs 
+                    // No adminUids clearing needed as it's not used
                     
                     // Continue listening to public data even when logged out
                     setupFirestoreListener(); 
@@ -605,12 +610,8 @@
             // Function to initialize categories in Firestore with initial data if the collection is empty
             async function initializeCategoriesInFirestore() {
                 try {
-                    // Only initialize if an admin is logged in
-                    if (!auth.currentUser || !isAdminLoggedIn) { 
-                         console.log("Nicht berechtigt zum Initialisieren der Kategorien. Admin-Anmeldung erforderlich.");
-                         return; 
-                    }
-
+                    // No longer checks for isAdminLoggedIn here, as any authenticated user can trigger this.
+                    // Firestore rules will enforce write permissions based on authentication.
                     const snapshot = await getDocs(categoriesColRef);
                     if (snapshot.empty) {
                         console.log("Firestore Categories-Sammlung ist leer. Fülle mit Initialdaten...");
@@ -637,12 +638,8 @@
             // Function to initialize products in Firestore with initial data if the collection is empty
             async function initializeProductsInFirestore() {
                 try {
-                    // Only initialize if an admin is logged in
-                    if (!auth.currentUser || !isAdminLoggedIn) { 
-                         console.log("Nicht berechtigt zum Initialisieren der Produkte. Admin-Anmeldung erforderlich.");
-                         return; 
-                    }
-
+                    // No longer checks for isAdminLoggedIn here, as any authenticated user can trigger this.
+                    // Firestore rules will enforce write permissions based on authentication.
                     const snapshot = await getDocs(productsColRef);
                     if (snapshot.empty) {
                         console.log("Firestore Products-Sammlung ist leer. Fülle mit Initialdaten...");
@@ -699,43 +696,40 @@
                     console.error("Fehler beim Laden der Kategorien von Firestore:", error);
                 });
 
-                // Listen to admin UIDs collection for real-time updates
+                // NO LONGER LISTENING TO ADMINSCOLREF as it's not used to determine admin status
+                /*
                 onSnapshot(adminsColRef, (snapshot) => {
                     adminUids = snapshot.docs.map(doc => doc.id); 
                     console.log("Admin UIDs von Firestore geladen:", adminUids);
                     
-                    // Re-evaluate admin status after fetching UIDs
                     if (auth.currentUser) {
-                         const wasAdmin = isAdminLoggedIn; // Store previous state
+                         const wasAdmin = isAdminLoggedIn; 
                          isAdminLoggedIn = adminUids.includes(auth.currentUser.uid);
                          
-                         // Only update UI if admin status has changed or if first time setting up
-                         if (isAdminLoggedIn !== wasAdmin || !wasAdmin) { // Check !wasAdmin for initial load
+                         if (isAdminLoggedIn !== wasAdmin || !wasAdmin) { 
                              if (isAdminLoggedIn) {
                                 adminAuthButton.textContent = "Admin Logout";
                                 adminPanel.classList.remove('hidden');
                                 adminLoginFormDiv.classList.add('hidden');
-                                setAdminControlsDisabled(false); // Enable admin controls
-                                updateAdminUidList(); // Update displayed admin UIDs
-                                // NEW: Now that admin status is confirmed, try to initialize products/categories
+                                setAdminControlsDisabled(false);
+                                updateAdminUidList(); 
                                 if (!initialProductsChecked) initializeProductsInFirestore();
                                 if (!initialCategoriesChecked) initializeCategoriesInFirestore();
                              } else {
-                                // Logged in but no longer an admin or not in the adminUids list
                                 adminAuthButton.textContent = "Admin Login";
                                 adminPanel.classList.add('hidden');
                                 adminLoginFormDiv.classList.add('hidden');
-                                setAdminControlsDisabled(true); // Disable admin controls
+                                setAdminControlsDisabled(true);
                              }
                          }
                     } else {
-                        // No user logged in, so not an admin
                         isAdminLoggedIn = false; 
                     }
-                    updateAdminUidList(); // Update display even if not admin or if admin UIDs changed
+                    updateAdminUidList();
                 }, (error) => {
                     console.error("Fehler beim Laden der Admin UIDs von Firestore:", error);
                 });
+                */
             }
 
             // Function to load and display general settings (footer text, drinks note)
@@ -801,9 +795,9 @@
 
                 try {
                     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                    console.log("Login-Versuch erfolgreich. Admin-Status wird von Listener überprüft...");
-                    // The onAuthStateChanged listener will now determine isAdminLoggedIn based on fetched adminUids
-                    // and update the UI accordingly.
+                    console.log("Login-Versuch erfolgreich.");
+                    // isAdminLoggedIn will now be set to true directly by onAuthStateChanged listener
+                    // as any authenticated user is now an admin.
                 } catch (error) {
                     console.error("Fehler beim Admin-Login:", error);
                     let errorMessage = "Anmeldung fehlgeschlagen. Ungültige E-Mail oder Passwort.";
@@ -845,88 +839,22 @@
                 }
             });
 
-            // Admin UID Management Functions
+            // Admin UID Management Functions - REMOVED/DISABLED AS IT'S NO LONGER NEEDED
+            /*
             async function addAdminUid(uid) {
-                if (!isAdminLoggedIn) {
-                    adminUidStatus.textContent = "Sie müssen als Admin angemeldet sein, um Admin-UIDs zu verwalten.";
-                    adminUidStatus.style.color = "red";
-                    return;
-                }
-                if (!uid || adminUids.includes(uid)) {
-                    adminUidStatus.textContent = "Ungültige oder bereits vorhandene UID.";
-                    adminUidStatus.style.color = "red";
-                    return;
-                }
-                adminUidStatus.textContent = "Füge UID hinzu...";
-                adminUidStatus.style.color = "orange";
-                try {
-                    await setDoc(doc(adminsColRef, uid), { addedAt: new Date() }); // Add the UID as a document ID
-                    newAdminUidInput.value = ''; // Clear input field
-                    adminUidStatus.textContent = "Admin-UID erfolgreich hinzugefügt!";
-                    adminUidStatus.style.color = "green";
-                } catch (error) {
-                    console.error("Fehler beim Hinzufügen der Admin-UID:", error);
-                    adminUidStatus.textContent = "Fehler beim Hinzufügen: " + error.message;
-                    adminUidStatus.style.color = "red";
-                }
+                // ... (previous logic for adding admin UIDs)
             }
 
             async function removeAdminUid(uid) {
-                if (!isAdminLoggedIn) {
-                    adminUidStatus.textContent = "Sie müssen als Admin angemeldet sein, um Admin-UIDs zu verwalten.";
-                    adminUidStatus.style.color = "red";
-                    return;
-                }
-                // Prevent removing self as admin
-                if (uid === currentUserId) {
-                    adminUidStatus.textContent = "Sie können Ihre eigene Admin-UID nicht entfernen.";
-                    adminUidStatus.style.color = "red";
-                    return;
-                }
-                 // Use a custom modal for confirmation instead of alert/confirm
-                 // For simplicity, using native confirm for now as per previous implementation but
-                 // ideally this would be replaced by the custom modal if it's functional.
-                 const confirmation = confirm("Sind Sie sicher, dass Sie diese Admin-UID entfernen möchten?");
-                 if (!confirmation) return; // If user cancels, stop here
-
-                adminUidStatus.textContent = "Entferne UID...";
-                adminUidStatus.style.color = "orange";
-                try {
-                    await deleteDoc(doc(adminsColRef, uid)); // Delete the document by its UID
-                    adminUidStatus.textContent = "Admin-UID erfolgreich entfernt!";
-                    adminUidStatus.style.color = "green";
-                } catch (error) {
-                    console.error("Fehler beim Entfernen der Admin-UID:", error);
-                    adminUidStatus.textContent = "Fehler beim Entfernen: " + error.message;
-                    adminUidStatus.style.color = "red";
-                }
+                // ... (previous logic for removing admin UIDs)
             }
 
-            // Function to update the displayed list of admin UIDs in the admin panel
             function updateAdminUidList() {
-                if (!adminUidList) return;
-                adminUidList.innerHTML = ''; // Clear current list
-                adminUids.forEach(uid => {
-                    const listItem = document.createElement('li');
-                    listItem.classList.add('flex', 'items-center', 'justify-between', 'py-1', 'border-b', 'border-gray-100');
-                    listItem.innerHTML = `
-                        <span>${uid} ${uid === currentUserId ? '(Du)' : ''}</span>
-                        <button class="remove-admin-uid-btn bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600 transition" data-uid="${uid}" ${uid === currentUserId ? 'disabled' : ''}>Entfernen</button>
-                    `;
-                    adminUidList.appendChild(listItem);
-                });
-                // Add event listeners to new remove buttons
-                document.querySelectorAll('.remove-admin-uid-btn').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        removeAdminUid(e.target.dataset.uid);
-                    });
-                });
+                // ... (previous logic for updating admin UID list)
             }
 
-            // Event listener for adding an admin UID
-            addAdminUidBtn.addEventListener('click', () => {
-                addAdminUid(newAdminUidInput.value.trim()); // Trim whitespace from input
-            });
+            // addAdminUidBtn.addEventListener('click', ...); // Event listener disabled
+            */
 
 
             // Category Management Functions
