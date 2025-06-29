@@ -425,23 +425,24 @@
         
         // Extract appId from firebaseConfig for use in Firestore paths
         const appId = firebaseConfig.appId; 
-        console.log("Verwendete Firebase App ID:", appId); // Fügen Sie diese Zeile hinzu, um die App ID in der Konsole zu überprüfen
+        console.log("Verwendete Firebase App ID:", appId); // Log the App ID for verification
 
         // Firestore collection references
+        // Using `artifacts/${appId}/public/data/` for all public collections
         const productsColRef = collection(db, `artifacts/${appId}/public/data/products`);
         const categoriesColRef = collection(db, `artifacts/${appId}/public/data/categories`); 
         const settingsDocRef = doc(db, `artifacts/${appId}/public/data/settings`, 'generalSettings'); 
         const adminsColRef = collection(db, `artifacts/${appId}/public/data/admins`); 
 
         // Global variables
-        window.products = []; 
-        window.categories = []; 
-        let currentUserId = null;
-        let isAdminLoggedIn = false; 
-        let initialProductsChecked = false; 
-        let initialCategoriesChecked = false; 
+        window.products = []; // Array to store all products
+        window.categories = []; // Array to store all categories
+        let currentUserId = null; // Stores the UID of the currently logged-in user
+        let isAdminLoggedIn = false; // Flag to check if the current user is an admin
+        let initialProductsChecked = false; // Flag to ensure initial data is only added once
+        let initialCategoriesChecked = false; // Flag to ensure initial categories are only added once
 
-        // Initial product data (only if Firestore is empty)
+        // Initial product data (only for populating Firestore if empty)
         const initialProductsData = [
             { name: "Diverse Softdrinks", price: 1.50, keywords: ["diverse softdrinks", "softdrink", "softdrinks", "getränke", "rivella", "cola", "fanta", "sprite", "zitronenlimo", "apfelschorle", "eistee", "trinken"], categoryIds: ["getraenke"] },
             { name: "Mineralwasser", price: 1.00, keywords: ["mineralwasser", "wasser", "mineral", "still", "sprudel"], categoryIds: ["getraenke"] },
@@ -466,7 +467,7 @@
             { name: "Blue Dream", price: 2.00, keywords: ["blue dream", "cocktail", "drink", "alkoholfrei", "blau"], categoryIds: ["drinks"] }
         ];
 
-        // Initial categories data
+        // Initial categories data (only for populating Firestore if empty)
         const initialCategoriesData = [ 
             { id: "getraenke", name: "Getränke" },
             { id: "suessigkeiten", name: "Süssigkeiten" },
@@ -475,10 +476,10 @@
             { id: "drinks", name: "Cocktails/Drinks" }
         ];
 
-        // Shopping list array
+        // Shopping list array (client-side only)
         let shoppingList = [];
 
-        // DOMContentLoaded ensures all HTML elements are loaded
+        // DOMContentLoaded ensures all HTML elements are loaded before running the script
         document.addEventListener('DOMContentLoaded', async () => {
             // UI Elements for the admin section
             const adminPanel = document.getElementById('adminPanel');
@@ -489,7 +490,7 @@
             const adminPasswordInput = document.getElementById('adminPassword');
             const loginErrorP = document.getElementById('loginError');
 
-            // General Settings
+            // General Settings UI elements
             const settingsForm = document.getElementById('settingsForm'); 
             const footerText = document.getElementById('footerText'); 
             const drinksNote = document.getElementById('drinksNote'); 
@@ -497,14 +498,14 @@
             const footerTextDisplay = document.getElementById('footerTextDisplay'); 
             const drinksNoteDisplay = document.getElementById('drinksNoteDisplay'); 
 
-            // Admin UID Management
+            // Admin UID Management UI elements
             const newAdminUidInput = document.getElementById('newAdminUidInput'); 
             const addAdminUidBtn = document.getElementById('addAdminUidBtn'); 
             const adminUidList = document.getElementById('adminUidList'); 
             const adminUidStatus = document.getElementById('adminUidStatus'); 
-            let adminUids = []; // Local array to hold admin UIDs 
+            let adminUids = []; // Local array to hold admin UIDs fetched from Firestore
 
-            // Category Management
+            // Category Management UI elements
             const categoryForm = document.getElementById('categoryForm'); 
             const categoryIdInput = document.getElementById('categoryId'); 
             const categoryNameInput = document.getElementById('categoryName'); 
@@ -513,7 +514,7 @@
             const adminCategoryList = document.getElementById('adminCategoryList'); 
             const productCategoriesCheckboxes = document.getElementById('productCategoriesCheckboxes'); 
 
-            // Product Management
+            // Product Management UI elements
             const productForm = document.getElementById('productForm');
             const productIdInput = document.getElementById('productId');
             const productNameInput = document.getElementById('productName');
@@ -528,7 +529,7 @@
             const priceList1Display = document.getElementById('priceList1Display');
             const priceList2Display = document.getElementById('priceList2Display');
 
-            // Query Selectors for all administrable elements to disable them
+            // Query Selectors for all administrable elements to disable them when not logged in as admin
             const adminControlElements = document.querySelectorAll(
                 '#adminPanel input:not(#adminEmail):not(#adminPassword), #adminPanel button:not([type="submit"]), #adminPanel select, #adminPanel textarea'
             );
@@ -539,9 +540,9 @@
             const confirmProductNameSpan = document.getElementById('confirmProductName');
             const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
             const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-            let productIdToDelete = null; // Variable to store the ID of the product to be deleted
+            let productIdToDelete = null; // Variable to store the ID of the product to be deleted by the modal
 
-            // Existing search and shopping list functions (Public side)
+            // Existing search and shopping list UI elements (Public side)
             const searchInput = document.getElementById('searchInput');
             const searchButton = document.getElementById('searchButton');
             const searchResultsDiv = document.getElementById('searchResults');
@@ -550,47 +551,35 @@
             const clearShoppingListBtn = document.getElementById('clearShoppingListBtn');
             const emptyListMessage = document.getElementById('emptyListMessage');
 
-            // Admin Product List Search/Sort/Filter
+            // Admin Product List Search/Sort/Filter UI elements
             const adminSearchInput = document.getElementById('adminSearchInput');
             const adminSortSelect = document.getElementById('adminSortSelect');
             const adminCategoryFilter = document.getElementById('adminCategoryFilter');
 
 
-            // Function to enable/disable admin forms
+            // Function to enable/disable admin form elements based on admin status
             function setAdminControlsDisabled(disabled) {
                 adminControlElements.forEach(el => {
                     el.disabled = disabled;
                 });
             }
 
-            // Monitor login status
+            // Authentication state change listener
+            // This listener reacts to user login/logout and updates the UI accordingly
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     currentUserId = user.uid;
                     console.log("Benutzer angemeldet:", currentUserId);
                     
-                    // Check if current user's UID is in our list of admin UIDs
-                    // This is handled by the onSnapshot listener for 'adminsColRef' now
-                    // so no need to explicitly set isAdminLoggedIn here based on auth.currentUser.isAnonymous
-                    // or hardcoded admin UIDs. It will be updated by the listener.
-                    
-                    // We need to ensure admin data is loaded first to correctly determine isAdminLoggedIn
-                    // before trying to initialize products/categories based on admin status.
-                    // The onSnapshot listeners now handle this reactive update.
+                    // Admin status is determined by checking if current user's UID is in adminUids array
+                    // This array is kept up-to-date by the onSnapshot listener for 'adminsColRef'
+                    // The UI update for admin panel visibility will happen when adminUids changes.
 
-                    // Initial checks for data population (only if admin is logged in later)
-                    if (!initialProductsChecked) { // Don't await here, let the onSnapshot handle it
-                         // Products will be initialized after admin status is confirmed by listener
-                    }
-                    if (!initialCategoriesChecked) { // Don't await here
-                         // Categories will be initialized after admin status is confirmed by listener
-                    }
-
-                    // The logic for displaying admin panel and setting controls disabled/enabled
-                    // is now primarily driven by the onSnapshot for `adminsColRef`
-                    // to ensure it reacts to real-time changes in admin UIDs.
+                    // Attempt to initialize products/categories if they haven't been and user is an admin.
+                    // This call is now inside the onSnapshot for adminsColRef to ensure adminUids is ready.
 
                 } else {
+                    // User is logged out
                     currentUserId = null;
                     isAdminLoggedIn = false; 
                     console.log("Kein Benutzer angemeldet.");
@@ -599,9 +588,9 @@
                     adminLoginFormDiv.classList.add('hidden'); 
                     setAdminControlsDisabled(true); 
                     adminUids = []; // Clear admin UIDs list on logout 
-                    adminUidList.innerHTML = ''; // Clear display 
+                    adminUidList.innerHTML = ''; // Clear display of admin UIDs 
                     
-                    // Continue listening to public data
+                    // Continue listening to public data even when logged out
                     setupFirestoreListener(); 
                     loadSettings(); 
                 }
@@ -613,10 +602,10 @@
             loadSettings(); 
 
 
-            // Function to initialize categories in Firestore
+            // Function to initialize categories in Firestore with initial data if the collection is empty
             async function initializeCategoriesInFirestore() {
                 try {
-                    // Check if currentUserId exists AND is an admin before initializing categories
+                    // Only initialize if an admin is logged in
                     if (!auth.currentUser || !isAdminLoggedIn) { 
                          console.log("Nicht berechtigt zum Initialisieren der Kategorien. Admin-Anmeldung erforderlich.");
                          return; 
@@ -626,9 +615,10 @@
                     if (snapshot.empty) {
                         console.log("Firestore Categories-Sammlung ist leer. Fülle mit Initialdaten...");
                         const addPromises = initialCategoriesData.map(category => 
-                            setDoc(doc(categoriesColRef, category.id), { // Use setDoc with custom ID
+                            // Use setDoc with custom ID to keep the IDs consistent
+                            setDoc(doc(categoriesColRef, category.id), { 
                                 name: category.name,
-                                createdAt: new Date()
+                                createdAt: new Date() // Add a timestamp
                             })
                         );
                         await Promise.all(addPromises);
@@ -644,10 +634,10 @@
             }
 
 
-            // Function to initialize products in Firestore
+            // Function to initialize products in Firestore with initial data if the collection is empty
             async function initializeProductsInFirestore() {
                 try {
-                    // Check if currentUserId exists AND is an admin before initializing products
+                    // Only initialize if an admin is logged in
                     if (!auth.currentUser || !isAdminLoggedIn) { 
                          console.log("Nicht berechtigt zum Initialisieren der Produkte. Admin-Anmeldung erforderlich.");
                          return; 
@@ -659,10 +649,10 @@
                         const addPromises = initialProductsData.map(product => 
                             addDoc(productsColRef, {
                                 name: product.name,
-                                price: parseFloat(product.price), 
+                                price: parseFloat(product.price), // Ensure price is a number
                                 keywords: product.keywords,
-                                categoryIds: product.categoryIds || [], 
-                                createdAt: new Date()
+                                categoryIds: product.categoryIds || [], // Ensure categoryIds is an array
+                                createdAt: new Date() // Add a timestamp
                             })
                         );
                         await Promise.all(addPromises);
@@ -677,9 +667,9 @@
                 }
             }
 
-            // Function to monitor Firestore data (for products and categories)
+            // Function to set up real-time listeners for Firestore data
             function setupFirestoreListener() {
-                // Listen to products
+                // Listen to products collection for real-time updates
                 onSnapshot(productsColRef, (snapshot) => {
                     const fetchedProducts = snapshot.docs.map(doc => ({
                         id: doc.id,
@@ -688,28 +678,28 @@
                     window.products = fetchedProducts.sort((a, b) => a.name.localeCompare(b.name));
                     console.log("Produkte von Firestore geladen:", window.products);
                     
-                    searchProducts(); 
-                    updateShoppingListDisplay();
-                    filterAndSortAdminProducts(); 
+                    searchProducts(); // Update public search results
+                    updateShoppingListDisplay(); // Update shopping list
+                    filterAndSortAdminProducts(); // Update admin product list
                 }, (error) => {
                     console.error("Fehler beim Laden der Produkte von Firestore:", error);
                 });
 
-                // Listen to categories
+                // Listen to categories collection for real-time updates
                 onSnapshot(categoriesColRef, (snapshot) => {
                     window.categories = snapshot.docs.map(doc => ({
                         id: doc.id,
                         ...doc.data()
                     })).sort((a, b) => a.name.localeCompare(b.name));
                     console.log("Kategorien von Firestore geladen:", window.categories);
-                    populateCategoryCheckboxes(); 
-                    populateAdminCategoryFilter(); 
-                    filterAndSortAdminProducts(); 
+                    populateCategoryCheckboxes(); // Update checkboxes in product form
+                    populateAdminCategoryFilter(); // Update category filter in admin products
+                    filterAndSortAdminProducts(); // Re-filter/sort admin products if categories change
                 }, (error) => {
                     console.error("Fehler beim Laden der Kategorien von Firestore:", error);
                 });
 
-                // Listen to admin UIDs
+                // Listen to admin UIDs collection for real-time updates
                 onSnapshot(adminsColRef, (snapshot) => {
                     adminUids = snapshot.docs.map(doc => doc.id); 
                     console.log("Admin UIDs von Firestore geladen:", adminUids);
@@ -719,23 +709,23 @@
                          const wasAdmin = isAdminLoggedIn; // Store previous state
                          isAdminLoggedIn = adminUids.includes(auth.currentUser.uid);
                          
-                         // Only update UI if admin status has changed
-                         if (isAdminLoggedIn !== wasAdmin) {
+                         // Only update UI if admin status has changed or if first time setting up
+                         if (isAdminLoggedIn !== wasAdmin || !wasAdmin) { // Check !wasAdmin for initial load
                              if (isAdminLoggedIn) {
                                 adminAuthButton.textContent = "Admin Logout";
                                 adminPanel.classList.remove('hidden');
                                 adminLoginFormDiv.classList.add('hidden');
-                                setAdminControlsDisabled(false);
-                                updateAdminUidList(); 
+                                setAdminControlsDisabled(false); // Enable admin controls
+                                updateAdminUidList(); // Update displayed admin UIDs
                                 // NEW: Now that admin status is confirmed, try to initialize products/categories
                                 if (!initialProductsChecked) initializeProductsInFirestore();
                                 if (!initialCategoriesChecked) initializeCategoriesInFirestore();
                              } else {
-                                // Logged in but no longer an admin
+                                // Logged in but no longer an admin or not in the adminUids list
                                 adminAuthButton.textContent = "Admin Login";
                                 adminPanel.classList.add('hidden');
                                 adminLoginFormDiv.classList.add('hidden');
-                                setAdminControlsDisabled(true);
+                                setAdminControlsDisabled(true); // Disable admin controls
                              }
                          }
                     } else {
@@ -748,7 +738,7 @@
                 });
             }
 
-            // Function to load and display general settings
+            // Function to load and display general settings (footer text, drinks note)
             function loadSettings() {
                 onSnapshot(settingsDocRef, (docSnap) => {
                     if (docSnap.exists()) {
@@ -757,6 +747,7 @@
                             footerTextDisplay.textContent = data.footerText;
                             if (footerText) footerText.value = data.footerText; 
                         } else {
+                            // Fallback to default if no data in Firestore
                             footerTextDisplay.textContent = "&copy; 2025 MOJAS.ch. Alle Rechte vorbehalten.";
                             if (footerText) footerText.value = "";
                         }
@@ -764,6 +755,7 @@
                             drinksNoteDisplay.querySelector('p').textContent = data.drinksNote;
                             if (drinksNote) drinksNote.value = data.drinksNote; 
                         } else {
+                            // Fallback to default if no data in Firestore
                             drinksNoteDisplay.querySelector('p').textContent = "Diese Drinks sind nur während Partys und kurz danach erhältlich.";
                             if (drinksNote) drinksNote.value = "";
                         }
@@ -771,17 +763,18 @@
                         console.log("Keine allgemeinen Einstellungen in Firestore gefunden. Verwende Standardtexte.");
                         footerTextDisplay.textContent = "&copy; 2025 MOJAS.ch. Alle Rechte vorbehalten.";
                         drinksNoteDisplay.querySelector('p').textContent = "Diese Drinks sind nur während Partys und kurz danach erhältlich.";
-                        if (footerText) footerText.value = "";
-                        if (drinksNote) drinksNote.value = "";
+                        if (footerText) footerText.value = ""; // Clear form field if no setting
+                        if (drinksNote) drinksNote.value = ""; // Clear form field if no setting
                     }
                 }, (error) => {
                     console.error("Fehler beim Laden der Einstellungen von Firestore:", error);
                 });
             }
 
-            // Admin Login / Logout Handler
+            // Admin Login / Logout button handler
             adminAuthButton.addEventListener('click', async () => {
                 if (isAdminLoggedIn) {
+                    // If already logged in as admin, log out
                     try {
                         await signOut(auth);
                         console.log("Admin abgemeldet.");
@@ -790,20 +783,21 @@
                         alert("Abmeldung fehlgeschlagen: " + error.message);
                     }
                 } else {
+                    // If not logged in as admin, show the login form
                     adminLoginFormDiv.classList.remove('hidden');
-                    adminPanel.classList.add('hidden'); 
-                    loginErrorP.classList.add('hidden'); 
-                    setAdminControlsDisabled(true); 
+                    adminPanel.classList.add('hidden'); // Hide admin panel while logging in
+                    loginErrorP.classList.add('hidden'); // Hide previous errors
+                    setAdminControlsDisabled(true); // Disable admin panel elements
                 }
             });
 
-            // Login Form Handler (real Firebase login)
+            // Login Form Handler (for real Firebase email/password login)
             loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const email = adminEmailInput.value;
                 const password = adminPasswordInput.value;
 
-                loginErrorP.classList.add('hidden'); 
+                loginErrorP.classList.add('hidden'); // Hide previous error messages
 
                 try {
                     const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -823,11 +817,11 @@
                          errorMessage = "Zu viele fehlgeschlagene Anmeldeversuche. Bitte versuchen Sie es später erneut.";
                     }
                     loginErrorP.textContent = errorMessage;
-                    loginErrorP.classList.remove('hidden');
+                    loginErrorP.classList.remove('hidden'); // Show the error message
                 }
             });
 
-            // General Settings Form Handler
+            // General Settings Form Handler (for saving footer and drinks note)
             settingsForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 if (!isAdminLoggedIn) {
@@ -841,7 +835,7 @@
                     await setDoc(settingsDocRef, {
                         footerText: footerText.value.trim(),
                         drinksNote: drinksNote.value.trim()
-                    }, { merge: true });
+                    }, { merge: true }); // Use merge: true to update specific fields without overwriting the whole document
                     settingsStatus.textContent = "Einstellungen erfolgreich gespeichert!";
                     settingsStatus.style.color = "green";
                 } catch (error) {
@@ -866,8 +860,8 @@
                 adminUidStatus.textContent = "Füge UID hinzu...";
                 adminUidStatus.style.color = "orange";
                 try {
-                    await setDoc(doc(adminsColRef, uid), { addedAt: new Date() });
-                    newAdminUidInput.value = ''; // Clear input
+                    await setDoc(doc(adminsColRef, uid), { addedAt: new Date() }); // Add the UID as a document ID
+                    newAdminUidInput.value = ''; // Clear input field
                     adminUidStatus.textContent = "Admin-UID erfolgreich hinzugefügt!";
                     adminUidStatus.style.color = "green";
                 } catch (error) {
@@ -883,18 +877,22 @@
                     adminUidStatus.style.color = "red";
                     return;
                 }
+                // Prevent removing self as admin
                 if (uid === currentUserId) {
                     adminUidStatus.textContent = "Sie können Ihre eigene Admin-UID nicht entfernen.";
                     adminUidStatus.style.color = "red";
                     return;
                 }
+                 // Use a custom modal for confirmation instead of alert/confirm
+                 // For simplicity, using native confirm for now as per previous implementation but
+                 // ideally this would be replaced by the custom modal if it's functional.
                  const confirmation = confirm("Sind Sie sicher, dass Sie diese Admin-UID entfernen möchten?");
-                 if (!confirmation) return;
+                 if (!confirmation) return; // If user cancels, stop here
 
                 adminUidStatus.textContent = "Entferne UID...";
                 adminUidStatus.style.color = "orange";
                 try {
-                    await deleteDoc(doc(adminsColRef, uid));
+                    await deleteDoc(doc(adminsColRef, uid)); // Delete the document by its UID
                     adminUidStatus.textContent = "Admin-UID erfolgreich entfernt!";
                     adminUidStatus.style.color = "green";
                 } catch (error) {
@@ -904,9 +902,10 @@
                 }
             }
 
+            // Function to update the displayed list of admin UIDs in the admin panel
             function updateAdminUidList() {
                 if (!adminUidList) return;
-                adminUidList.innerHTML = '';
+                adminUidList.innerHTML = ''; // Clear current list
                 adminUids.forEach(uid => {
                     const listItem = document.createElement('li');
                     listItem.classList.add('flex', 'items-center', 'justify-between', 'py-1', 'border-b', 'border-gray-100');
@@ -916,6 +915,7 @@
                     `;
                     adminUidList.appendChild(listItem);
                 });
+                // Add event listeners to new remove buttons
                 document.querySelectorAll('.remove-admin-uid-btn').forEach(button => {
                     button.addEventListener('click', (e) => {
                         removeAdminUid(e.target.dataset.uid);
@@ -923,8 +923,9 @@
                 });
             }
 
+            // Event listener for adding an admin UID
             addAdminUidBtn.addEventListener('click', () => {
-                addAdminUid(newAdminUidInput.value.trim());
+                addAdminUid(newAdminUidInput.value.trim()); // Trim whitespace from input
             });
 
 
@@ -934,6 +935,7 @@
                     alert("Sie müssen als Admin angemeldet sein, um Kategorien hinzuzufügen/zu bearbeiten.");
                     return;
                 }
+                // Basic validation: name must not be empty and must be unique (case-insensitive)
                 if (!name || window.categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
                     alert("Kategoriename ist ungültig oder existiert bereits.");
                     return;
@@ -941,7 +943,7 @@
                 try {
                     // Generate a simple ID from the name (lowercase, no spaces/special chars)
                     const categoryId = name.toLowerCase().replace(/[^a-z0-9]+/g, ''); 
-                    await setDoc(doc(categoriesColRef, categoryId), { // Use setDoc to control ID
+                    await setDoc(doc(categoriesColRef, categoryId), { // Use setDoc to control the document ID
                         name: name,
                         createdAt: new Date()
                     });
@@ -958,13 +960,14 @@
                     alert("Sie müssen als Admin angemeldet sein, um Kategorien hinzuzufügen/zu bearbeiten.");
                     return;
                 }
+                // Basic validation
                 if (!id || !name || (window.categories.some(c => c.name.toLowerCase() === name.toLowerCase() && c.id !== id))) {
                     alert("Kategoriename ist ungültig oder existiert bereits für eine andere Kategorie.");
                     return;
                 }
                 try {
                     const categoryRef = doc(categoriesColRef, id);
-                    await updateDoc(categoryRef, { name: name });
+                    await updateDoc(categoryRef, { name: name }); // Update only the name
                     console.log("Kategorie aktualisiert:", name);
                     resetCategoryForm();
                 } catch (error) {
@@ -978,7 +981,7 @@
                     alert("Sie müssen als Admin angemeldet sein, um Kategorien zu löschen.");
                     return;
                 }
-                // Check if any product is using this category (optional, but good practice)
+                // Optional: Check if any product is using this category (good practice to prevent orphaned data)
                 const productsUsingCategory = window.products.filter(p => p.categoryIds && p.categoryIds.includes(id));
                 if (productsUsingCategory.length > 0) {
                     alert(`Diese Kategorie wird noch von ${productsUsingCategory.length} Produkten verwendet und kann nicht gelöscht werden.`);
@@ -989,7 +992,7 @@
                 if (confirmation) {
                     try {
                         const categoryRef = doc(categoriesColRef, id);
-                        await deleteDoc(categoryRef);
+                        await deleteDoc(categoryRef); // Delete the category document
                         console.log("Kategorie gelöscht:", id);
                         resetCategoryForm();
                     } catch (error) {
@@ -999,9 +1002,10 @@
                 }
             }
 
+            // Function to update the displayed list of categories in the admin panel
             function updateAdminCategoryList() {
                 if (!adminCategoryList) return;
-                adminCategoryList.innerHTML = '';
+                adminCategoryList.innerHTML = ''; // Clear current list
                 window.categories.forEach(category => {
                     const listItem = document.createElement('li');
                     listItem.classList.add('flex', 'items-center', 'justify-between', 'border-b', 'border-gray-200', 'py-2');
@@ -1015,6 +1019,7 @@
                     adminCategoryList.appendChild(listItem);
                 });
 
+                // Add event listeners to new edit and delete buttons
                 document.querySelectorAll('.edit-category-btn').forEach(button => {
                     button.addEventListener('click', (e) => {
                         const categoryId = e.target.dataset.id;
@@ -1022,8 +1027,8 @@
                         if (categoryToEdit) {
                             categoryIdInput.value = categoryToEdit.id;
                             categoryNameInput.value = categoryToEdit.name;
-                            saveCategoryBtn.textContent = "Kategorie speichern";
-                            cancelCategoryEditBtn.classList.remove('hidden');
+                            saveCategoryBtn.textContent = "Kategorie speichern"; // Change button text to "Save"
+                            cancelCategoryEditBtn.classList.remove('hidden'); // Show cancel button
                         }
                     });
                 });
@@ -1035,30 +1040,36 @@
                 });
             }
 
+            // Function to reset the category form to its default state
             function resetCategoryForm() {
-                categoryForm.reset();
-                categoryIdInput.value = '';
-                saveCategoryBtn.textContent = "Kategorie hinzufügen";
-                cancelCategoryEditBtn.classList.add('hidden');
+                categoryForm.reset(); // Clears all form fields
+                categoryIdInput.value = ''; // Clear hidden ID field
+                saveCategoryBtn.textContent = "Kategorie hinzufügen"; // Reset button text
+                cancelCategoryEditBtn.classList.add('hidden'); // Hide cancel button
             }
 
+            // Event listener for the category form submission (add/update)
             categoryForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const categoryId = categoryIdInput.value;
                 const categoryName = categoryNameInput.value.trim();
 
                 if (categoryId) {
+                    // If categoryId exists, update the existing category
                     updateCategoryInFirestore(categoryId, categoryName);
                 } else {
+                    // Otherwise, add a new category
                     addCategoryToFirestore(categoryName);
                 }
             });
 
+            // Event listener for the cancel button in the category form
             cancelCategoryEditBtn.addEventListener('click', resetCategoryForm);
 
+            // Function to dynamically populate category checkboxes in the product form
             function populateCategoryCheckboxes() {
                 if (!productCategoriesCheckboxes) return;
-                productCategoriesCheckboxes.innerHTML = '';
+                productCategoriesCheckboxes.innerHTML = ''; // Clear existing checkboxes
                 window.categories.forEach(category => {
                     const checkboxDiv = document.createElement('div');
                     checkboxDiv.innerHTML = `
@@ -1069,9 +1080,10 @@
                 });
             }
 
+            // Function to dynamically populate the category filter dropdown in the admin product list
             function populateAdminCategoryFilter() {
                 if (!adminCategoryFilter) return;
-                adminCategoryFilter.innerHTML = '<option value="">Alle Kategorien</option>';
+                adminCategoryFilter.innerHTML = '<option value="">Alle Kategorien</option>'; // Default option
                 window.categories.forEach(category => {
                     const option = document.createElement('option');
                     option.value = category.id;
@@ -1082,7 +1094,7 @@
 
             // --- Product Management (existing and enhanced) ---
             
-            // Add product
+            // Function to add a new product to Firestore
             async function addProductToFirestore(name, price, keywords, categoryIds) { 
                 if (!name || isNaN(price)) {
                     alert("Name und Preis müssen gültig sein.");
@@ -1101,15 +1113,15 @@
                         createdAt: new Date()
                     });
                     console.log("Produkt hinzugefügt:", name);
-                    resetAdminForm();
-                } // This was the problematic line, now correctly closing the try block
+                    resetAdminForm(); // Reset form after successful addition
+                } 
                 catch (error) {
                     console.error("Fehler beim Hinzufügen des Produkts:", error);
                     alert("Fehler beim Hinzufügen: " + error.message);
                 }
             }
            
-            // Update product
+            // Function to update an existing product in Firestore
             async function updateProductInFirestore(id, name, price, keywords, categoryIds) { 
                 if (!id || !name || isNaN(price)) {
                     alert("Alle Felder müssen gültig sein.");
@@ -1121,57 +1133,82 @@
                 }
                 try {
                     const productRef = doc(db, `artifacts/${appId}/public/data/products`, id);
-                    await setDoc(productRef, {
+                    await setDoc(productRef, { // Using setDoc with merge: true to avoid overwriting
                         name: name,
                         price: parseFloat(price),
                         keywords: keywords.split(',').map(k => k.trim().toLowerCase()).filter(k => k.length > 0),
                         categoryIds: categoryIds 
                     }, { merge: true });
                     console.log("Produkt aktualisiert:", name);
-                    resetAdminForm();
+                    resetAdminForm(); // Reset form after successful update
                 } catch (error) {
                     console.error("Fehler beim Aktualisieren des Produkts:", error);
                     alert("Fehler beim Aktualisieren: " + error.message);
                 }
             }
 
-            // Delete product
+            // Function to delete a product from Firestore
             async function deleteProductFromFirestore(id, confirmedFromModal = false) {
                 if (!isAdminLoggedIn) { 
                     alert("Sie müssen als Admin angemeldet sein, um Produkte zu löschen.");
                     return;
                 }
+                // Show custom confirmation modal if not already confirmed
                 if (!confirmedFromModal) {
                     const productToDelete = window.products.find(p => p.id === id);
                     if (productToDelete) {
-                        showDeleteConfirmation(id, productToDelete.name);
+                        // Set global variable for product ID to delete
+                        productIdToDelete = id;
+                        confirmProductNameSpan.textContent = productToDelete.name;
+                        deleteConfirmModal.classList.add('visible'); // Show modal
+                        deleteConfirmModal.classList.remove('hidden');
                     }
                     return; 
                 }
                 
                 try {
                     const productRef = doc(db, `artifacts/${appId}/public/data/products`, id);
-                    await deleteDoc(productRef);
+                    await deleteDoc(productRef); // Delete the product document
                     console.log("Produkt gelöscht:", id);
-                    resetAdminForm();
+                    resetAdminForm(); // Reset form after successful deletion
                 } catch (error) {
                     console.error("Fehler beim Löschen des Produkts:", error);
                     alert("Fehler beim Löschen: " + error.message);
+                } finally {
+                    // Always hide the modal and reset ID after action
+                    deleteConfirmModal.classList.add('hidden');
+                    deleteConfirmModal.classList.remove('visible');
+                    productIdToDelete = null;
                 }
             }
 
-            // Helper function to update the admin product list (in the admin section)
+            // Event listener for confirm delete button in modal
+            confirmDeleteBtn.addEventListener('click', () => {
+                if (productIdToDelete) {
+                    deleteProductFromFirestore(productIdToDelete, true); // Pass true to confirm deletion
+                }
+            });
+
+            // Event listener for cancel delete button in modal
+            cancelDeleteBtn.addEventListener('click', () => {
+                deleteConfirmModal.classList.add('hidden');
+                deleteConfirmModal.classList.remove('visible');
+                productIdToDelete = null;
+            });
+
+
+            // Helper function to update the admin product list display
             window.updateAdminProductList = (filteredProducts = null) => {
                 if (!adminProductListUl) return;
 
                 const productsToDisplay = filteredProducts || window.products; 
 
-                adminProductListUl.innerHTML = '';
+                adminProductListUl.innerHTML = ''; // Clear existing list items
                 productsToDisplay.forEach(product => {
                     const listItem = document.createElement('li');
                     listItem.classList.add('flex', 'flex-col', 'sm:flex-row', 'items-start', 'sm:items-center', 'justify-between', 'border-b', 'border-gray-200', 'py-3', 'gap-2');
                     
-                    // Show edit and delete buttons only if admin is logged in
+                    // Conditionally render edit and delete buttons based on admin status
                     const adminButtons = isAdminLoggedIn ? `
                         <div class="relative flex items-center space-x-2">
                             <button class="edit-product-btn bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition" 
@@ -1181,10 +1218,11 @@
                         </div>
                     ` : '';
 
+                    // Get category names from IDs
                     const categoryNames = (product.categoryIds || [])
                         .map(id => {
                             const category = window.categories.find(c => c.id === id);
-                            return category ? category.name : id; 
+                            return category ? category.name : id; // Display name if found, otherwise ID
                         })
                         .join(', ');
 
@@ -1202,18 +1240,18 @@
                     `;
                     adminProductListUl.appendChild(listItem);
 
-                    // Scroll-Logik beim Klicken auf "Bearbeiten" (nur wenn Admin angemeldet ist)
+                    // Scroll to admin panel when "Bearbeiten" is clicked
                     if (isAdminLoggedIn) { 
                         const editButton = listItem.querySelector('.edit-product-btn');
                         if (editButton) {
                             editButton.addEventListener('click', () => {
-                                // Scrollen Sie zum Admin-Panel, wo sich das Bearbeitungsformular befindet
                                 adminPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
                             });
                         }
                     }
                 });
 
+                // Add event listeners for edit and delete buttons in the admin list
                 document.querySelectorAll('.edit-product-btn').forEach(button => {
                     button.addEventListener('click', (e) => {
                         const productId = e.target.dataset.id;
@@ -1223,11 +1261,11 @@
                             productNameInput.value = productToEdit.name;
                             productPriceInput.value = productToEdit.price;
                             productKeywordsInput.value = productToEdit.keywords.join(', ');
-                            productFormTitle.textContent = "Produkt bearbeiten";
-                            saveProductBtn.textContent = "Änderungen speichern";
-                            cancelEditBtn.classList.remove('hidden');
+                            productFormTitle.textContent = "Produkt bearbeiten"; // Change form title
+                            saveProductBtn.textContent = "Änderungen speichern"; // Change button text
+                            cancelEditBtn.classList.remove('hidden'); // Show cancel button
 
-                            // Setzt die Checkboxen der Kategorien
+                            // Setzt die Checkboxen der Kategorien basierend auf den Produktkategorien
                             document.querySelectorAll('.category-checkbox').forEach(checkbox => {
                                 checkbox.checked = (productToEdit.categoryIds || []).includes(checkbox.value);
                             });
@@ -1239,21 +1277,21 @@
                     button.addEventListener('click', (e) => {
                         const productId = e.target.dataset.id;
                         const productName = e.target.dataset.name;
-                        deleteProductFromFirestore(productId, false, productName); 
+                        deleteProductFromFirestore(productId, false, productName); // Trigger confirmation modal
                     });
                 });
             };
 
-            // Filtering and Sorting for Admin Product List
+            // Filtering and Sorting logic for the Admin Product List
             function filterAndSortAdminProducts() {
-                let filtered = [...window.products]; 
+                let filtered = [...window.products]; // Start with a copy of all products
 
                 // 1. Filter by Search Input
                 const searchTerm = adminSearchInput.value.toLowerCase().trim();
                 if (searchTerm) {
                     filtered = filtered.filter(product => 
                         product.name.toLowerCase().includes(searchTerm) ||
-                        product.keywords.some(keyword => keyword.includes(searchTerm))
+                        (product.keywords && product.keywords.some(keyword => keyword.includes(searchTerm)))
                     );
                 }
 
@@ -1277,32 +1315,32 @@
                     } else if (sortOption === 'priceDesc') {
                         return b.price - a.price;
                     }
-                    return 0;
+                    return 0; // No sorting if option is invalid
                 });
 
-                updateAdminProductList(filtered); 
+                updateAdminProductList(filtered); // Update the displayed list with filtered and sorted data
             }
 
-            // Event Listeners for Admin Filter/Sort
+            // Event Listeners for Admin Filter/Sort controls
             adminSearchInput.addEventListener('input', filterAndSortAdminProducts);
             adminSortSelect.addEventListener('change', filterAndSortAdminProducts);
             adminCategoryFilter.addEventListener('change', filterAndSortAdminProducts);
 
 
-            // Function to reset the admin product form
+            // Function to reset the product form in the admin section
             function resetAdminForm() {
-                productForm.reset();
-                productIdInput.value = '';
-                productFormTitle.textContent = "Neues Produkt hinzufügen";
-                saveProductBtn.textContent = "Produkt hinzufügen";
-                cancelEditBtn.classList.add('hidden');
+                productForm.reset(); // Clears all form fields
+                productIdInput.value = ''; // Clear hidden product ID field
+                productFormTitle.textContent = "Neues Produkt hinzufügen"; // Reset form title
+                saveProductBtn.textContent = "Produkt hinzufügen"; // Reset button text
+                cancelEditBtn.classList.add('hidden'); // Hide cancel button
                 // Uncheck all category checkboxes
                 document.querySelectorAll('.category-checkbox').forEach(checkbox => {
                     checkbox.checked = false;
                 });
             }
 
-            // Event listener for adding/saving product form in admin section
+            // Event listener for adding/saving product form submission in admin section
             productForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const productId = productIdInput.value;
@@ -1310,25 +1348,27 @@
                 const productPrice = productPriceInput.value;
                 const productKeywords = productKeywordsInput.value;
                 
-                // Get selected category IDs
+                // Get selected category IDs from checkboxes
                 const selectedCategoryIds = Array.from(document.querySelectorAll('.category-checkbox:checked'))
                                                 .map(checkbox => checkbox.value);
 
                 if (productId) {
+                    // If product ID exists, update the product
                     await updateProductInFirestore(productId, productName, productPrice, productKeywords, selectedCategoryIds);
                 } else {
+                    // Otherwise, add a new product
                     await addProductToFirestore(productName, productPrice, productKeywords, selectedCategoryIds);
                 }
             });
 
-            // Event listener for the cancel button in the admin form
+            // Event listener for the cancel button in the admin product form
             cancelEditBtn.addEventListener('click', resetAdminForm);
 
-            // --- Existing search and shopping list functions ---
+            // --- Existing search and shopping list functions (Public facing) ---
 
             // Function to update the display of the shopping list
             window.updateShoppingListDisplay = function() {
-                shoppingListItemsUl.innerHTML = '';
+                shoppingListItemsUl.innerHTML = ''; // Clear current shopping list display
 
                 if (shoppingList.length === 0) {
                     emptyListMessage.classList.remove('hidden');
@@ -1352,50 +1392,52 @@
                         shoppingListItemsUl.appendChild(listItem);
                     });
                 }
-                calculateTotal();
+                calculateTotal(); // Recalculate total after updating list
             };
 
-            // Function to calculate the total sum
+            // Function to calculate the total sum of items in the shopping list
             function calculateTotal() {
                 let total = shoppingList.reduce((sum, item) => sum + (item.price * item.quantity), 0);
                 shoppingListTotalSpan.textContent = `${total.toFixed(2)} Fr.`;
             }
 
-            // Function to add/update items in the shopping list
+            // Function to add/update items in the shopping list (from search results)
             window.addToShoppingList = function(productName, targetButton) {
                 const product = window.products.find(p => p.name === productName);
-                if (!product) return;
+                if (!product) return; // Product not found
 
                 const existingItem = shoppingList.find(item => item.name === productName);
 
                 if (existingItem) {
-                    existingItem.quantity++;
+                    existingItem.quantity++; // Increase quantity if item already exists
                 } else {
-                    shoppingList.push({ ...product, quantity: 1 });
+                    shoppingList.push({ ...product, quantity: 1 }); // Add new item
                 }
-                updateShoppingListDisplay();
+                updateShoppingListDisplay(); // Update the displayed list
 
+                // Lottie animation feedback for "Hinzufügen" button
                 if (targetButton) {
                     const productItemDiv = targetButton.closest('.product-item');
                     const lottieContainer = productItemDiv.querySelector('.lottie-container');
                     const lottiePlayer = lottieContainer ? lottieContainer.querySelector('lottie-player') : null;
 
                     if (lottieContainer && lottiePlayer) {
-                        targetButton.style.display = 'none';
-                        lottieContainer.style.display = 'block';
+                        targetButton.style.display = 'none'; // Hide button
+                        lottieContainer.style.display = 'block'; // Show Lottie animation
 
-                        lottiePlayer.setDirection(1);
+                        lottiePlayer.setDirection(1); // Play forward
+                        // Ensure this path is correct if "animations" folder is not at root
                         lottiePlayer.load("animations/checkmark_animation.json"); 
                         lottiePlayer.play();
 
                         setTimeout(() => {
                             lottiePlayer.stop();
-                            lottieContainer.style.display = 'none';
-                            targetButton.style.display = 'inline-block';
+                            lottieContainer.style.display = 'none'; // Hide Lottie
+                            targetButton.style.display = 'inline-block'; // Show button again
                             
-                            searchInput.value = '';
-                            searchProducts();
-                        }, 5000);
+                            searchInput.value = ''; // Clear search input
+                            searchProducts(); // Re-run search to clear results
+                        }, 5000); // Animation duration (5 seconds)
                     }
                 }
             };
@@ -1403,12 +1445,12 @@
             // Event Listener for clicks on the shopping list (for quantity change and removal)
             shoppingListItemsUl.addEventListener('click', (event) => {
                 const target = event.target;
-                const action = target.dataset.action;
-                const productName = target.dataset.name;
+                const action = target.dataset.action; // Get action from data-action attribute
+                const productName = target.dataset.name; // Get product name from data-name attribute
 
                 if (action && productName) {
                     const itemIndex = shoppingList.findIndex(item => item.name === productName);
-                    if (itemIndex === -1) return;
+                    if (itemIndex === -1) return; // Item not found
 
                     if (action === 'increase') {
                         shoppingList[itemIndex].quantity++;
@@ -1416,37 +1458,41 @@
                         if (shoppingList[itemIndex].quantity > 1) {
                             shoppingList[itemIndex].quantity--;
                         } else {
+                            // Remove item if quantity drops to 0
                             shoppingList.splice(itemIndex, 1);
                         }
                     } else if (action === 'remove') {
+                        // Remove item directly
                         shoppingList.splice(itemIndex, 1);
                     }
-                    updateShoppingListDisplay();
+                    updateShoppingListDisplay(); // Update the displayed list
                 }
             });
 
             // Event Listener for the "Clear shopping list" button
             clearShoppingListBtn.addEventListener('click', () => {
-                shoppingList = [];
-                updateShoppingListDisplay();
+                shoppingList = []; // Empty the shopping list array
+                updateShoppingListDisplay(); // Update the display
             });
 
             // Function to search for products (Public side)
             window.searchProducts = function() {
                 const query = searchInput.value.toLowerCase().trim();
-                searchResultsDiv.innerHTML = '';
+                searchResultsDiv.innerHTML = ''; // Clear previous search results
 
                 if (query.length === 0) {
-                    searchResultsDiv.classList.add('hidden');
+                    searchResultsDiv.classList.add('hidden'); // Hide results div if query is empty
                     return;
                 }
 
                 const matchedProducts = window.products.filter(product => {
-                    return product.keywords.some(keyword => keyword.includes(query));
+                    // Search in product name and keywords
+                    return product.name.toLowerCase().includes(query) ||
+                           (product.keywords && product.keywords.some(keyword => keyword.includes(query)));
                 });
 
                 if (matchedProducts.length > 0) {
-                    searchResultsDiv.classList.remove('hidden');
+                    searchResultsDiv.classList.remove('hidden'); // Show results div
                     matchedProducts.forEach(product => {
                         const resultItem = document.createElement('div');
                         resultItem.classList.add('product-item');
@@ -1465,13 +1511,14 @@
                         `;
                         searchResultsDiv.appendChild(resultItem);
                     });
+                    // Add event listeners to "Hinzufügen" buttons
                     document.querySelectorAll('.add-to-list-btn').forEach(button => {
                         button.addEventListener('click', (event) => {
                             addToShoppingList(event.target.dataset.name, event.target); 
                         });
                     });
                 } else {
-                    searchResultsDiv.classList.remove('hidden');
+                    searchResultsDiv.classList.remove('hidden'); // Still show div but with no results message
                     const noResultItem = document.createElement('div');
                     noResultItem.classList.add('py-2', 'text-gray-600', 'text-center', 'italic');
                     noResultItem.textContent = "Keine Produkte gefunden, die deiner Suche entsprechen. Probiere es mit anderen Begriffen.";
@@ -1479,1505 +1526,13 @@
                 }
             };
 
-            // Event Listener for the search button
+            // Event Listener for the search button click
             searchButton.addEventListener('click', searchProducts);
 
-            // Event Listener for the input field (search on every input)
+            // Event Listener for the search input field (searches on every input)
             searchInput.addEventListener('input', searchProducts);
 
-            // Initialize the shopping list (will be updated by Firestore listener)
-            updateShoppingListDisplay(); 
-        }); // End DOMContentLoaded
-    </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mojas Preislisten</title>
-    <!-- Favicon Link - Wichtig für das Logo in der Taskleiste/im Tab -->
-    <link rel="icon" href="Logo.png" type="image/png">
-    
-    <!-- Google Fonts Links -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- LottieFiles Web Player CDN (for playing Lottie animations) -->
-    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-
-    <style>
-        body {
-            font-family: 'Inter', sans-serif; /* Standard-Schriftart für Fliesstext */
-        }
-        /* Custom Tailwind Colors for Mojas Palette */
-        /* Primary Accent Orange */
-        .bg-mojas-orange {
-            background-color: #ee7719;
-        }
-        .text-mojas-orange {
-            color: #ee7719;
-        }
-        .border-mojas-orange {
-            border-color: #ee7719;
-        }
-
-        /* Darker, Sophisticated Accent (for Header/Footer) */
-        .bg-dark-accent {
-            background-color: #2c3e50; /* Ein tiefes, sattes Anthrazitblau */
-        }
-        .text-dark-accent {
-            color: #2c3e50;
-        }
-
-        /* Light, Warm Background */
-        .bg-light-cream {
-            background-color: #FDFBF8; /* Ein sehr subtiles, warmes Off-White */
-        }
-
-        /* Styling for the price list images to ensure they are responsive and well-displayed */
-        .price-list-img {
-            width: 100%;
-            height: auto;
-            max-width: 800px; /* Maximale Breite, um Bilder auf Desktops nicht zu gross werden zu lassen */
-            display: block;
-            margin: 0 auto;
-            border-radius: 1rem; /* Abgerundete Ecken */
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); /* Subtiler Schatten */
-        }
-        /* Styling for the logo image */
-        .logo-img {
-            height: 40px; /* Höhe nach Bedarf anpassen */
-            width: auto;
-            border-radius: 0.5rem; /* Leicht abgerundete Ecken für das Logo */
-        }
-        /* Apply Orbitron to headings for a distinct look */
-        h1, h2 {
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 700; /* Eine fette Schriftstärke für mehr Wirkung */
-        }
-        /* Style for search results */
-        #searchResults .product-item, #shoppingListItems .list-item {
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap; /* Elemente bei Bedarf umbrechen lassen */
-            gap: 0.5rem; /* Kleiner Abstand zwischen Elementen */
-        }
-        #searchResults .product-item:last-child, #shoppingListItems .list-item:last-child {
-            border-bottom: none;
-        }
-        #shoppingListItems .list-item span {
-            flex-grow: 1; /* Text kann wachsen */
-        }
-        #shoppingListItems .quantity-controls {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        /* Styling for Lottie container */
-        .lottie-container {
-            width: 30px; /* Grösse des Lottie-Icons anpassen */
-            height: 30px;
-            /* Absolute Positionierung innerhalb des relativen Wrappers */
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: none; /* Standardmässig versteckt */
-        }
-        /* Style for login form */
-        #adminLoginForm {
-            max-width: 400px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background-color: #fff;
-            border-radius: 1rem;
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
-        }
-        /* Disabled state for form elements */
-        #adminPanel input:disabled, #adminPanel button:disabled,
-        #adminPanel input[type="file"]:disabled + button { 
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        /* Styles for the custom delete confirmation modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        .modal-overlay.visible {
-            opacity: 1;
-            visibility: visible;
-        }
-        .modal-content {
-            background-color: #fff;
-            padding: 2rem;
-            border-radius: 1rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-            transform: translateY(-20px);
-            transition: transform 0.3s ease;
-        }
-        .modal-overlay.visible .modal-content {
-            transform: translateY(0);
-        }
-    </style>
-</head>
-<body class="bg-light-cream flex flex-col min-h-screen">
-
-    <!-- Header Section -->
-    <header class="bg-dark-accent text-white p-6 shadow-lg rounded-b-xl">
-        <div class="container mx-auto flex flex-col sm:flex-row items-center justify-between">
-            <div class="flex items-center space-x-3 mb-4 sm:mb-0">
-                <!-- Mojas Logo -->
-                <img src="Logo.png" alt="Mojas Logo" class="logo-img">
-                <h1 class="text-3xl font-bold">MOJAS.ch</h1>
-            </div>
-            <nav class="w-full sm:w-auto mt-4 sm:mt-0">
-                <!-- Navigation links: stacked vertically on mobile, horizontal on small screens and up -->
-                <ul class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 text-lg items-center">
-                    <li><a href="#preisliste" class="hover:underline text-mojas-orange">Preisliste</a></li>
-                    <li><a href="#drinks" class="hover:underline text-mojas-orange">Drinks</a></li>
-                    <li><a href="#shoppingListSection" class="hover:underline text-mojas-orange">Einkaufsliste</a></li>
-                    <li>
-                        <!-- Admin Login/Logout Button -->
-                        <button id="adminAuthButton" class="px-4 py-2 bg-mojas-orange text-white rounded-lg shadow-md hover:bg-opacity-90 transition duration-300 ease-in-out">Admin Login</button>
-                    </li>
-                    <li>
-                        <!-- Instagram Icon only, serves as link -->
-                        <a href="https://www.instagram.com/MOJAS.ch/" target="_blank" rel="noopener noreferrer" class="text-mojas-orange flex items-center justify-center p-1 rounded-full hover:bg-white hover:bg-opacity-20 transition duration-300">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-1">
-                                <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
-                                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-                                <line x1="17.5" x2="17.5" y1="6.5" y2="6.5"/>
-                            </svg>
-                        </a>
-                    </li>
-                    <!-- Button for MOJAS website: full width on mobile, inline on small screens and up -->
-                    <li>
-                        <a href="https://www.mojas.ch/" target="_blank" rel="noopener noreferrer" 
-                           class="w-full sm:w-auto mt-4 sm:ml-4 sm:mt-0 px-4 py-2 bg-mojas-orange text-white rounded-lg shadow-md 
-                                  hover:bg-opacity-90 transition duration-300 ease-in-out 
-                                  flex items-center justify-center space-x-2">
-                            <span>Zur MOJAS Website</span>
-                            <!-- External Link Icon -->
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
-                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0
-                                0 1 2-2h6"/>
-                                <polyline points="15 3 21 3 21 9"/>
-                                <line x1="10" x2="21" y1="14" y2="3"/>
-                            </svg>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
-    </header>
-
-    <!-- Main Content Section -->
-    <main class="container mx-auto p-4 flex-grow">
-        <!-- Admin Login Form (initially hidden) -->
-        <div id="adminLoginForm" class="hidden">
-            <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Admin Login</h2>
-            <form id="loginForm" class="grid grid-cols-1 gap-4">
-                <div>
-                    <label for="adminEmail" class="block text-gray-700 text-sm font-bold mb-2">E-Mail:</label>
-                    <input type="email" id="adminEmail" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                <div>
-                    <label for="adminPassword" class="block text-gray-700 text-sm font-bold mb-2">Passwort:</label>
-                    <input type="password" id="adminPassword" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                <button type="submit" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Login</button>
-                <p id="loginError" class="text-red-500 text-center mt-2 hidden">Ungültige E-Mail oder Passwort.</p>
-            </form>
-        </div>
-
-        <!-- Admin Panel Section (initially hidden) -->
-        <section id="adminPanel" class="my-8 bg-white p-6 rounded-2xl shadow-xl hidden">
-            <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Admin Bereich</h2>
-            
-            <!-- Allgemeine Website-Einstellungen -->
-            <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Website-Einstellungen</h3>
-            <form id="settingsForm" class="grid grid-cols-1 gap-4 mb-8">
-                <div>
-                    <label for="footerText" class="block text-gray-700 text-sm font-bold mb-2">Footer-Text:</label>
-                    <input type="text" id="footerText" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                <div>
-                    <label for="drinksNote" class="block text-gray-700 text-sm font-bold mb-2">Hinweis bei Drinks:</label>
-                    <textarea id="drinksNote" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
-                </div>
-                <button type="submit" id="saveSettingsBtn" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Einstellungen speichern</button>
-                <p id="settingsStatus" class="text-sm mt-2 text-gray-600"></p>
-            </form>
-
-            <!-- Admin-UIDs verwalten (vereinfacht) -->
-            <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Admin-Benutzer-IDs (UIDs)</h3>
-            <p class="text-gray-700 mb-4 text-sm">Fügen Sie hier die UID eines Benutzers hinzu, um ihm Admin-Rechte zu geben. Diese UIDs finden Sie in der Firebase Console unter "Authentifizierung" bei jedem Benutzer. **Seien Sie vorsichtig, dies ist eine vereinfachte Verwaltung.**</p>
-            <div class="flex gap-2 mb-4">
-                <input type="text" id="newAdminUidInput" placeholder="Neue Admin-UID hier einfügen" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                <button id="addAdminUidBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">Hinzufügen</button>
-            </div>
-            <ul id="adminUidList" class="space-y-2 mb-8">
-                <!-- Admin UIDs will be loaded here -->
-            </ul>
-            <p id="adminUidStatus" class="text-sm mt-2 text-gray-600"></p>
-
-
-            <!-- Kategorien verwalten -->
-            <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Kategorien verwalten</h3>
-            <form id="categoryForm" class="grid grid-cols-1 gap-4 mb-8">
-                <input type="hidden" id="categoryId">
-                <div>
-                    <label for="categoryName" class="block text-gray-700 text-sm font-bold mb-2">Kategoriename:</label>
-                    <input type="text" id="categoryName" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                <div class="flex justify-end space-x-2">
-                    <button type="submit" id="saveCategoryBtn" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Kategorie hinzufügen</button>
-                    <button type="button" id="cancelCategoryEditBtn" class="bg-gray-400 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-500 transition hidden">Abbrechen</button>
-                </div>
-            </form>
-            <ul id="adminCategoryList" class="space-y-3 mb-8">
-                <!-- Categories will be loaded here -->
-            </ul>
-
-
-            <!-- Produkte verwalten -->
-            <h3 id="productFormTitle" class="text-2xl font-semibold text-mojas-orange mb-4">Neues Produkt hinzufügen</h3>
-            <form id="productForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                <input type="hidden" id="productId">
-                <div>
-                    <label for="productName" class="block text-gray-700 text-sm font-bold mb-2">Produktname:</label>
-                    <input type="text" id="productName" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                <div>
-                    <label for="productPrice" class="block text-gray-700 text-sm font-bold mb-2">Preis (Fr.):</label>
-                    <input type="number" step="0.01" id="productPrice" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                <div class="md:col-span-2">
-                    <label for="productKeywords" class="block text-gray-700 text-sm font-bold mb-2">Schlüsselwörter (kommagetrennt):</label>
-                    <input type="text" id="productKeywords" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                <div class="md:col-span-2">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Kategorien:</label>
-                    <div id="productCategoriesCheckboxes" class="grid grid-cols-2 gap-2">
-                        <!-- Categories will be loaded here dynamically -->
-                    </div>
-                </div>
-                <div class="md:col-span-2 flex justify-end space-x-2">
-                    <button type="submit" id="saveProductBtn" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Produkt hinzufügen</button>
-                    <button type="button" id="cancelEditBtn" class="bg-gray-400 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-500 transition hidden">Abbrechen</button>
-                </div>
-            </form>
-
-            <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Vorhandene Produkte</h3>
-            <!-- Verbesserte Such- und Filteroptionen -->
-            <div class="flex flex-col sm:flex-row gap-4 mb-4">
-                <input type="text" id="adminSearchInput" placeholder="Produkte suchen..." 
-                       class="w-full sm:w-1/2 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mojas-orange">
-                <select id="adminSortSelect" class="w-full sm:w-1/4 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mojas-orange">
-                    <option value="nameAsc">Name (A-Z)</option>
-                    <option value="nameDesc">Name (Z-A)</option>
-                    <option value="priceAsc">Preis (Niedrigste)</option>
-                    <option value="priceDesc">Preis (Höchste)</option>
-                </select>
-                <select id="adminCategoryFilter" class="w-full sm:w-1/4 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mojas-orange">
-                    <option value="">Alle Kategorien</option>
-                    <!-- Categories will be loaded here -->
-                </select>
-            </div>
-            <ul id="adminProductList" class="space-y-3 mb-8">
-                <!-- Products will be loaded here from Firestore -->
-            </ul>
-        </section>
-
-        <!-- Search Function Section (Public) -->
-        <section class="my-8 bg-white p-6 rounded-2xl shadow-xl">
-            <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Finde deinen Preis</h2>
-            <div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-                <input type="text" id="searchInput" placeholder="Z.B. Rivella, Schokoriegel, Chips..." 
-                       class="w-full sm:w-2/3 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mojas-orange">
-                <button id="searchButton" 
-                        class="w-full sm:w-auto px-6 py-3 bg-mojas-orange text-white rounded-lg shadow-md 
-                               hover:bg-opacity-90 transition duration-300 ease-in-out">
-                    Suchen
-                </button>
-            </div>
-            <!-- Search Results Display Area -->
-            <div id="searchResults" class="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200 hidden">
-                <!-- Results will be injected here by JavaScript -->
-            </div>
-        </section>
-
-        <!-- Shopping List Section -->
-        <section id="shoppingListSection" class="my-8 bg-white p-6 rounded-2xl shadow-xl">
-            <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Deine Einkaufsliste</h2>
-            <ul id="shoppingListItems" class="mb-4">
-                <!-- Shopping list items will be injected here -->
-            </ul>
-            <div id="shoppingListSummary" class="text-right text-2xl font-bold text-mojas-orange mt-4 pt-4 border-t-2 border-gray-200">
-                Gesamt: <span id="shoppingListTotal">0.00 Fr.</span>
-            </div>
-            <button id="clearShoppingListBtn" 
-                    class="mt-4 px-6 py-3 bg-gray-300 text-gray-800 rounded-lg shadow-md 
-                           hover:bg-gray-400 transition duration-300 ease-in-out w-full sm:w-auto mx-auto block">
-                Einkaufsliste leeren
-            </button>
-            <div id="emptyListMessage" class="text-center text-gray-600 mt-4 italic">Deine Einkaufsliste ist leer.</div>
-        </section>
-
-        <section id="preisliste" class="my-8 bg-white p-6 rounded-2xl shadow-xl">
-            <h2 class="text-4xl font-bold text-mojas-orange mb-6 text-center">Unsere Preisliste</h2>
-            <p class="text-gray-700 text-center mb-8">Hier findest du eine Übersicht über unsere köstlichen Snacks und Getränke.</p>
-            <!-- Preisliste Image 1 (statisch geladen) -->
-            <img id="priceList1Display" src="1.1.png" alt="Mojas Preisliste Snacks & Getränke" class="price-list-img">
-        </section>
-
-        <section id="drinks" class="my-8 bg-white p-6 rounded-2xl shadow-xl">
-            <h2 class="text-4xl font-bold text-mojas-orange mb-6 text-center">Unsere Drinks</h2>
-            <!-- Information about drink availability in a small box -->
-            <div id="drinksNoteDisplay" class="bg-orange-50 p-4 mb-6 rounded-lg border border-mojas-orange text-center mx-auto max-w-sm">
-                <p class="text-gray-700">Diese Drinks sind nur während Partys und kurz danach erhältlich.</p>
-            </div>
-            <p class="text-gray-700 text-center mb-8">Erfrischende Drinks für jeden Geschmack.</p>
-            <!-- Preisliste Image 2 (statisch geladen) -->
-            <img id="priceList2Display" src="2.1.png" alt="Mojas Drinks" class="price-list-img">
-        </section>
-    </main>
-
-    <!-- Footer Section -->
-    <footer class="bg-dark-accent text-white p-6 rounded-t-xl mt-8">
-        <div class="container mx-auto text-center">
-            <p id="footerTextDisplay">&copy; 2025 MOJAS.ch. Alle Rechte vorbehalten.</p>
-            <div class="flex flex-col sm:flex-row justify-center items-center mt-3 space-y-2 sm:space-y-0 sm:space-x-4">
-                <a href="https://www.instagram.com/MOJAS.ch/" target="_blank" rel="noopener noreferrer" class="text-mojas-orange flex items-center justify-center p-1 rounded-full hover:bg-white hover:bg-opacity-20 transition duration-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-1">
-                        <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
-                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-                        <line x1="17.5" x2="17.5" y1="6.5" y2="6.5"/>
-                    </svg>
-                    <span class="text-lg">Folge uns auf Instagram!</span>
-                </a>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Custom Delete Confirmation Modal -->
-    <div id="deleteConfirmModal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h3 class="text-xl font-bold text-dark-accent mb-4">Produkt löschen</h3>
-            <p class="text-gray-700 mb-6" id="confirmModalMessage">Möchten Sie "<span id="confirmProductName" class="font-semibold"></span>" wirklich löschen?</p>
-            <div class="flex justify-center space-x-4">
-                <button id="confirmDeleteBtn" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition duration-300">Löschen</button>
-                <button id="cancelDeleteBtn" class="bg-gray-300 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-400 transition duration-300">Abbrechen</button>
-            </div>
-        </div>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signOut, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Ihre tatsächliche Firebase-Konfiguration von der Firebase Console
-        const firebaseConfig = {
-            apiKey: "AIzaSyCzVeUMKWfax8Gi3wdisQEj35lQEeKc6B0",
-            authDomain: "mojas-preisliste-a01be.firebaseapp.com",
-            projectId: "mojas-preisliste-a01be",
-            storageBucket: "mojas-preisliste-a01be.firebasestorage.app", 
-            messagingSenderId: "667994628903",
-            appId: "1:667994628903:web:aabf099f890ca9e5d07f02"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        
-        // Extract appId from firebaseConfig for use in Firestore paths
-        const appId = firebaseConfig.appId; 
-        console.log("Verwendete Firebase App ID:", appId); // Fügen Sie diese Zeile hinzu, um die App ID in der Konsole zu überprüfen
-
-        // Firestore collection references
-        const productsColRef = collection(db, `artifacts/${appId}/public/data/products`);
-        const categoriesColRef = collection(db, `artifacts/${appId}/public/data/categories`); 
-        const settingsDocRef = doc(db, `artifacts/${appId}/public/data/settings`, 'generalSettings'); 
-        const adminsColRef = collection(db, `artifacts/${appId}/public/data/admins`); 
-
-        // Global variables
-        window.products = []; 
-        window.categories = []; 
-        let currentUserId = null;
-        let isAdminLoggedIn = false; 
-        let initialProductsChecked = false; 
-        let initialCategoriesChecked = false; 
-
-        // Initial product data (only if Firestore is empty)
-        const initialProductsData = [
-            { name: "Diverse Softdrinks", price: 1.50, keywords: ["diverse softdrinks", "softdrink", "softdrinks", "getränke", "rivella", "cola", "fanta", "sprite", "zitronenlimo", "apfelschorle", "eistee", "trinken"], categoryIds: ["getraenke"] },
-            { name: "Mineralwasser", price: 1.00, keywords: ["mineralwasser", "wasser", "mineral", "still", "sprudel"], categoryIds: ["getraenke"] },
-            { name: "Capri Sun", price: 0.80, keywords: ["capri sun", "caprisun", "saft", "fruchtsaft", "kindergetränk"], categoryIds: ["getraenke"] },
-            { name: "Gummistangen", price: 0.10, keywords: ["gummistangen", "gummi", "süssigkeiten", "süsswaren", "gumistange"], categoryIds: ["suessigkeiten"] },
-            { name: "Gummischlangen", price: 0.50, keywords: ["gummischlangen", "gummi", "süssigkeiten", "süsswaren", "gummischlange"], categoryIds: ["suessigkeiten"] },
-            { name: "Snickers", price: 1.00, keywords: ["snickers", "schokoriegel", "schokolade", "riegel", "snickerss"], categoryIds: ["snacks", "suessigkeiten"] },
-            { name: "Mars", price: 1.00, keywords: ["mars", "schokoriegel", "schokolade", "riegel"], categoryIds: ["snacks", "suessigkeiten"] },
-            { name: "Twix", price: 1.00, keywords: ["twix", "schokoriegel", "schokolade", "riegel", "karamel"], categoryIds: ["snacks", "suessigkeiten"] },
-            { name: "Bounty", price: 1.00, keywords: ["bounty", "schokoriegel", "schokolade", "riegel", "kokos"], categoryIds: ["snacks", "suessigkeiten"] },
-            { name: "M&M's", price: 1.50, keywords: ["m&m's", "mms", "schokolinsen", "linsen", "schokodragees"], categoryIds: ["suessigkeiten"] },
-            { name: "Skittles", price: 1.50, keywords: ["skittles", "fruchtgummi", "bonbons", "fruchtbonbons"], categoryIds: ["suessigkeiten"] },
-            { name: "Oreo's", price: 1.50, keywords: ["oreo's", "oreos", "kekse", "doppelkeks"], categoryIds: ["snacks", "suessigkeiten"] },
-            { name: "Reese's", price: 1.80, keywords: ["reese's", "reeses", "erdnussbutter", "schokolade"], categoryIds: ["snacks", "suessigkeiten"] },
-            { name: "Pringels Rot", price: 1.50, keywords: ["pringels rot", "pringels", "chips", "rot", "paprika", "pringles"], categoryIds: ["snacks"] },
-            { name: "Pringels Orange", price: 1.50, keywords: ["pringels orange", "pringels", "chips", "orange", "käse", "pringles"], categoryIds: ["snacks"] },
-            { name: "Pringels Grün", price: 1.50, keywords: ["pringels grün", "pringels", "chips", "grün", "sour cream", "onion", "zwiebel", "pringles"], categoryIds: ["snacks"] },
-            { name: "Popcorn", price: 1.00, keywords: ["popcorn", "snacks", "kino", "gesalzen"], categoryIds: ["snacks"] },
-            { name: "Toast mit Käse", price: 1.50, keywords: ["toast mit käse", "toast", "käse", "sandwich"], categoryIds: ["speisen"] },
-            { name: "Toast mit Käse und Trutenschinken", price: 2.00, keywords: ["toast mit käse und trutenschinken", "toast", "käse", "trutenschinken", "schinken", "sandwich"], categoryIds: ["speisen"] },
-            { name: "Virgin Sunrise", price: 2.00, keywords: ["virgin sunrise", "cocktail", "drink", "alkoholfrei", "orange", "sunrise"], categoryIds: ["drinks"] },
-            { name: "Blue Dream", price: 2.00, keywords: ["blue dream", "cocktail", "drink", "alkoholfrei", "blau"], categoryIds: ["drinks"] }
-        ];
-
-        // Initial categories data
-        const initialCategoriesData = [ 
-            { id: "getraenke", name: "Getränke" },
-            { id: "suessigkeiten", name: "Süssigkeiten" },
-            { id: "snacks", name: "Snacks" },
-            { id: "speisen", name: "Speisen" },
-            { id: "drinks", name: "Cocktails/Drinks" }
-        ];
-
-        // Shopping list array
-        let shoppingList = [];
-
-        // DOMContentLoaded ensures all HTML elements are loaded
-        document.addEventListener('DOMContentLoaded', async () => {
-            // UI Elements for the admin section
-            const adminPanel = document.getElementById('adminPanel');
-            const adminAuthButton = document.getElementById('adminAuthButton');
-            const adminLoginFormDiv = document.getElementById('adminLoginForm');
-            const loginForm = document.getElementById('loginForm');
-            const adminEmailInput = document.getElementById('adminEmail');
-            const adminPasswordInput = document.getElementById('adminPassword');
-            const loginErrorP = document.getElementById('loginError');
-
-            // General Settings
-            const settingsForm = document.getElementById('settingsForm'); 
-            const footerText = document.getElementById('footerText'); 
-            const drinksNote = document.getElementById('drinksNote'); 
-            const settingsStatus = document.getElementById('settingsStatus'); 
-            const footerTextDisplay = document.getElementById('footerTextDisplay'); 
-            const drinksNoteDisplay = document.getElementById('drinksNoteDisplay'); 
-
-            // Admin UID Management
-            const newAdminUidInput = document.getElementById('newAdminUidInput'); 
-            const addAdminUidBtn = document.getElementById('addAdminUidBtn'); 
-            const adminUidList = document.getElementById('adminUidList'); 
-            const adminUidStatus = document.getElementById('adminUidStatus'); 
-            let adminUids = []; // Local array to hold admin UIDs 
-
-            // Category Management
-            const categoryForm = document.getElementById('categoryForm'); 
-            const categoryIdInput = document.getElementById('categoryId'); 
-            const categoryNameInput = document.getElementById('categoryName'); 
-            const saveCategoryBtn = document.getElementById('saveCategoryBtn'); 
-            const cancelCategoryEditBtn = document.getElementById('cancelCategoryEditBtn'); 
-            const adminCategoryList = document.getElementById('adminCategoryList'); 
-            const productCategoriesCheckboxes = document.getElementById('productCategoriesCheckboxes'); 
-
-            // Product Management
-            const productForm = document.getElementById('productForm');
-            const productIdInput = document.getElementById('productId');
-            const productNameInput = document.getElementById('productName');
-            const productPriceInput = document.getElementById('productPrice');
-            const productKeywordsInput = document.getElementById('productKeywords');
-            const productFormTitle = document.getElementById('productFormTitle');
-            const saveProductBtn = document.getElementById('saveProductBtn');
-            const cancelEditBtn = document.getElementById('cancelEditBtn');
-            const adminProductListUl = document.getElementById('adminProductList');
-
-            // Elements for static image display
-            const priceList1Display = document.getElementById('priceList1Display');
-            const priceList2Display = document.getElementById('priceList2Display');
-
-            // Query Selectors for all administrable elements to disable them
-            const adminControlElements = document.querySelectorAll(
-                '#adminPanel input:not(#adminEmail):not(#adminPassword), #adminPanel button:not([type="submit"]), #adminPanel select, #adminPanel textarea'
-            );
-
-            // Elements for custom delete confirmation modal
-            const deleteConfirmModal = document.getElementById('deleteConfirmModal');
-            const confirmModalMessage = document.getElementById('confirmModalMessage');
-            const confirmProductNameSpan = document.getElementById('confirmProductName');
-            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-            const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-            let productIdToDelete = null; // Variable to store the ID of the product to be deleted
-
-            // Existing search and shopping list functions (Public side)
-            const searchInput = document.getElementById('searchInput');
-            const searchButton = document.getElementById('searchButton');
-            const searchResultsDiv = document.getElementById('searchResults');
-            const shoppingListItemsUl = document.getElementById('shoppingListItems');
-            const shoppingListTotalSpan = document.getElementById('shoppingListTotal');
-            const clearShoppingListBtn = document.getElementById('clearShoppingListBtn');
-            const emptyListMessage = document.getElementById('emptyListMessage');
-
-            // Admin Product List Search/Sort/Filter
-            const adminSearchInput = document.getElementById('adminSearchInput');
-            const adminSortSelect = document.getElementById('adminSortSelect');
-            const adminCategoryFilter = document.getElementById('adminCategoryFilter');
-
-
-            // Function to enable/disable admin forms
-            function setAdminControlsDisabled(disabled) {
-                adminControlElements.forEach(el => {
-                    el.disabled = disabled;
-                });
-            }
-
-            // Monitor login status
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    currentUserId = user.uid;
-                    console.log("Benutzer angemeldet:", currentUserId);
-                    
-                    // Check if current user's UID is in our list of admin UIDs
-                    // This is handled by the onSnapshot listener for 'adminsColRef' now
-                    // so no need to explicitly set isAdminLoggedIn here based on auth.currentUser.isAnonymous
-                    // or hardcoded admin UIDs. It will be updated by the listener.
-                    
-                    // We need to ensure admin data is loaded first to correctly determine isAdminLoggedIn
-                    // before trying to initialize products/categories based on admin status.
-                    // The onSnapshot listeners now handle this reactive update.
-
-                    // Initial checks for data population (only if admin is logged in later)
-                    if (!initialProductsChecked) { // Don't await here, let the onSnapshot handle it
-                         // Products will be initialized after admin status is confirmed by listener
-                    }
-                    if (!initialCategoriesChecked) { // Don't await here
-                         // Categories will be initialized after admin status is confirmed by listener
-                    }
-
-                    // The logic for displaying admin panel and setting controls disabled/enabled
-                    // is now primarily driven by the onSnapshot for `adminsColRef`
-                    // to ensure it reacts to real-time changes in admin UIDs.
-
-                } else {
-                    currentUserId = null;
-                    isAdminLoggedIn = false; 
-                    console.log("Kein Benutzer angemeldet.");
-                    adminAuthButton.textContent = "Admin Login";
-                    adminPanel.classList.add('hidden'); 
-                    adminLoginFormDiv.classList.add('hidden'); 
-                    setAdminControlsDisabled(true); 
-                    adminUids = []; // Clear admin UIDs list on logout 
-                    adminUidList.innerHTML = ''; // Clear display 
-                    
-                    // Continue listening to public data
-                    setupFirestoreListener(); 
-                    loadSettings(); 
-                }
-            });
-
-            // Initialize all Firestore listeners once DOM is ready
-            // These listeners will update the UI reactively as data and auth state changes
-            setupFirestoreListener(); 
-            loadSettings(); 
-
-
-            // Function to initialize categories in Firestore
-            async function initializeCategoriesInFirestore() {
-                try {
-                    // Check if currentUserId exists AND is an admin before initializing categories
-                    if (!auth.currentUser || !isAdminLoggedIn) { 
-                         console.log("Nicht berechtigt zum Initialisieren der Kategorien. Admin-Anmeldung erforderlich.");
-                         return; 
-                    }
-
-                    const snapshot = await getDocs(categoriesColRef);
-                    if (snapshot.empty) {
-                        console.log("Firestore Categories-Sammlung ist leer. Fülle mit Initialdaten...");
-                        const addPromises = initialCategoriesData.map(category => 
-                            setDoc(doc(categoriesColRef, category.id), { // Use setDoc with custom ID
-                                name: category.name,
-                                createdAt: new Date()
-                            })
-                        );
-                        await Promise.all(addPromises);
-                        console.log("Initialdaten für Kategorien erfolgreich zu Firestore hinzugefügt.");
-                        initialCategoriesChecked = true; // Set flag after successful initialization
-                    } else {
-                        console.log("Firestore Categories-Sammlung ist bereits gefüllt.");
-                        initialCategoriesChecked = true; // Set flag even if already filled
-                    }
-                } catch (error) {
-                    console.error("Fehler beim Initialisieren der Kategorien in Firestore:", error);
-                }
-            }
-
-
-            // Function to initialize products in Firestore
-            async function initializeProductsInFirestore() {
-                try {
-                    // Check if currentUserId exists AND is an admin before initializing products
-                    if (!auth.currentUser || !isAdminLoggedIn) { 
-                         console.log("Nicht berechtigt zum Initialisieren der Produkte. Admin-Anmeldung erforderlich.");
-                         return; 
-                    }
-
-                    const snapshot = await getDocs(productsColRef);
-                    if (snapshot.empty) {
-                        console.log("Firestore Products-Sammlung ist leer. Fülle mit Initialdaten...");
-                        const addPromises = initialProductsData.map(product => 
-                            addDoc(productsColRef, {
-                                name: product.name,
-                                price: parseFloat(product.price), 
-                                keywords: product.keywords,
-                                categoryIds: product.categoryIds || [], 
-                                createdAt: new Date()
-                            })
-                        );
-                        await Promise.all(addPromises);
-                        console.log("Initialdaten erfolgreich zu Firestore hinzugefügt.");
-                        initialProductsChecked = true; // Set flag after successful initialization
-                    } else {
-                        console.log("Firestore Products-Sammlung ist bereits gefüllt.");
-                        initialProductsChecked = true; // Set flag even if already filled
-                    }
-                } catch (error) {
-                    console.error("Fehler beim Initialisieren der Produkte in Firestore:", error);
-                }
-            }
-
-            // Function to monitor Firestore data (for products and categories)
-            function setupFirestoreListener() {
-                // Listen to products
-                onSnapshot(productsColRef, (snapshot) => {
-                    const fetchedProducts = snapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    }));
-                    window.products = fetchedProducts.sort((a, b) => a.name.localeCompare(b.name));
-                    console.log("Produkte von Firestore geladen:", window.products);
-                    
-                    searchProducts(); 
-                    updateShoppingListDisplay();
-                    filterAndSortAdminProducts(); 
-                }, (error) => {
-                    console.error("Fehler beim Laden der Produkte von Firestore:", error);
-                });
-
-                // Listen to categories
-                onSnapshot(categoriesColRef, (snapshot) => {
-                    window.categories = snapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    })).sort((a, b) => a.name.localeCompare(b.name));
-                    console.log("Kategorien von Firestore geladen:", window.categories);
-                    populateCategoryCheckboxes(); 
-                    populateAdminCategoryFilter(); 
-                    filterAndSortAdminProducts(); 
-                }, (error) => {
-                    console.error("Fehler beim Laden der Kategorien von Firestore:", error);
-                });
-
-                // Listen to admin UIDs
-                onSnapshot(adminsColRef, (snapshot) => {
-                    adminUids = snapshot.docs.map(doc => doc.id); 
-                    console.log("Admin UIDs von Firestore geladen:", adminUids);
-                    
-                    // Re-evaluate admin status after fetching UIDs
-                    if (auth.currentUser) {
-                         const wasAdmin = isAdminLoggedIn; // Store previous state
-                         isAdminLoggedIn = adminUids.includes(auth.currentUser.uid);
-                         
-                         // Only update UI if admin status has changed
-                         if (isAdminLoggedIn !== wasAdmin) {
-                             if (isAdminLoggedIn) {
-                                adminAuthButton.textContent = "Admin Logout";
-                                adminPanel.classList.remove('hidden');
-                                adminLoginFormDiv.classList.add('hidden');
-                                setAdminControlsDisabled(false);
-                                updateAdminUidList(); 
-                                // NEW: Now that admin status is confirmed, try to initialize products/categories
-                                if (!initialProductsChecked) initializeProductsInFirestore();
-                                if (!initialCategoriesChecked) initializeCategoriesInFirestore();
-                             } else {
-                                // Logged in but no longer an admin
-                                adminAuthButton.textContent = "Admin Login";
-                                adminPanel.classList.add('hidden');
-                                adminLoginFormDiv.classList.add('hidden');
-                                setAdminControlsDisabled(true);
-                             }
-                         }
-                    } else {
-                        // No user logged in, so not an admin
-                        isAdminLoggedIn = false; 
-                    }
-                    updateAdminUidList(); // Update display even if not admin or if admin UIDs changed
-                }, (error) => {
-                    console.error("Fehler beim Laden der Admin UIDs von Firestore:", error);
-                });
-            }
-
-            // Function to load and display general settings
-            function loadSettings() {
-                onSnapshot(settingsDocRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        if (data.footerText) {
-                            footerTextDisplay.textContent = data.footerText;
-                            if (footerText) footerText.value = data.footerText; 
-                        } else {
-                            footerTextDisplay.textContent = "&copy; 2025 MOJAS.ch. Alle Rechte vorbehalten.";
-                            if (footerText) footerText.value = "";
-                        }
-                        if (data.drinksNote) {
-                            drinksNoteDisplay.querySelector('p').textContent = data.drinksNote;
-                            if (drinksNote) drinksNote.value = data.drinksNote; 
-                        } else {
-                            drinksNoteDisplay.querySelector('p').textContent = "Diese Drinks sind nur während Partys und kurz danach erhältlich.";
-                            if (drinksNote) drinksNote.value = "";
-                        }
-                    } else {
-                        console.log("Keine allgemeinen Einstellungen in Firestore gefunden. Verwende Standardtexte.");
-                        footerTextDisplay.textContent = "&copy; 2025 MOJAS.ch. Alle Rechte vorbehalten.";
-                        drinksNoteDisplay.querySelector('p').textContent = "Diese Drinks sind nur während Partys und kurz danach erhältlich.";
-                        if (footerText) footerText.value = "";
-                        if (drinksNote) drinksNote.value = "";
-                    }
-                }, (error) => {
-                    console.error("Fehler beim Laden der Einstellungen von Firestore:", error);
-                });
-            }
-
-            // Admin Login / Logout Handler
-            adminAuthButton.addEventListener('click', async () => {
-                if (isAdminLoggedIn) {
-                    try {
-                        await signOut(auth);
-                        console.log("Admin abgemeldet.");
-                    } catch (error) {
-                        console.error("Fehler beim Abmelden:", error);
-                        alert("Abmeldung fehlgeschlagen: " + error.message);
-                    }
-                } else {
-                    adminLoginFormDiv.classList.remove('hidden');
-                    adminPanel.classList.add('hidden'); 
-                    loginErrorP.classList.add('hidden'); 
-                    setAdminControlsDisabled(true); 
-                }
-            });
-
-            // Login Form Handler (real Firebase login)
-            loginForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const email = adminEmailInput.value;
-                const password = adminPasswordInput.value;
-
-                loginErrorP.classList.add('hidden'); 
-
-                try {
-                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                    console.log("Login-Versuch erfolgreich. Admin-Status wird von Listener überprüft...");
-                    // The onAuthStateChanged listener will now determine isAdminLoggedIn based on fetched adminUids
-                    // and update the UI accordingly.
-                } catch (error) {
-                    console.error("Fehler beim Admin-Login:", error);
-                    let errorMessage = "Anmeldung fehlgeschlagen. Ungültige E-Mail oder Passwort.";
-                    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-                        errorMessage = "Ungültige E-Mail oder Passwort. Bitte überprüfen Sie Ihre Eingaben.";
-                    } else if (error.code === 'auth/invalid-email') {
-                        errorMessage = "Ungültiges E-Mail-Format. Bitte geben Sie eine gültige E-Mail-Adresse ein.";
-                    } else if (error.code === 'auth/operation-not-allowed') {
-                        errorMessage = "E-Mail/Passwort-Anmeldung ist in Firebase nicht aktiviert. Bitte aktivieren Sie dies in der Firebase Console unter 'Authentifizierung' -> 'Anmeldemethode'.";
-                    } else if (error.code === 'auth/too-many-requests') {
-                         errorMessage = "Zu viele fehlgeschlagene Anmeldeversuche. Bitte versuchen Sie es später erneut.";
-                    }
-                    loginErrorP.textContent = errorMessage;
-                    loginErrorP.classList.remove('hidden');
-                }
-            });
-
-            // General Settings Form Handler
-            settingsForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                if (!isAdminLoggedIn) {
-                    settingsStatus.textContent = "Sie müssen als Admin angemeldet sein, um Einstellungen zu speichern.";
-                    settingsStatus.style.color = "red";
-                    return;
-                }
-                settingsStatus.textContent = "Speichere Einstellungen...";
-                settingsStatus.style.color = "orange";
-                try {
-                    await setDoc(settingsDocRef, {
-                        footerText: footerText.value.trim(),
-                        drinksNote: drinksNote.value.trim()
-                    }, { merge: true });
-                    settingsStatus.textContent = "Einstellungen erfolgreich gespeichert!";
-                    settingsStatus.style.color = "green";
-                } catch (error) {
-                    console.error("Fehler beim Speichern der Einstellungen:", error);
-                    settingsStatus.textContent = "Fehler beim Speichern: " + error.message;
-                    settingsStatus.style.color = "red";
-                }
-            });
-
-            // Admin UID Management Functions
-            async function addAdminUid(uid) {
-                if (!isAdminLoggedIn) {
-                    adminUidStatus.textContent = "Sie müssen als Admin angemeldet sein, um Admin-UIDs zu verwalten.";
-                    adminUidStatus.style.color = "red";
-                    return;
-                }
-                if (!uid || adminUids.includes(uid)) {
-                    adminUidStatus.textContent = "Ungültige oder bereits vorhandene UID.";
-                    adminUidStatus.style.color = "red";
-                    return;
-                }
-                adminUidStatus.textContent = "Füge UID hinzu...";
-                adminUidStatus.style.color = "orange";
-                try {
-                    await setDoc(doc(adminsColRef, uid), { addedAt: new Date() });
-                    newAdminUidInput.value = ''; // Clear input
-                    adminUidStatus.textContent = "Admin-UID erfolgreich hinzugefügt!";
-                    adminUidStatus.style.color = "green";
-                } catch (error) {
-                    console.error("Fehler beim Hinzufügen der Admin-UID:", error);
-                    adminUidStatus.textContent = "Fehler beim Hinzufügen: " + error.message;
-                    adminUidStatus.style.color = "red";
-                }
-            }
-
-            async function removeAdminUid(uid) {
-                if (!isAdminLoggedIn) {
-                    adminUidStatus.textContent = "Sie müssen als Admin angemeldet sein, um Admin-UIDs zu verwalten.";
-                    adminUidStatus.style.color = "red";
-                    return;
-                }
-                if (uid === currentUserId) {
-                    adminUidStatus.textContent = "Sie können Ihre eigene Admin-UID nicht entfernen.";
-                    adminUidStatus.style.color = "red";
-                    return;
-                }
-                 const confirmation = confirm("Sind Sie sicher, dass Sie diese Admin-UID entfernen möchten?");
-                 if (!confirmation) return;
-
-                adminUidStatus.textContent = "Entferne UID...";
-                adminUidStatus.style.color = "orange";
-                try {
-                    await deleteDoc(doc(adminsColRef, uid));
-                    adminUidStatus.textContent = "Admin-UID erfolgreich entfernt!";
-                    adminUidStatus.style.color = "green";
-                } catch (error) {
-                    console.error("Fehler beim Entfernen der Admin-UID:", error);
-                    adminUidStatus.textContent = "Fehler beim Entfernen: " + error.message;
-                    adminUidStatus.style.color = "red";
-                }
-            }
-
-            function updateAdminUidList() {
-                if (!adminUidList) return;
-                adminUidList.innerHTML = '';
-                adminUids.forEach(uid => {
-                    const listItem = document.createElement('li');
-                    listItem.classList.add('flex', 'items-center', 'justify-between', 'py-1', 'border-b', 'border-gray-100');
-                    listItem.innerHTML = `
-                        <span>${uid} ${uid === currentUserId ? '(Du)' : ''}</span>
-                        <button class="remove-admin-uid-btn bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600 transition" data-uid="${uid}" ${uid === currentUserId ? 'disabled' : ''}>Entfernen</button>
-                    `;
-                    adminUidList.appendChild(listItem);
-                });
-                document.querySelectorAll('.remove-admin-uid-btn').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        removeAdminUid(e.target.dataset.uid);
-                    });
-                });
-            }
-
-            addAdminUidBtn.addEventListener('click', () => {
-                addAdminUid(newAdminUidInput.value.trim());
-            });
-
-
-            // Category Management Functions
-            async function addCategoryToFirestore(name) {
-                if (!isAdminLoggedIn) {
-                    alert("Sie müssen als Admin angemeldet sein, um Kategorien hinzuzufügen/zu bearbeiten.");
-                    return;
-                }
-                if (!name || window.categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
-                    alert("Kategoriename ist ungültig oder existiert bereits.");
-                    return;
-                }
-                try {
-                    // Generate a simple ID from the name (lowercase, no spaces/special chars)
-                    const categoryId = name.toLowerCase().replace(/[^a-z0-9]+/g, ''); 
-                    await setDoc(doc(categoriesColRef, categoryId), { // Use setDoc to control ID
-                        name: name,
-                        createdAt: new Date()
-                    });
-                    console.log("Kategorie hinzugefügt:", name);
-                    resetCategoryForm();
-                } catch (error) {
-                    console.error("Fehler beim Hinzufügen der Kategorie:", error);
-                    alert("Fehler beim Hinzufügen: " + error.message);
-                }
-            }
-
-            async function updateCategoryInFirestore(id, name) {
-                if (!isAdminLoggedIn) {
-                    alert("Sie müssen als Admin angemeldet sein, um Kategorien hinzuzufügen/zu bearbeiten.");
-                    return;
-                }
-                if (!id || !name || (window.categories.some(c => c.name.toLowerCase() === name.toLowerCase() && c.id !== id))) {
-                    alert("Kategoriename ist ungültig oder existiert bereits für eine andere Kategorie.");
-                    return;
-                }
-                try {
-                    const categoryRef = doc(categoriesColRef, id);
-                    await updateDoc(categoryRef, { name: name });
-                    console.log("Kategorie aktualisiert:", name);
-                    resetCategoryForm();
-                } catch (error) {
-                    console.error("Fehler beim Aktualisieren der Kategorie:", error);
-                    alert("Fehler beim Aktualisieren: " + error.message);
-                }
-            }
-
-            async function deleteCategoryFromFirestore(id) {
-                if (!isAdminLoggedIn) {
-                    alert("Sie müssen als Admin angemeldet sein, um Kategorien zu löschen.");
-                    return;
-                }
-                // Check if any product is using this category (optional, but good practice)
-                const productsUsingCategory = window.products.filter(p => p.categoryIds && p.categoryIds.includes(id));
-                if (productsUsingCategory.length > 0) {
-                    alert(`Diese Kategorie wird noch von ${productsUsingCategory.length} Produkten verwendet und kann nicht gelöscht werden.`);
-                    return;
-                }
-
-                const confirmation = confirm("Sind Sie sicher, dass Sie diese Kategorie löschen möchten?");
-                if (confirmation) {
-                    try {
-                        const categoryRef = doc(categoriesColRef, id);
-                        await deleteDoc(categoryRef);
-                        console.log("Kategorie gelöscht:", id);
-                        resetCategoryForm();
-                    } catch (error) {
-                        console.error("Fehler beim Löschen der Kategorie:", error);
-                        alert("Fehler beim Löschen: " + error.message);
-                    }
-                }
-            }
-
-            function updateAdminCategoryList() {
-                if (!adminCategoryList) return;
-                adminCategoryList.innerHTML = '';
-                window.categories.forEach(category => {
-                    const listItem = document.createElement('li');
-                    listItem.classList.add('flex', 'items-center', 'justify-between', 'border-b', 'border-gray-200', 'py-2');
-                    listItem.innerHTML = `
-                        <span>${category.name} (${category.id})</span>
-                        <div class="flex space-x-2">
-                            <button class="edit-category-btn bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600" data-id="${category.id}">Bearbeiten</button>
-                            <button class="delete-category-btn bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600" data-id="${category.id}">Löschen</button>
-                        </div>
-                    `;
-                    adminCategoryList.appendChild(listItem);
-                });
-
-                document.querySelectorAll('.edit-category-btn').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        const categoryId = e.target.dataset.id;
-                        const categoryToEdit = window.categories.find(c => c.id === categoryId);
-                        if (categoryToEdit) {
-                            categoryIdInput.value = categoryToEdit.id;
-                            categoryNameInput.value = categoryToEdit.name;
-                            saveCategoryBtn.textContent = "Kategorie speichern";
-                            cancelCategoryEditBtn.classList.remove('hidden');
-                        }
-                    });
-                });
-
-                document.querySelectorAll('.delete-category-btn').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        deleteCategoryFromFirestore(e.target.dataset.id);
-                    });
-                });
-            }
-
-            function resetCategoryForm() {
-                categoryForm.reset();
-                categoryIdInput.value = '';
-                saveCategoryBtn.textContent = "Kategorie hinzufügen";
-                cancelCategoryEditBtn.classList.add('hidden');
-            }
-
-            categoryForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const categoryId = categoryIdInput.value;
-                const categoryName = categoryNameInput.value.trim();
-
-                if (categoryId) {
-                    updateCategoryInFirestore(categoryId, categoryName);
-                } else {
-                    addCategoryToFirestore(categoryName);
-                }
-            });
-
-            cancelCategoryEditBtn.addEventListener('click', resetCategoryForm);
-
-            function populateCategoryCheckboxes() {
-                if (!productCategoriesCheckboxes) return;
-                productCategoriesCheckboxes.innerHTML = '';
-                window.categories.forEach(category => {
-                    const checkboxDiv = document.createElement('div');
-                    checkboxDiv.innerHTML = `
-                        <input type="checkbox" id="cat-${category.id}" value="${category.id}" class="category-checkbox mr-2">
-                        <label for="cat-${category.id}">${category.name}</label>
-                    `;
-                    productCategoriesCheckboxes.appendChild(checkboxDiv);
-                });
-            }
-
-            function populateAdminCategoryFilter() {
-                if (!adminCategoryFilter) return;
-                adminCategoryFilter.innerHTML = '<option value="">Alle Kategorien</option>';
-                window.categories.forEach(category => {
-                    const option = document.createElement('option');
-                    option.value = category.id;
-                    option.textContent = category.name;
-                    adminCategoryFilter.appendChild(option);
-                });
-            }
-
-            // --- Product Management (existing and enhanced) ---
-            
-            // Add product
-            async function addProductToFirestore(name, price, keywords, categoryIds) { 
-                if (!name || isNaN(price)) {
-                    alert("Name und Preis müssen gültig sein.");
-                    return;
-                }
-                if (!isAdminLoggedIn) { 
-                    alert("Sie müssen als Admin angemeldet sein, um Produkte hinzuzufügen/zu bearbeiten.");
-                    return;
-                }
-                try {
-                    await addDoc(productsColRef, {
-                        name: name,
-                        price: parseFloat(price),
-                        keywords: keywords.split(',').map(k => k.trim().toLowerCase()).filter(k => k.length > 0),
-                        categoryIds: categoryIds, 
-                        createdAt: new Date()
-                    });
-                    console.log("Produkt hinzugefügt:", name);
-                    resetAdminForm();
-                } catch (error) {
-                    console.error("Fehler beim Hinzufügen des Produkts:", error);
-                    alert("Fehler beim Hinzufügen: " + error.message);
-                }
-            }
-
-            // Update product
-            async function updateProductInFirestore(id, name, price, keywords, categoryIds) { 
-                if (!id || !name || isNaN(price)) {
-                    alert("Alle Felder müssen gültig sein.");
-                    return;
-                }
-                if (!isAdminLoggedIn) { 
-                    alert("Sie müssen als Admin angemeldet sein, um Produkte hinzuzufügen/zu bearbeiten.");
-                    return;
-                }
-                try {
-                    const productRef = doc(db, `artifacts/${appId}/public/data/products`, id);
-                    await setDoc(productRef, {
-                        name: name,
-                        price: parseFloat(price),
-                        keywords: keywords.split(',').map(k => k.trim().toLowerCase()).filter(k => k.length > 0),
-                        categoryIds: categoryIds 
-                    }, { merge: true });
-                    console.log("Produkt aktualisiert:", name);
-                    resetAdminForm();
-                } catch (error) {
-                    console.error("Fehler beim Aktualisieren des Produkts:", error);
-                    alert("Fehler beim Aktualisieren: " + error.message);
-                }
-            }
-
-            // Delete product
-            async function deleteProductFromFirestore(id, confirmedFromModal = false) {
-                if (!isAdminLoggedIn) { 
-                    alert("Sie müssen als Admin angemeldet sein, um Produkte zu löschen.");
-                    return;
-                }
-                if (!confirmedFromModal) {
-                    const productToDelete = window.products.find(p => p.id === id);
-                    if (productToDelete) {
-                        showDeleteConfirmation(id, productToDelete.name);
-                    }
-                    return; 
-                }
-                
-                try {
-                    const productRef = doc(db, `artifacts/${appId}/public/data/products`, id);
-                    await deleteDoc(productRef);
-                    console.log("Produkt gelöscht:", id);
-                    resetAdminForm();
-                } catch (error) {
-                    console.error("Fehler beim Löschen des Produkts:", error);
-                    alert("Fehler beim Löschen: " + error.message);
-                }
-            }
-
-            // Helper function to update the admin product list (in the admin section)
-            window.updateAdminProductList = (filteredProducts = null) => {
-                if (!adminProductListUl) return;
-
-                const productsToDisplay = filteredProducts || window.products; 
-
-                adminProductListUl.innerHTML = '';
-                productsToDisplay.forEach(product => {
-                    const listItem = document.createElement('li');
-                    listItem.classList.add('flex', 'flex-col', 'sm:flex-row', 'items-start', 'sm:items-center', 'justify-between', 'border-b', 'border-gray-200', 'py-3', 'gap-2');
-                    
-                    // Show edit and delete buttons only if admin is logged in
-                    const adminButtons = isAdminLoggedIn ? `
-                        <div class="relative flex items-center space-x-2">
-                            <button class="edit-product-btn bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition" 
-                                    data-id="${product.id}">Bearbeiten
-                            </button>
-                            <button class="delete-product-btn bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition" data-id="${product.id}" data-name="${product.name}">Löschen</button>
-                        </div>
-                    ` : '';
-
-                    const categoryNames = (product.categoryIds || [])
-                        .map(id => {
-                            const category = window.categories.find(c => c.id === id);
-                            return category ? category.name : id; 
-                        })
-                        .join(', ');
-
-                    listItem.innerHTML = `
-                        <div class="flex-grow">
-                            <span class="font-semibold">${product.name}</span> - ${product.price.toFixed(2)} Fr.
-                            <div class="text-sm text-gray-500">
-                                Keywords: ${product.keywords ? product.keywords.join(', ') : 'Keine'}<br>
-                                Kategorien: ${categoryNames || 'Keine'}
-                            </div>
-                        </div>
-                        <div class="flex space-x-2 mt-2 sm:mt-0">
-                            ${adminButtons}
-                        </div>
-                    `;
-                    adminProductListUl.appendChild(listItem);
-
-                    // Scroll-Logik beim Klicken auf "Bearbeiten" (nur wenn Admin angemeldet ist)
-                    if (isAdminLoggedIn) { 
-                        const editButton = listItem.querySelector('.edit-product-btn');
-                        if (editButton) {
-                            editButton.addEventListener('click', () => {
-                                // Scrollen Sie zum Admin-Panel, wo sich das Bearbeitungsformular befindet
-                                adminPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            });
-                        }
-                    }
-                });
-
-                document.querySelectorAll('.edit-product-btn').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        const productId = e.target.dataset.id;
-                        const productToEdit = window.products.find(p => p.id === productId);
-                        if (productToEdit) {
-                            productIdInput.value = productToEdit.id;
-                            productNameInput.value = productToEdit.name;
-                            productPriceInput.value = productToEdit.price;
-                            productKeywordsInput.value = productToEdit.keywords.join(', ');
-                            productFormTitle.textContent = "Produkt bearbeiten";
-                            saveProductBtn.textContent = "Änderungen speichern";
-                            cancelEditBtn.classList.remove('hidden');
-
-                            // Setzt die Checkboxen der Kategorien
-                            document.querySelectorAll('.category-checkbox').forEach(checkbox => {
-                                checkbox.checked = (productToEdit.categoryIds || []).includes(checkbox.value);
-                            });
-                        }
-                    });
-                });
-
-                document.querySelectorAll('.delete-product-btn').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        const productId = e.target.dataset.id;
-                        const productName = e.target.dataset.name;
-                        deleteProductFromFirestore(productId, false, productName); 
-                    });
-                });
-            };
-
-            // Filtering and Sorting for Admin Product List
-            function filterAndSortAdminProducts() {
-                let filtered = [...window.products]; 
-
-                // 1. Filter by Search Input
-                const searchTerm = adminSearchInput.value.toLowerCase().trim();
-                if (searchTerm) {
-                    filtered = filtered.filter(product => 
-                        product.name.toLowerCase().includes(searchTerm) ||
-                        product.keywords.some(keyword => keyword.includes(searchTerm))
-                    );
-                }
-
-                // 2. Filter by Category
-                const selectedCategoryId = adminCategoryFilter.value;
-                if (selectedCategoryId) {
-                    filtered = filtered.filter(product => 
-                        product.categoryIds && product.categoryIds.includes(selectedCategoryId)
-                    );
-                }
-
-                // 3. Sort
-                const sortOption = adminSortSelect.value;
-                filtered.sort((a, b) => {
-                    if (sortOption === 'nameAsc') {
-                        return a.name.localeCompare(b.name);
-                    } else if (sortOption === 'nameDesc') {
-                        return b.name.localeCompare(a.name);
-                    } else if (sortOption === 'priceAsc') {
-                        return a.price - b.price;
-                    } else if (sortOption === 'priceDesc') {
-                        return b.price - a.price;
-                    }
-                    return 0;
-                });
-
-                updateAdminProductList(filtered); 
-            }
-
-            // Event Listeners for Admin Filter/Sort
-            adminSearchInput.addEventListener('input', filterAndSortAdminProducts);
-            adminSortSelect.addEventListener('change', filterAndSortAdminProducts);
-            adminCategoryFilter.addEventListener('change', filterAndSortAdminProducts);
-
-
-            // Function to reset the admin product form
-            function resetAdminForm() {
-                productForm.reset();
-                productIdInput.value = '';
-                productFormTitle.textContent = "Neues Produkt hinzufügen";
-                saveProductBtn.textContent = "Produkt hinzufügen";
-                cancelEditBtn.classList.add('hidden');
-                // Uncheck all category checkboxes
-                document.querySelectorAll('.category-checkbox').forEach(checkbox => {
-                    checkbox.checked = false;
-                });
-            }
-
-            // Event listener for adding/saving product form in admin section
-            productForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const productId = productIdInput.value;
-                const productName = productNameInput.value;
-                const productPrice = productPriceInput.value;
-                const productKeywords = productKeywordsInput.value;
-                
-                // Get selected category IDs
-                const selectedCategoryIds = Array.from(document.querySelectorAll('.category-checkbox:checked'))
-                                                .map(checkbox => checkbox.value);
-
-                if (productId) {
-                    await updateProductInFirestore(productId, productName, productPrice, productKeywords, selectedCategoryIds);
-                } else {
-                    await addProductToFirestore(productName, productPrice, productKeywords, selectedCategoryIds);
-                }
-            });
-
-            // Event listener for the cancel button in the admin form
-            cancelEditBtn.addEventListener('click', resetAdminForm);
-
-            // --- Existing search and shopping list functions ---
-
-            // Function to update the display of the shopping list
-            window.updateShoppingListDisplay = function() {
-                shoppingListItemsUl.innerHTML = '';
-
-                if (shoppingList.length === 0) {
-                    emptyListMessage.classList.remove('hidden');
-                    shoppingListItemsUl.classList.add('hidden');
-                } else {
-                    emptyListMessage.classList.add('hidden');
-                    shoppingListItemsUl.classList.remove('hidden');
-                    shoppingList.forEach(item => {
-                        const listItem = document.createElement('li');
-                        listItem.classList.add('list-item');
-                        listItem.innerHTML = `
-                            <span class="flex-grow">${item.name} (${item.price.toFixed(2)} Fr. pro Stk.)</span>
-                            <div class="quantity-controls flex items-center">
-                                <button class="bg-gray-200 text-gray-800 px-2 py-1 rounded-md hover:bg-gray-300" data-action="decrease" data-name="${item.name}">-</button>
-                                <span class="px-2 font-semibold">${item.quantity}</span>
-                                <button class="bg-gray-200 text-gray-800 px-2 py-1 rounded-md hover:bg-gray-300" data-action="increase" data-name="${item.name}">+</button>
-                                <span class="ml-4 font-bold text-mojas-orange">Total: ${(item.price * item.quantity).toFixed(2)} Fr.</span>
-                                <button class="bg-red-500 text-white px-2 py-1 ml-4 rounded-md hover:bg-red-600" data-action="remove" data-name="${item.name}">X</button>
-                            </div>
-                        `;
-                        shoppingListItemsUl.appendChild(listItem);
-                    });
-                }
-                calculateTotal();
-            };
-
-            // Function to calculate the total sum
-            function calculateTotal() {
-                let total = shoppingList.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                shoppingListTotalSpan.textContent = `${total.toFixed(2)} Fr.`;
-            }
-
-            // Function to add/update items in the shopping list
-            window.addToShoppingList = function(productName, targetButton) {
-                const product = window.products.find(p => p.name === productName);
-                if (!product) return;
-
-                const existingItem = shoppingList.find(item => item.name === productName);
-
-                if (existingItem) {
-                    existingItem.quantity++;
-                } else {
-                    shoppingList.push({ ...product, quantity: 1 });
-                }
-                updateShoppingListDisplay();
-
-                if (targetButton) {
-                    const productItemDiv = targetButton.closest('.product-item');
-                    const lottieContainer = productItemDiv.querySelector('.lottie-container');
-                    const lottiePlayer = lottieContainer ? lottieContainer.querySelector('lottie-player') : null;
-
-                    if (lottieContainer && lottiePlayer) {
-                        targetButton.style.display = 'none';
-                        lottieContainer.style.display = 'block';
-
-                        lottiePlayer.setDirection(1);
-                        lottiePlayer.load("animations/checkmark_animation.json"); 
-                        lottiePlayer.play();
-
-                        setTimeout(() => {
-                            lottiePlayer.stop();
-                            lottieContainer.style.display = 'none';
-                            targetButton.style.display = 'inline-block';
-                            
-                            searchInput.value = '';
-                            searchProducts();
-                        }, 5000);
-                    }
-                }
-            };
-
-            // Event Listener for clicks on the shopping list (for quantity change and removal)
-            shoppingListItemsUl.addEventListener('click', (event) => {
-                const target = event.target;
-                const action = target.dataset.action;
-                const productName = target.dataset.name;
-
-                if (action && productName) {
-                    const itemIndex = shoppingList.findIndex(item => item.name === productName);
-                    if (itemIndex === -1) return;
-
-                    if (action === 'increase') {
-                        shoppingList[itemIndex].quantity++;
-                    } else if (action === 'decrease') {
-                        if (shoppingList[itemIndex].quantity > 1) {
-                            shoppingList[itemIndex].quantity--;
-                        } else {
-                            shoppingList.splice(itemIndex, 1);
-                        }
-                    } else if (action === 'remove') {
-                        shoppingList.splice(itemIndex, 1);
-                    }
-                    updateShoppingListDisplay();
-                }
-            });
-
-            // Event Listener for the "Clear shopping list" button
-            clearShoppingListBtn.addEventListener('click', () => {
-                shoppingList = [];
-                updateShoppingListDisplay();
-            });
-
-            // Function to search for products (Public side)
-            window.searchProducts = function() {
-                const query = searchInput.value.toLowerCase().trim();
-                searchResultsDiv.innerHTML = '';
-
-                if (query.length === 0) {
-                    searchResultsDiv.classList.add('hidden');
-                    return;
-                }
-
-                const matchedProducts = window.products.filter(product => {
-                    return product.keywords.some(keyword => keyword.includes(query));
-                });
-
-                if (matchedProducts.length > 0) {
-                    searchResultsDiv.classList.remove('hidden');
-                    matchedProducts.forEach(product => {
-                        const resultItem = document.createElement('div');
-                        resultItem.classList.add('product-item');
-                        resultItem.innerHTML = `
-                            <span class="text-lg font-medium">${product.name}</span>
-                            <span class="text-lg font-bold text-mojas-orange">${product.price.toFixed(2)} Fr.</span>
-                            <div class="relative w-24 h-10 flex items-center justify-center">
-                                <button class="add-to-list-btn px-3 py-1 bg-mojas-orange text-white rounded-md hover:bg-opacity-90 transition duration-300" 
-                                        data-name="${product.name}">
-                                    Hinzufügen
-                                </button>
-                                <div class="lottie-container">
-                                    <lottie-player src="animations/checkmark_animation.json" background="transparent" speed="1"></lottie-player>
-                                </div>
-                            </div>
-                        `;
-                        searchResultsDiv.appendChild(resultItem);
-                    });
-                    document.querySelectorAll('.add-to-list-btn').forEach(button => {
-                        button.addEventListener('click', (event) => {
-                            addToShoppingList(event.target.dataset.name, event.target); 
-                        });
-                    });
-                } else {
-                    searchResultsDiv.classList.remove('hidden');
-                    const noResultItem = document.createElement('div');
-                    noResultItem.classList.add('py-2', 'text-gray-600', 'text-center', 'italic');
-                    noResultItem.textContent = "Keine Produkte gefunden, die deiner Suche entsprechen. Probiere es mit anderen Begriffen.";
-                    searchResultsDiv.appendChild(noResultItem);
-                }
-            };
-
-            // Event Listener for the search button
-            searchButton.addEventListener('click', searchProducts);
-
-            // Event Listener for the input field (search on every input)
-            searchInput.addEventListener('input', searchProducts);
-
-            // Initialize the shopping list (will be updated by Firestore listener)
+            // Initialize the shopping list display on page load
             updateShoppingListDisplay(); 
         }); // End DOMContentLoaded
     </script>
