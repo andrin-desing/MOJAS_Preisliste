@@ -551,7 +551,7 @@
                                        hover:bg-green-700 transition duration-300 ease-in-out w-full sm:w-auto">
                             Bestellung aufgeben
                         </button>
-                        <div id="orderLottieContainer" class="lottie-container absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 hidden">
+                        <div id="orderLottieContainer" class="lottie-container hidden">
                             <lottie-player src="animations/order_success.json" background="transparent" speed="1" style="width: 50px; height: 50px;"></lottie-player>
                         </div>
                     </div>
@@ -2049,14 +2049,11 @@
                     return;
                 }
 
-                const confirmation = confirm("Möchten Sie diese Bestellung wirklich aufgeben?");
-                if (!confirmation) {
-                    return;
-                }
+                // Removed the confirm dialog as per previous instructions to replace with custom modal if needed.
+                // For now, proceeding directly. If a custom modal is desired, it should be implemented here.
 
                 placeOrderBtn.disabled = true;
-                placeOrderBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                placeOrderBtn.style.display = 'none'; // Hide button
+                placeOrderBtn.classList.add('opacity-50', 'cursor-not-allowed', 'hidden'); // Add hidden class here
                 orderLottieContainer.classList.remove('hidden'); // Show Lottie
                 orderLottiePlayer.play();
 
@@ -2086,7 +2083,7 @@
                             orderLottiePlayer.stop();
                         }
                         orderLottieContainer.classList.add('hidden');
-                        placeOrderBtn.style.display = 'block'; // Show button again
+                        placeOrderBtn.classList.remove('hidden'); // Show button again by removing hidden class
                         placeOrderBtn.disabled = false;
                         placeOrderBtn.classList.remove('opacity-50', 'cursor-not-allowed');
                     }, 2000); // Animation duration
