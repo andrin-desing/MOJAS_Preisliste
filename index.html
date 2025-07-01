@@ -1715,12 +1715,20 @@
                 } else if (currentModalAction === 'updateOrderStatus') {
                     try {
                         const orderRef = doc(ordersColRef, modalTargetId);
-                        await updateDoc(orderRef, { status: modalTargetStatus });
-                        console.log(`Bestellung ${modalTargetId} Status aktualisiert auf: ${modalTargetStatus}`);
-                        alert(`Bestellstatus erfolgreich auf '${modalTargetStatus}' aktualisiert!`);
+                        if (modalTargetStatus === 'Abgeschlossen' || modalTargetStatus === 'Storniert') {
+                            // Delete the order if status is 'Abgeschlossen' or 'Storniert'
+                            await deleteDoc(orderRef);
+                            console.log(`Bestellung ${modalTargetId} gelöscht (Status: ${modalTargetStatus}).`);
+                            alert(`Bestellung erfolgreich als '${modalTargetStatus}' markiert und gelöscht!`);
+                        } else {
+                            // Only update status if it's not 'Abgeschlossen' or 'Storniert' (e.g., 'Bearbeitet')
+                            await updateDoc(orderRef, { status: modalTargetStatus });
+                            console.log(`Bestellung ${modalTargetId} Status aktualisiert auf: ${modalTargetStatus}`);
+                            alert(`Bestellstatus erfolgreich auf '${modalTargetStatus}' aktualisiert!`);
+                        }
                     } catch (error) {
-                        console.error("Fehler beim Aktualisieren des Bestellstatus:", error);
-                        alert("Fehler beim Aktualisieren des Bestellstatus: " + error.message);
+                        console.error("Fehler beim Aktualisieren/Löschen des Bestellstatus:", error);
+                        alert("Fehler beim Aktualisieren/Löschen des Bestellstatus: " + error.message);
                     }
                 } else if (currentModalAction === 'clearShoppingList') { // NEU: Behandlung für "Einkaufsliste leeren"
                     shoppingList = []; 
@@ -2224,7 +2232,7 @@
                                 modalTargetId = orderId;
                                 modalTargetStatus = 'Abgeschlossen'; // Set status to 'Abgeschlossen'
                                 confirmModalTitle.textContent = "Bestellung erledigen";
-                                confirmModalMessage.innerHTML = `Möchten Sie die Bestellung **${orderId.substring(0, 8)}...** als **erledigt (Abgeschlossen)** markieren?`;
+                                confirmModalMessage.innerHTML = `Möchten Sie die Bestellung **${orderId.substring(0, 8)}...** als **erledigt (Abgeschlossen)** markieren? Diese Aktion löscht die Bestellung.`;
                                 confirmModal.classList.add('visible');
                                 confirmModal.classList.remove('hidden');
                             });
@@ -2238,7 +2246,7 @@
                                 modalTargetId = orderId;
                                 modalTargetStatus = 'Storniert'; // Set status to 'Storniert'
                                 confirmModalTitle.textContent = "Bestellung stornieren";
-                                confirmModalMessage.innerHTML = `Möchten Sie die Bestellung **${orderId.substring(0, 8)}...** wirklich **stornieren**?`;
+                                confirmModalMessage.innerHTML = `Möchten Sie die Bestellung **${orderId.substring(0, 8)}...** wirklich **stornieren**? Diese Aktion löscht die Bestellung.`;
                                 confirmModal.classList.add('visible');
                                 confirmModal.classList.remove('hidden');
                             });
