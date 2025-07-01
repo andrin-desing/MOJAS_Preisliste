@@ -965,8 +965,11 @@
                     if (!initialProductsChecked) initializeProductsInFirestore();
                     if (!initialCategoriesChecked) initializeCategoriesInFirestore();
                     
-                    // Admin-spezifische Listener einrichten (wie Bestellungen und tägliche Bestellstatistiken)
-                    setupAdminOrdersListener();
+                    // Eine kleine Verzögerung hinzufügen, um sicherzustellen, dass die Authentifizierung stabil ist,
+                    // bevor der Bestell-Listener aktiviert wird.
+                    setTimeout(() => {
+                        setupAdminOrdersListener(); 
+                    }, 500); // 500ms Verzögerung
 
                     // Benachrichtigungsberechtigung anfordern, wenn Admin sich anmeldet
                     requestNotificationPermission();
@@ -1411,9 +1414,7 @@
             generateAiInsightsBtn.addEventListener('click', generateAiInsights);
 
 
-            // --- Allgemeine Firestore-Listener und Initialisierungen ---
-            
-            // Seitenaufruf direkt beim Start von DOMContentLoaded inkrementieren
+            // Initialisierung bei DOMContentLoaded
             incrementPageView();
             setupPublicStatisticsListeners(); // Startet Listener für öffentliche Statistiken
             loadSettings(); // Lädt Einstellungen
