@@ -267,6 +267,31 @@
         .order-status.abgeschlossen { background-color: #bbdefb; color: #1976d2; } /* Light blue */
         .order-status.storniert { background-color: #ffcdd2; color: #d32f2f; } /* Light red */
 
+        /* Styles for the temporary message display */
+        #messageDisplay {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10000;
+            font-weight: 600;
+            color: white;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            max-width: 90%; /* Responsive width */
+            text-align: center;
+        }
+        #messageDisplay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        #messageDisplay.success { background-color: #28a745; } /* Green */
+        #messageDisplay.error { background-color: #dc3545; } /* Red */
+        #messageDisplay.info { background-color: #007bff; } /* Blue */
+
     </style>
 </head>
 <body class="bg-light-cream flex flex-col min-h-screen">
@@ -606,10 +631,12 @@
         </div>
     </div>
 
+    <!-- Temporary Message Display -->
+    <div id="messageDisplay" class="hidden"></div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        // getDoc wird nicht mehr für adminUsers verwendet, aber für andere Zwecke (z.B. Statistiken) noch benötigt.
         import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, updateDoc, deleteDoc, getDocs, getDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
@@ -644,8 +671,6 @@
         
         // Firestore-Referenz für Bestellungen
         const ordersColRef = collection(db, `artifacts/${appId}/public/data/orders`);
-
-        // Die Firestore-Referenz für Admin-Benutzer wird nicht mehr benötigt und wurde entfernt.
 
         // Global variables
         window.products = []; 
@@ -826,6 +851,20 @@
 
             // Audio element for notification sound
             const notificationSound = new Audio('https://www.soundjay.com/buttons/beep-07a.mp3'); // Example sound URL
+
+            // Temporary Message Display Element
+            const messageDisplay = document.getElementById('messageDisplay');
+
+            // Function to show temporary messages (success, error, info)
+            function showMessage(message, type = 'info', duration = 3000) {
+                messageDisplay.textContent = message;
+                messageDisplay.className = ''; // Reset classes
+                messageDisplay.classList.add('show', type); // Add 'show' and type class
+                
+                setTimeout(() => {
+                    messageDisplay.classList.remove('show');
+                }, duration);
+            }
 
             // Function to enable/disable admin form elements based on admin status
             function setAdminControlsDisabled(disabled) {
@@ -1021,37 +1060,39 @@
             // Funktion zum Zurücksetzen der Website-Aufrufe
             async function resetPageViewsFunction() {
                 if (!isAdminLoggedIn) {
-                    alert("Sie müssen als Admin angemeldet sein, um Statistiken zurückzusetzen.");
+                    showMessage("Sie müssen als Admin angemeldet sein, um Statistiken zurückzusetzen.", "error");
                     return;
                 }
                 try {
                     await setDoc(websiteTrafficDocRef, { totalPageViews: 0 });
                     console.log("Website-Aufrufe zurückgesetzt.");
+                    showMessage("Website-Aufrufe erfolgreich zurückgesetzt.", "success");
                 } catch (error) {
                     console.error("Fehler beim Zurücksetzen der Website-Aufrufe:", error);
-                    alert("Fehler beim Zurücksetzen der Website-Aufrufe: " + error.message);
+                    showMessage("Fehler beim Zurücksetzen der Website-Aufrufe: " + error.message, "error");
                 }
             }
 
             // Funktion zum Zurücksetzen der Einkaufsliste-Statistiken
             async function resetShoppingListStatsFunction() {
                 if (!isAdminLoggedIn) {
-                    alert("Sie müssen als Admin angemeldet sein, um Statistiken zurückzusetzen.");
+                    showMessage("Sie müssen als Admin angemeldet sein, um Statistiken zurückzusetzen.", "error");
                     return;
                 }
                 try {
                     await deleteDoc(shoppingListStatsDocRef); // Löscht das gesamte Dokument
                     console.log("Einkaufslisten-Statistiken zurückgesetzt.");
+                    showMessage("Einkaufslisten-Statistiken erfolgreich zurückgesetzt.", "success");
                 } catch (error) {
                     console.error("Fehler beim Zurücksetzen der Einkaufslisten-Statistiken:", error);
-                    alert("Fehler beim Zurücksetzen der Einkaufslisten-Statistiken: " + error.message);
+                    showMessage("Fehler beim Zurücksetzen der Einkaufslisten-Statistiken: " + error.message, "error");
                 }
             }
 
             // Event-Listener für Reset-Buttons, die das Bestätigungsmodal öffnen
             resetPageViewsBtn.addEventListener('click', () => {
                 if (!isAdminLoggedIn) {
-                    alert("Sie müssen als Admin angemeldet sein, um Statistiken zurückzusetzen.");
+                    showMessage("Sie müssen als Admin angemeldet sein, um Statistiken zurückzusetzen.", "error");
                     return;
                 }
                 currentModalAction = 'resetPageViews';
@@ -1063,7 +1104,7 @@
 
             resetShoppingListStatsBtn.addEventListener('click', () => {
                 if (!isAdminLoggedIn) {
-                    alert("Sie müssen als Admin angemeldet sein, um Statistiken zurückzusetzen.");
+                    showMessage("Sie müssen als Admin angemeldet sein, um Statistiken zurückzusetzen.", "error");
                     return;
                 }
                 currentModalAction = 'resetShoppingList';
@@ -1305,7 +1346,7 @@
                         console.log("Admin abgemeldet.");
                     } catch (error) {
                         console.error("Fehler beim Abmelden:", error);
-                        alert("Abmeldung fehlgeschlagen: " + error.message);
+                        showMessage("Abmeldung fehlgeschlagen: " + error.message, "error");
                     }
                 } else {
                     showView('admin'); 
@@ -1342,6 +1383,7 @@
                     }
                     loginErrorP.textContent = errorMessage;
                     loginErrorP.classList.remove('hidden'); 
+                    showMessage(errorMessage, "error"); // Show as temporary message too
                 }
             });
 
@@ -1351,6 +1393,7 @@
                 if (!isAdminLoggedIn) {
                     settingsStatus.textContent = "Sie müssen als Admin angemeldet sein, um Einstellungen zu speichern.";
                     settingsStatus.style.color = "red";
+                    showMessage("Sie müssen als Admin angemeldet sein, um Einstellungen zu speichern.", "error");
                     return;
                 }
                 settingsStatus.textContent = "Speichere Einstellungen...";
@@ -1362,10 +1405,12 @@
                     }, { merge: true }); 
                     settingsStatus.textContent = "Einstellungen erfolgreich gespeichert!";
                     settingsStatus.style.color = "green";
+                    showMessage("Einstellungen erfolgreich gespeichert!", "success");
                 } catch (error) {
                     console.error("Fehler beim Speichern der Einstellungen:", error);
                     settingsStatus.textContent = "Fehler beim Speichern: " + error.message;
                     settingsStatus.style.color = "red";
+                    showMessage("Fehler beim Speichern: " + error.message, "error");
                 }
             });
 
@@ -1374,16 +1419,19 @@
                 if (!isAdminLoggedIn) {
                     statusElement.textContent = "Sie müssen als Admin angemeldet sein, um Bilder hochzuladen.";
                     statusElement.style.color = "red";
+                    showMessage("Sie müssen als Admin angemeldet sein, um Bilder hochzuladen.", "error");
                     return;
                 }
                 if (!file) {
                     statusElement.textContent = "Bitte wählen Sie eine Datei aus.";
                     statusElement.style.color = "red";
+                    showMessage("Bitte wählen Sie eine Datei aus.", "error");
                     return;
                 }
                 if (file.type !== 'image/png') {
                     statusElement.textContent = "Nur .png Dateien sind erlaubt.";
                     statusElement.style.color = "red";
+                    showMessage("Nur .png Dateien sind erlaubt.", "error");
                     return;
                 }
 
@@ -1406,10 +1454,12 @@
                     statusElement.textContent = "Bild erfolgreich hochgeladen!";
                     statusElement.style.color = "green";
                     previewElement.src = downloadURL; 
+                    showMessage("Bild erfolgreich hochgeladen!", "success");
                 } catch (error) {
                     console.error("Fehler beim Hochladen des Bildes:", error);
                     statusElement.textContent = "Fehler beim Hochladen: " + error.message;
                     statusElement.style.color = "red";
+                    showMessage("Fehler beim Hochladen: " + error.message, "error");
                 }
             }
 
@@ -1428,6 +1478,7 @@
                     priceList1Status.textContent = "Bitte wählen Sie eine .png Datei.";
                     priceList1Status.style.color = "red";
                     e.target.value = ''; 
+                    showMessage("Bitte wählen Sie eine .png Datei.", "error");
                 }
             });
 
@@ -1446,6 +1497,7 @@
                     priceList2Status.textContent = "Bitte wählen Sie eine .png Datei.";
                     priceList2Status.style.color = "red";
                     e.target.value = ''; 
+                    showMessage("Bitte wählen Sie eine .png Datei.", "error");
                 }
             });
 
@@ -1461,11 +1513,11 @@
             // Category Management Functions
             async function addCategoryToFirestore(name) {
                 if (!isAdminLoggedIn) {
-                    alert("Sie müssen als Admin angemeldet sein, um Kategorien hinzuzufügen/zu bearbeiten.");
+                    showMessage("Sie müssen als Admin angemeldet sein, um Kategorien hinzuzufügen/zu bearbeiten.", "error");
                     return;
                 }
                 if (!name || window.categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
-                    alert("Kategoriename ist ungültig oder existiert bereits.");
+                    showMessage("Kategoriename ist ungültig oder existiert bereits.", "error");
                     return;
                 }
                 try {
@@ -1476,19 +1528,20 @@
                     });
                     console.log("Kategorie hinzugefügt:", name);
                     resetCategoryForm();
+                    showMessage("Kategorie erfolgreich hinzugefügt!", "success");
                 } catch (error) {
                     console.error("Fehler beim Hinzufügen der Kategorie:", error);
-                    alert("Fehler beim Hinzufügen: " + error.message);
+                    showMessage("Fehler beim Hinzufügen: " + error.message, "error");
                 }
             }
 
             async function updateCategoryInFirestore(id, name) {
                 if (!isAdminLoggedIn) {
-                    alert("Sie müssen als Admin angemeldet sein, um Kategorien hinzuzufügen/zu bearbeiten.");
+                    showMessage("Sie müssen als Admin angemeldet sein, um Kategorien hinzuzufügen/zu bearbeiten.", "error");
                     return;
                 }
                 if (!id || !name || (window.categories.some(c => c.name.toLowerCase() === name.toLowerCase() && c.id !== id))) {
-                    alert("Kategoriename ist ungültig oder existiert bereits für eine andere Kategorie.");
+                    showMessage("Kategoriename ist ungültig oder existiert bereits für eine andere Kategorie.", "error");
                     return;
                 }
                 try {
@@ -1496,20 +1549,21 @@
                     await updateDoc(categoryRef, { name: name }); 
                     console.log("Kategorie aktualisiert:", name);
                     resetCategoryForm();
+                    showMessage("Kategorie erfolgreich aktualisiert!", "success");
                 } catch (error) {
                     console.error("Fehler beim Aktualisieren der Kategorie:", error);
-                    alert("Fehler beim Aktualisieren: " + error.message);
+                    showMessage("Fehler beim Aktualisieren: " + error.message, "error");
                 }
             }
 
             async function deleteCategoryFromFirestore(id) {
                 if (!isAdminLoggedIn) {
-                    alert("Sie müssen als Admin angemeldet sein, um Kategorien zu löschen.");
+                    showMessage("Sie müssen als Admin angemeldet sein, um Kategorien zu löschen.", "error");
                     return;
                 }
                 const productsUsingCategory = window.products.filter(p => p.categoryIds && p.categoryIds.includes(id));
                 if (productsUsingCategory.length > 0) {
-                    alert(`Diese Kategorie wird noch von ${productsUsingCategory.length} Produkten verwendet und kann nicht gelöscht werden.`);
+                    showMessage(`Diese Kategorie wird noch von ${productsUsingCategory.length} Produkten verwendet und kann nicht gelöscht werden.`, "error", 5000);
                     return;
                 }
 
@@ -1607,11 +1661,11 @@
             
             async function addProductToFirestore(name, price, keywords, categoryIds) { 
                 if (!name || isNaN(price)) {
-                    alert("Name und Preis müssen gültig sein.");
+                    showMessage("Name und Preis müssen gültig sein.", "error");
                     return;
                 }
                 if (!isAdminLoggedIn) { 
-                    alert("Sie müssen als Admin angemeldet sein, um Produkte hinzuzufügen/zu bearbeiten.");
+                    showMessage("Sie müssen als Admin angemeldet sein, um Produkte hinzuzufügen/zu bearbeiten.", "error");
                     return;
                 }
                 try {
@@ -1624,20 +1678,21 @@
                     });
                     console.log("Produkt hinzugefügt:", name);
                     resetAdminForm(); 
+                    showMessage("Produkt erfolgreich hinzugefügt!", "success");
                 } 
                 catch (error) {
                     console.error("Fehler beim Hinzufügen des Produkts:", error);
-                    alert("Fehler beim Hinzufügen: " + error.message);
+                    showMessage("Fehler beim Hinzufügen: " + error.message, "error");
                 }
             }
            
             async function updateProductInFirestore(id, name, price, keywords, categoryIds) { 
                 if (!id || !name || isNaN(price)) {
-                    alert("Alle Felder müssen gültig sein.");
+                    showMessage("Alle Felder müssen gültig sein.", "error");
                     return;
                 }
                 if (!isAdminLoggedIn) { 
-                    alert("Sie müssen als Admin angemeldet sein, um Produkte hinzuzufügen/zu bearbeiten.");
+                    showMessage("Sie müssen als Admin angemeldet sein, um Produkte hinzuzufügen/zu bearbeiten.", "error");
                     return;
                 }
                 try {
@@ -1650,15 +1705,16 @@
                     }, { merge: true });
                     console.log("Produkt aktualisiert:", name);
                     resetAdminForm(); 
+                    showMessage("Produkt erfolgreich aktualisiert!", "success");
                 } catch (error) {
                     console.error("Fehler beim Aktualisieren des Produkts:", error);
-                    alert("Fehler beim Aktualisieren: " + error.message);
+                    showMessage("Fehler beim Aktualisieren: " + error.message, "error");
                 }
             }
 
             async function deleteProductFromFirestore(id, productNameForDisplay) {
                 if (!isAdminLoggedIn) { 
-                    alert("Sie müssen als Admin angemeldet sein, um Produkte zu löschen.");
+                    showMessage("Sie müssen als Admin angemeldet sein, um Produkte zu löschen.", "error");
                     return;
                 }
                 
@@ -1681,17 +1737,15 @@
                         await deleteDoc(productRef); 
                         console.log("Produkt gelöscht:", modalTargetId);
                         resetAdminForm(); 
-                        alert("Produkt erfolgreich gelöscht!");
+                        showMessage("Produkt erfolgreich gelöscht!", "success");
                     } catch (error) {
                         console.error("Fehler beim Löschen des Produkts:", error);
-                        alert("Fehler beim Löschen: " + error.message);
+                        showMessage("Fehler beim Löschen: " + error.message, "error");
                     }
                 } else if (currentModalAction === 'resetPageViews') {
                     await resetPageViewsFunction();
-                    alert("Website-Aufrufe erfolgreich zurückgesetzt.");
                 } else if (currentModalAction === 'resetShoppingList') {
                     await resetShoppingListStatsFunction();
-                    alert("Einkaufslisten-Statistiken erfolgreich zurückgesetzt.");
                 } else if (currentModalAction === 'deleteCategory') {
                     // Logic for category deletion after confirmation
                     try {
@@ -1699,20 +1753,20 @@
                         await deleteDoc(categoryRef); 
                         console.log("Kategorie gelöscht:", modalTargetId);
                         resetCategoryForm(); 
-                        alert("Kategorie erfolgreich gelöscht!");
+                        showMessage("Kategorie erfolgreich gelöscht!", "success");
                     } catch (error) {
                         console.error("Fehler beim Löschen der Kategorie:", error);
-                        alert("Fehler beim Löschen: " + error.message);
+                        showMessage("Fehler beim Löschen: " + error.message, "error");
                     }
                 } else if (currentModalAction === 'deleteOrder') {
                     try {
                         const orderRef = doc(ordersColRef, modalTargetId);
                         await deleteDoc(orderRef);
                         console.log("Bestellung gelöscht:", modalTargetId);
-                        alert("Bestellung erfolgreich gelöscht!");
+                        showMessage("Bestellung erfolgreich gelöscht!", "success");
                     } catch (error) {
                         console.error("Fehler beim Löschen der Bestellung:", error);
-                        alert("Fehler beim Löschen der Bestellung: " + error.message);
+                        showMessage("Fehler beim Löschen der Bestellung: " + error.message, "error");
                     }
                 } else if (currentModalAction === 'updateOrderStatus') {
                     try {
@@ -1721,21 +1775,21 @@
                             // Delete the order if status is 'Abgeschlossen' or 'Storniert'
                             await deleteDoc(orderRef);
                             console.log(`Bestellung ${modalTargetId} gelöscht (Status: ${modalTargetStatus}).`);
-                            alert(`Bestellung erfolgreich als '${modalTargetStatus}' markiert und gelöscht!`);
+                            showMessage(`Bestellung erfolgreich als '${modalTargetStatus}' markiert und gelöscht!`, "success");
                         } else {
                             // Only update status if it's not 'Abgeschlossen' or 'Storniert' (e.g., 'Bearbeitet')
                             await updateDoc(orderRef, { status: modalTargetStatus });
                             console.log(`Bestellung ${modalTargetId} Status aktualisiert auf: ${modalTargetStatus}`);
-                            alert(`Bestellstatus erfolgreich auf '${modalTargetStatus}' aktualisiert!`);
+                            showMessage(`Bestellstatus erfolgreich auf '${modalTargetStatus}' aktualisiert!`, "success");
                         }
                     } catch (error) {
                         console.error("Fehler beim Aktualisieren/Löschen des Bestellstatus:", error);
-                        alert("Fehler beim Aktualisieren/Löschen des Bestellstatus: " + error.message);
+                        showMessage("Fehler beim Aktualisieren/Löschen des Bestellstatus: " + error.message, "error");
                     }
                 } else if (currentModalAction === 'clearShoppingList') { // Behandlung für "Einkaufsliste leeren"
                     shoppingList = []; 
                     updateShoppingListDisplay(); 
-                    alert("Einkaufsliste wurde geleert.");
+                    showMessage("Einkaufsliste wurde geleert.", "success");
                 } 
 
                 // Reset modal state
@@ -2101,7 +2155,7 @@
             // Bestellfunktion
             placeOrderBtn.addEventListener('click', async () => {
                 if (shoppingList.length === 0) {
-                    alert("Ihre Einkaufsliste ist leer. Bitte fügen Sie Produkte hinzu, bevor Sie bestellen.");
+                    showMessage("Ihre Einkaufsliste ist leer. Bitte fügen Sie Produkte hinzu, bevor Sie bestellen.", "error");
                     return;
                 }
 
@@ -2122,13 +2176,13 @@
 
                     await addDoc(ordersColRef, order);
                     console.log("Bestellung erfolgreich aufgegeben:", order);
-                    alert("Ihre Bestellung wurde erfolgreich aufgegeben!");
+                    showMessage("Ihre Bestellung wurde erfolgreich aufgegeben!", "success"); // Hier wurde der Alert ersetzt
                     shoppingList = []; // Clear local shopping list
                     updateShoppingListDisplay(); // Update UI
 
                 } catch (error) {
                     console.error("Fehler beim Aufgeben der Bestellung:", error);
-                    alert("Fehler beim Aufgeben der Bestellung: " + error.message);
+                    showMessage("Fehler beim Aufgeben der Bestellung: " + error.message, "error");
                 } finally {
                     // Reset Lottie and button after animation or error
                     setTimeout(() => {
