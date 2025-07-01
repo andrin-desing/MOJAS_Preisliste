@@ -100,7 +100,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            display: none; /* Standardmässig versteckt */
+            /* display: none; */ /* Standardmässig versteckt, wird durch Tailwind 'hidden' gesteuert */
         }
         /* Style for login form */
         #adminLoginForm {
@@ -1917,17 +1917,17 @@
                     const lottiePlayer = lottieContainer ? lottieContainer.querySelector('lottie-player') : null;
 
                     if (lottieContainer && lottiePlayer) {
-                        targetButton.style.display = 'none'; 
-                        lottieContainer.style.display = 'block'; 
-
+                        targetButton.classList.add('hidden'); // Use Tailwind hidden class
+                        lottieContainer.classList.remove('hidden'); // Use Tailwind hidden class
+                        
                         lottiePlayer.setDirection(1); 
                         lottiePlayer.load("animations/checkmark_animation.json"); 
                         lottiePlayer.play();
 
                         setTimeout(() => {
                             lottiePlayer.stop();
-                            lottieContainer.style.display = 'none'; 
-                            targetButton.style.display = 'inline-block'; 
+                            lottieContainer.classList.add('hidden'); // Use Tailwind hidden class
+                            targetButton.classList.remove('hidden'); // Use Tailwind hidden class
                             
                             searchInput.value = ''; 
                             searchProducts(); 
@@ -2018,7 +2018,7 @@
                                         data-name="${product.name}">
                                     Hinzufügen
                                 </button>
-                                <div class="lottie-container">
+                                <div class="lottie-container hidden"> <!-- Lottie container is hidden by default -->
                                     <lottie-player src="animations/checkmark_animation.json" background="transparent" speed="1"></lottie-player>
                                 </div>
                             </div>
@@ -2086,7 +2086,7 @@
                         placeOrderBtn.classList.remove('hidden'); // Show button again by removing hidden class
                         placeOrderBtn.disabled = false;
                         placeOrderBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                    }, 2000); // Animation duration
+                    }, 5000); // Animation duration increased to 5 seconds
                 }
             });
 
