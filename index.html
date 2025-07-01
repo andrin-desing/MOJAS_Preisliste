@@ -91,15 +91,13 @@
             align-items: center;
             gap: 0.5rem;
         }
-        /* Styling for Lottie container */
+        /* Styling for Lottie container to cover its parent button and center the player */
         .lottie-container {
-            width: 30px; /* Grösse des Lottie-Icons anpassen */
-            height: 30px;
-            /* Absolute Positionierung innerhalb des relativen Wrappers */
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            position: absolute; /* Muss absolut positioniert sein, um den Button zu überlagern */
+            inset: 0; /* Nimmt die gesamte Breite und Höhe des Elternelements ein */
+            display: flex; /* Verwendet Flexbox für die Zentrierung des Lottie-Players */
+            align-items: center; /* Zentriert vertikal */
+            justify-content: center; /* Zentriert horizontal */
             /* display: none; */ /* Standardmässig versteckt, wird durch Tailwind 'hidden' gesteuert */
         }
         /* Style for login form */
@@ -551,6 +549,7 @@
                                        hover:bg-green-700 transition duration-300 ease-in-out w-full sm:w-auto">
                             Bestellung aufgeben
                         </button>
+                        <!-- Lottie-Container für Bestellanimation, überlagert den Button -->
                         <div id="orderLottieContainer" class="lottie-container hidden">
                             <lottie-player src="animations/order_success.json" background="transparent" speed="1" style="width: 50px; height: 50px;"></lottie-player>
                         </div>
@@ -2018,7 +2017,8 @@
                                         data-name="${product.name}">
                                     Hinzufügen
                                 </button>
-                                <div class="lottie-container hidden"> <!-- Lottie container is hidden by default -->
+                                <!-- Lottie-Container für Hinzufügen-Animation, überlagert den Button -->
+                                <div class="lottie-container hidden"> 
                                     <lottie-player src="animations/checkmark_animation.json" background="transparent" speed="1"></lottie-player>
                                 </div>
                             </div>
@@ -2049,12 +2049,9 @@
                     return;
                 }
 
-                // Removed the confirm dialog as per previous instructions to replace with custom modal if needed.
-                // For now, proceeding directly. If a custom modal is desired, it should be implemented here.
-
                 placeOrderBtn.disabled = true;
-                placeOrderBtn.classList.add('opacity-50', 'cursor-not-allowed', 'hidden'); // Add hidden class here
-                orderLottieContainer.classList.remove('hidden'); // Show Lottie
+                placeOrderBtn.classList.add('opacity-50', 'cursor-not-allowed', 'hidden'); // Button ausblenden
+                orderLottieContainer.classList.remove('hidden'); // Lottie-Container einblenden
                 orderLottiePlayer.play();
 
                 try {
@@ -2082,8 +2079,8 @@
                         if (orderLottiePlayer) {
                             orderLottiePlayer.stop();
                         }
-                        orderLottieContainer.classList.add('hidden');
-                        placeOrderBtn.classList.remove('hidden'); // Show button again by removing hidden class
+                        orderLottieContainer.classList.add('hidden'); // Lottie-Container ausblenden
+                        placeOrderBtn.classList.remove('hidden'); // Button wieder einblenden
                         placeOrderBtn.disabled = false;
                         placeOrderBtn.classList.remove('opacity-50', 'cursor-not-allowed');
                     }, 5000); // Animation duration increased to 5 seconds
