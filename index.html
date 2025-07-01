@@ -21,11 +21,12 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
+        /* Grundlegende Schriftart für den gesamten Body */
         body {
             font-family: 'Inter', sans-serif; /* Standard-Schriftart für Fliesstext */
         }
-        /* Custom Tailwind Colors for Mojas Palette */
-        /* Primary Accent Orange */
+        /* Benutzerdefinierte Tailwind-Farben für die Mojas-Palette */
+        /* Primäre Akzentfarbe: Orange */
         .bg-mojas-orange {
             background-color: #ee7719;
         }
@@ -36,7 +37,7 @@
             border-color: #ee7719;
         }
 
-        /* Darker, Sophisticated Accent (for Header/Footer) */
+        /* Dunkler, eleganter Akzent (für Header/Footer) */
         .bg-dark-accent {
             background-color: #2c3e50; /* Ein tiefes, sattes Anthrazitblau */
         }
@@ -44,12 +45,12 @@
             color: #2c3e50;
         }
 
-        /* Light, Warm Background */
+        /* Heller, warmer Hintergrund */
         .bg-light-cream {
             background-color: #FDFBF8; /* Ein sehr subtiles, warmes Off-White */
         }
 
-        /* Styling for the price list images to ensure they are responsive and well-displayed */
+        /* Styling für die Preislistenbilder, um sie responsiv und gut darzustellen */
         .price-list-img {
             width: 100%;
             height: auto;
@@ -59,18 +60,18 @@
             border-radius: 1rem; /* Abgerundete Ecken */
             box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); /* Subtiler Schatten */
         }
-        /* Styling for the logo image */
+        /* Styling für das Logo-Bild */
         .logo-img {
             height: 40px; /* Höhe nach Bedarf anpassen */
             width: auto;
             border-radius: 0.5rem; /* Leicht abgerundete Ecken für das Logo */
         }
-        /* Apply Orbitron to headings for a distinct look */
+        /* Orbitron-Schriftart für Überschriften für einen unverwechselbaren Look */
         h1, h2 {
             font-family: 'Orbitron', sans-serif;
             font-weight: 700; /* Eine fette Schriftstärke für mehr Wirkung */
         }
-        /* Style for search results */
+        /* Stil für Suchergebnisse und Einkaufslistenartikel */
         #searchResults .product-item, #shoppingListItems .list-item {
             padding: 0.75rem 0;
             border-bottom: 1px solid #eee;
@@ -91,7 +92,7 @@
             align-items: center;
             gap: 0.5rem;
         }
-        /* Styling for Lottie container to cover its parent button and center the player */
+        /* Styling für den Lottie-Container, um seinen übergeordneten Button zu überlagern und den Player zu zentrieren */
         .lottie-container {
             position: absolute; /* Muss absolut positioniert sein, um den Button zu überlagern */
             inset: 0; /* Nimmt die gesamte Breite und Höhe des Elternelements ein */
@@ -100,7 +101,7 @@
             justify-content: center; /* Zentriert horizontal */
             /* display: none; */ /* Standardmässig versteckt, wird durch Tailwind 'hidden' gesteuert */
         }
-        /* Style for login form */
+        /* Stil für das Login-Formular */
         #adminLoginForm {
             max-width: 400px;
             margin: 2rem auto;
@@ -109,14 +110,14 @@
             border-radius: 1rem;
             box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
         }
-        /* Disabled state for form elements */
+        /* Deaktivierter Zustand für Formularelemente im Admin-Panel */
         #adminPanel input:disabled, #adminPanel button:disabled,
         #adminPanel input[type="file"]:disabled + button { 
             opacity: 0.6;
             cursor: not-allowed;
         }
 
-        /* Styles for the custom delete confirmation modal */
+        /* Stile für das benutzerdefinierte Bestätigungsmodal */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -150,7 +151,7 @@
         .modal-overlay.visible .modal-content {
             transform: translateY(0);
         }
-        /* Spinner for AI analysis */
+        /* Spinner für KI-Analyse */
         .spinner {
             border: 4px solid rgba(0, 0, 0, 0.1);
             width: 24px;
@@ -168,7 +169,7 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Styling for markdown rendered content in AI insights */
+        /* Styling für Markdown-gerenderte Inhalte in KI-Einblicken */
         #aiInsightsDisplay h4 {
             font-size: 1.25rem; /* text-xl */
             font-weight: 600; /* font-semibold */
@@ -194,7 +195,7 @@
             line-height: 1.6;
         }
 
-        /* Admin Panel Tabs */
+        /* Admin-Panel Tabs */
         .admin-tabs {
             display: flex;
             flex-wrap: wrap;
@@ -213,7 +214,7 @@
         }
         .admin-tabs button:hover {
             color: #ee7719;
-            border-color: #fdd8b2; /* Lighter orange for hover */
+            border-color: #fdd8b2; /* Helleres Orange für Hover */
         }
         .admin-tabs button.active {
             color: #ee7719;
@@ -226,7 +227,7 @@
             display: block;
         }
 
-        /* Styling for order list in admin panel */
+        /* Styling für die Bestellliste im Admin-Panel */
         .order-item {
             background-color: #fdfdfd;
             border: 1px solid #e0e0e0;
@@ -262,12 +263,12 @@
             display: inline-block;
             margin-left: 0.5rem;
         }
-        .order-status.neu { background-color: #ffe0b2; color: #e65100; } /* Light orange */
-        .order-status.bearbeitet { background-color: #c8e6c9; color: #2e7d32; } /* Light green */
-        .order-status.abgeschlossen { background-color: #bbdefb; color: #1976d2; } /* Light blue */
-        .order-status.storniert { background-color: #ffcdd2; color: #d32f2f; } /* Light red */
+        .order-status.neu { background-color: #ffe0b2; color: #e65100; } /* Helles Orange */
+        .order-status.bearbeitet { background-color: #c8e6c9; color: #2e7d32; } /* Helles Grün */
+        .order-status.abgeschlossen { background-color: #bbdefb; color: #1976d2; } /* Helles Blau */
+        .order-status.storniert { background-color: #ffcdd2; color: #d32f2f; } /* Helles Rot */
 
-        /* Styles for the temporary message display */
+        /* Stile für die temporäre Nachrichtenanzeige */
         #messageDisplay {
             position: fixed;
             top: 1rem;
@@ -281,22 +282,22 @@
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
-            max-width: 90%; /* Responsive width */
+            max-width: 90%; /* Responsive Breite */
             text-align: center;
         }
         #messageDisplay.show {
             opacity: 1;
             visibility: visible;
         }
-        #messageDisplay.success { background-color: #28a745; } /* Green */
-        #messageDisplay.error { background-color: #dc3545; } /* Red */
-        #messageDisplay.info { background-color: #007bff; } /* Blue */
+        #messageDisplay.success { background-color: #28a745; } /* Grün */
+        #messageDisplay.error { background-color: #dc3545; } /* Rot */
+        #messageDisplay.info { background-color: #007bff; } /* Blau */
 
     </style>
 </head>
 <body class="bg-light-cream flex flex-col min-h-screen">
 
-    <!-- Header Section -->
+    <!-- Header Bereich -->
     <header class="bg-dark-accent text-white p-6 shadow-lg rounded-b-xl">
         <div class="container mx-auto flex flex-col sm:flex-row items-center justify-between">
             <div class="flex items-center space-x-3 mb-4 sm:mb-0">
@@ -305,7 +306,7 @@
                 <h1 class="text-3xl font-bold">MOJAS.ch</h1>
             </div>
             <nav class="w-full sm:w-auto mt-4 sm:mt-0">
-                <!-- Navigation links: stacked vertically on mobile, horizontal on small screens and up -->
+                <!-- Navigationslinks: vertikal gestapelt auf Mobilgeräten, horizontal ab kleinen Bildschirmen -->
                 <ul class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 text-lg items-center">
                     <!-- Navigationslinks für den öffentlichen Bereich (immer sichtbar) -->
                     <li id="navPreisliste" class="hidden-on-admin-view"><a href="#preisliste" class="hover:underline text-mojas-orange">Preisliste</a></li>
@@ -316,7 +317,7 @@
                         <button id="adminAuthButton" class="px-4 py-2 bg-mojas-orange text-white rounded-lg shadow-md hover:bg-opacity-90 transition duration-300 ease-in-out">Admin Login</button>
                     </li>
                     <li>
-                        <!-- Instagram Icon only, serves as link -->
+                        <!-- Instagram Icon, dient als Link -->
                         <a href="https://www.instagram.com/MOJAS.ch/" target="_blank" rel="noopener noreferrer" class="text-mojas-orange flex items-center justify-center p-1 rounded-full hover:bg-white hover:bg-opacity-20 transition duration-300">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-1">
                                 <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
@@ -325,14 +326,14 @@
                             </svg>
                         </a>
                     </li>
-                    <!-- Button for MOJAS website: full width on mobile, inline on small screens and up -->
+                    <!-- Button zur MOJAS Website: volle Breite auf Mobilgeräten, inline ab kleinen Bildschirmen -->
                     <li>
                         <a href="https://www.mojas.ch/" target="_blank" rel="noopener noreferrer" 
                            class="w-full sm:w-auto mt-4 sm:ml-4 sm:mt-0 px-4 py-2 bg-mojas-orange text-white rounded-lg shadow-md 
                                   hover:bg-opacity-90 transition duration-300 ease-in-out 
                                   flex items-center justify-center space-x-2">
                             <span>Zur MOJAS Website</span>
-                            <!-- External Link Icon -->
+                            <!-- Externer Link Icon -->
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
                                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0
                                 0 1 2-2h6"/>
@@ -346,11 +347,11 @@
         </div>
     </header>
 
-    <!-- Main Content Section -->
+    <!-- Hauptinhaltsbereich -->
     <main class="container mx-auto p-4 flex-grow">
-        <!-- Admin Area: Contains login form and admin panel, shown only for admins -->
+        <!-- Admin Bereich: Enthält Login-Formular und Admin-Panel, nur für Admins sichtbar -->
         <div id="adminArea" class="hidden">
-            <!-- Admin Login Form -->
+            <!-- Admin Login Formular -->
             <div id="adminLoginForm">
                 <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Admin Login</h2>
                 <form id="loginForm" class="grid grid-cols-1 gap-4">
@@ -367,11 +368,11 @@
                 </form>
             </div>
 
-            <!-- Admin Panel Section (initially hidden, shown after successful login) -->
+            <!-- Admin Panel Bereich (anfänglich versteckt, nach erfolgreichem Login sichtbar) -->
             <section id="adminPanel" class="my-8 bg-white p-6 rounded-2xl shadow-xl hidden">
                 <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Admin Bereich</h2>
                 
-                <!-- Admin Tabs for Navigation -->
+                <!-- Admin Tabs für Navigation -->
                 <div class="admin-tabs">
                     <button type="button" data-tab="settings" class="active">Einstellungen</button>
                     <button type="button" data-tab="categories">Kategorien</button>
@@ -380,7 +381,7 @@
                     <button type="button" data-tab="orders">Bestellungen</button>
                 </div>
 
-                <!-- Tab Content: Einstellungen -->
+                <!-- Tab Inhalt: Einstellungen -->
                 <div id="tab-settings" class="admin-tab-content active">
                     <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Website-Einstellungen</h3>
                     <form id="settingsForm" class="grid grid-cols-1 gap-4 mb-8">
@@ -419,7 +420,7 @@
                     </div>
                 </div>
 
-                <!-- Tab Content: Kategorien -->
+                <!-- Tab Inhalt: Kategorien -->
                 <div id="tab-categories" class="admin-tab-content">
                     <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Kategorien verwalten</h3>
                     <form id="categoryForm" class="grid grid-cols-1 gap-4 mb-8">
@@ -434,11 +435,11 @@
                         </div>
                     </form>
                     <ul id="adminCategoryList" class="space-y-3 mb-8">
-                        <!-- Categories will be loaded here -->
+                        <!-- Kategorien werden hier geladen -->
                     </ul>
                 </div>
 
-                <!-- Tab Content: Produkte -->
+                <!-- Tab Inhalt: Produkte -->
                 <div id="tab-products" class="admin-tab-content">
                     <h3 id="productFormTitle" class="text-2xl font-semibold text-mojas-orange mb-4">Neues Produkt hinzufügen</h3>
                     <form id="productForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
@@ -458,7 +459,7 @@
                         <div class="md:col-span-2">
                             <label class="block text-gray-700 text-sm font-bold mb-2">Kategorien:</label>
                             <div id="productCategoriesCheckboxes" class="grid grid-cols-2 gap-2">
-                                <!-- Categories will be loaded here dynamically -->
+                                <!-- Kategorien werden hier dynamisch geladen -->
                             </div>
                         </div>
                         <div class="md:col-span-2 flex justify-end space-x-2">
@@ -480,15 +481,15 @@
                         </select>
                         <select id="adminCategoryFilter" class="w-full sm:w-1/4 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mojas-orange">
                             <option value="">Alle Kategorien</option>
-                            <!-- Categories will be loaded here -->
+                            <!-- Kategorien werden hier geladen -->
                         </select>
                     </div>
                     <ul id="adminProductList" class="space-y-3 mb-8">
-                        <!-- Products will be loaded here from Firestore -->
+                        <!-- Produkte werden hier von Firestore geladen -->
                     </ul>
                 </div>
 
-                <!-- Tab Content: Statistiken -->
+                <!-- Tab Inhalt: Statistiken -->
                 <div id="tab-statistics" class="admin-tab-content">
                     <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Statistiken</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -500,15 +501,15 @@
                         <div class="p-4 border border-gray-200 rounded-lg bg-gray-50">
                             <h4 class="font-semibold text-lg mb-2">Beliebteste Einkaufslisten-Artikel (Gesamtmenge)</h4>
                             <ul id="shoppingListStatsList" class="list-disc list-inside text-gray-700">
-                                <!-- Popular items will be displayed here -->
+                                <!-- Beliebte Artikel werden hier angezeigt -->
                             </ul>
                             <button id="resetShoppingListStatsBtn" class="mt-3 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">Reset Einkaufsliste</button>
                         </div>
-                        <!-- NEU: Bestellungen pro Tag Statistik -->
+                        <!-- Bestellungen pro Tag Statistik -->
                         <div class="p-4 border border-gray-200 rounded-lg bg-gray-50 md:col-span-2">
                             <h4 class="font-semibold text-lg mb-2">Bestellungen pro Tag (CHF)</h4>
                             <ul id="dailyOrdersStatsList" class="list-disc list-inside text-gray-700">
-                                <!-- Daily order stats will be displayed here -->
+                                <!-- Tägliche Bestellstatistiken werden hier angezeigt -->
                             </ul>
                         </div>
                     </div>
@@ -521,26 +522,26 @@
                             KI-Analyse generieren <span id="aiLoadingSpinner" class="spinner hidden"></span>
                         </button>
                         <div id="aiInsightsDisplay" class="mt-4 p-4 bg-white rounded-md border border-gray-300 text-gray-800 hidden">
-                            <!-- AI insights will be displayed here, will be rendered from Markdown -->
+                            <!-- KI-Einblicke werden hier angezeigt, gerendert aus Markdown -->
                         </div>
                         <p id="aiInsightStatus" class="text-sm mt-2"></p>
                     </div>
                 </div>
 
-                <!-- Tab Content: Bestellungen (NEU) -->
+                <!-- Tab Inhalt: Bestellungen -->
                 <div id="tab-orders" class="admin-tab-content">
                     <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Bestellungen verwalten</h3>
                     <div id="ordersList" class="space-y-4">
-                        <!-- Orders will be loaded here -->
+                        <!-- Bestellungen werden hier geladen -->
                         <p class="text-gray-600 text-center italic" id="noOrdersMessage">Keine Bestellungen vorhanden.</p>
                     </div>
                 </div>
             </section>
-        </div> <!-- End of adminArea -->
+        </div> <!-- Ende Admin Bereich -->
 
-        <!-- Public Content Area: Hidden when admin logged in -->
+        <!-- Öffentlicher Inhaltsbereich: Versteckt, wenn Admin angemeldet ist -->
         <div id="publicContent">
-            <!-- Search Function Section (Public) -->
+            <!-- Suchfunktion Bereich (Öffentlich) -->
             <section class="my-8 bg-white p-6 rounded-2xl shadow-xl">
                 <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Finde deinen Preis</h2>
                 <div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
@@ -552,17 +553,17 @@
                         Suchen
                     </button>
                 </div>
-                <!-- Search Results Display Area -->
+                <!-- Suchergebnisse Anzeige Bereich -->
                 <div id="searchResults" class="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200 hidden">
-                    <!-- Results will be injected here by JavaScript -->
+                    <!-- Ergebnisse werden hier von JavaScript eingefügt -->
                 </div>
             </section>
 
-            <!-- Shopping List Section -->
+            <!-- Einkaufsliste Bereich -->
             <section id="shoppingListSection" class="my-8 bg-white p-6 rounded-2xl shadow-xl">
                 <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Deine Einkaufsliste</h2>
                 <ul id="shoppingListItems" class="mb-4">
-                    <!-- Shopping list items will be injected here -->
+                    <!-- Einkaufslistenartikel werden hier eingefügt -->
                 </ul>
                 <div id="shoppingListSummary" class="text-right text-2xl font-bold text-mojas-orange mt-4 pt-4 border-t-2 border-gray-200">
                     Gesamt: <span id="shoppingListTotal">0.00 Fr.</span>
@@ -573,7 +574,7 @@
                                hover:bg-gray-400 transition duration-300 ease-in-out w-full sm:w-auto">
                         Einkaufsliste leeren
                     </button>
-                    <!-- NEU: Bestellen Button -->
+                    <!-- Bestell-Button -->
                     <div class="relative w-full sm:w-auto flex justify-center">
                         <button id="placeOrderBtn" 
                                 class="px-6 py-3 bg-green-600 text-white rounded-lg shadow-md 
@@ -592,24 +593,24 @@
             <section id="preisliste" class="my-8 bg-white p-6 rounded-2xl shadow-xl">
                 <h2 class="text-4xl font-bold text-mojas-orange mb-6 text-center">Unsere Preisliste</h2>
                 <p class="text-gray-700 text-center mb-8">Hier findest du eine Übersicht über unsere köstlichen Snacks und Getränke.</p>
-                <!-- Preisliste Image 1 (dynamisch geladen aus Firestore/Storage) -->
+                <!-- Preisliste Bild 1 (dynamisch geladen aus Firestore/Storage) -->
                 <img id="priceList1Display" src="1.1.png" alt="Mojas Preisliste Snacks & Getränke" class="price-list-img">
             </section>
 
             <section id="drinks" class="my-8 bg-white p-6 rounded-2xl shadow-xl">
                 <h2 class="text-4xl font-bold text-mojas-orange mb-6 text-center">Unsere Drinks</h2>
-                <!-- Information about drink availability in a small box -->
+                <!-- Informationen zur Getränkeverfügbarkeit in einer kleinen Box -->
                 <div id="drinksNoteDisplay" class="bg-orange-50 p-4 mb-6 rounded-lg border border-mojas-orange text-center mx-auto max-w-sm">
                     <p class="text-gray-700">Diese Drinks sind nur während Partys und kurz danach erhältlich.</p>
                 </div>
                 <p class="text-gray-700 text-center mb-8">Erfrischende Drinks für jeden Geschmack.</p>
-                <!-- Preisliste Image 2 (dynamisch geladen aus Firestore/Storage) -->
+                <!-- Preisliste Bild 2 (dynamisch geladen aus Firestore/Storage) -->
                 <img id="priceList2Display" src="2.1.png" alt="Mojas Drinks" class="price-list-img">
             </section>
-        </div> <!-- End of publicContent -->
+        </div> <!-- Ende öffentlicher Inhaltsbereich -->
     </main>
 
-    <!-- Footer Section -->
+    <!-- Footer Bereich -->
     <footer class="bg-dark-accent text-white p-6 rounded-t-xl mt-8">
         <div class="container mx-auto text-center">
             <p id="footerTextDisplay">&copy; 2025 MOJAS.ch. Alle Rechte vorbehalten.</p>
@@ -626,7 +627,7 @@
         </div>
     </footer>
 
-    <!-- Custom Generic Confirmation Modal (repurposed from deleteConfirmModal) -->
+    <!-- Benutzerdefiniertes generisches Bestätigungsmodal -->
     <div id="confirmModal" class="modal-overlay hidden">
         <div class="modal-content">
             <h3 class="text-xl font-bold text-dark-accent mb-4" id="confirmModalTitle">Bestätigung</h3>
@@ -638,10 +639,11 @@
         </div>
     </div>
 
-    <!-- Temporary Message Display -->
+    <!-- Temporäre Nachrichtenanzeige -->
     <div id="messageDisplay" class="hidden"></div>
 
     <script type="module">
+        // Firebase Modul-Importe
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, updateDoc, deleteDoc, getDocs, getDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -657,7 +659,7 @@
             appId: "1:667994628903:web:aabf099f890ca9e5d07f02"
         };
 
-        // Initialize Firebase
+        // Firebase initialisieren
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
@@ -666,7 +668,7 @@
         const appId = firebaseConfig.appId; 
         console.log("Verwendete Firebase App ID:", appId); 
 
-        // Firestore collection references
+        // Firestore Sammlungsreferenzen
         const productsColRef = collection(db, `artifacts/${appId}/public/data/products`);
         const categoriesColRef = collection(db, `artifacts/${appId}/public/data/categories`); 
         const settingsDocRef = doc(db, `artifacts/${appId}/public/data/settings`, 'generalSettings'); 
@@ -679,7 +681,7 @@
         // Firestore-Referenz für Bestellungen
         const ordersColRef = collection(db, `artifacts/${appId}/public/data/orders`);
 
-        // Global variables
+        // Globale Variablen
         window.products = []; 
         window.categories = []; 
         let currentUserId = null;
@@ -689,9 +691,8 @@
         let unsubscribeOrders = null; // Variable zum Speichern der Unsubscribe-Funktion für Bestellungen
         let lastOrderTimestamp = new Date(); // Speichert den Zeitstempel der letzten bekannten Bestellung
 
-        // Initial product data (only for populating Firestore if empty)
+        // Initiale Produktdaten (nur zum Füllen von Firestore, falls leer)
         const initialProductsData = [
-            // Updated Softdrinks
             { name: "Coca-Cola", price: 1.50, keywords: ["coca-cola", "cola", "softdrink", "getränk", "trinken"], categoryIds: ["getraenke"] },
             { name: "Fanta", price: 1.50, keywords: ["fanta", "softdrink", "getränk", "orange", "trinken"], categoryIds: ["getraenke"] },
             { name: "Sprite", price: 1.50, keywords: ["sprite", "softdrink", "getränk", "zitrone-limette", "trinken"], categoryIds: ["getraenke"] },
@@ -724,7 +725,7 @@
             { name: "Blue Dream", price: 2.00, keywords: ["blue dream", "cocktail", "drink", "alkoholfrei", "blau"], categoryIds: ["drinks"] }
         ];
 
-        // Initial categories data (only for populating Firestore if empty)
+        // Initiale Kategoriedaten (nur zum Füllen von Firestore, falls leer)
         const initialCategoriesData = [ 
             { id: "getraenke", name: "Getränke" },
             { id: "suessigkeiten", name: "Süssigkeiten" },
@@ -733,21 +734,21 @@
             { id: "drinks", name: "Cocktails/Drinks" }
         ];
 
-        // Shopping list array (client-side only)
+        // Einkaufsliste Array (nur clientseitig)
         let shoppingList = [];
 
-        // Variable to store the current action for the generic confirmation modal
+        // Variable zum Speichern der aktuellen Aktion für das generische Bestätigungsmodal
         let currentModalAction = null; // 'deleteProduct', 'resetPageViews', 'resetShoppingList', 'deleteCategory', 'deleteOrder', 'updateOrderStatus', 'clearShoppingList'
-        let modalTargetId = null; // Stores the ID of the item (product/category/order/user) to delete or reset/update
-        let modalTargetStatus = null; // Stores the new status for order update
+        let modalTargetId = null; // Speichert die ID des Elements (Produkt/Kategorie/Bestellung/Benutzer) zum Löschen oder Zurücksetzen/Aktualisieren
+        let modalTargetStatus = null; // Speichert den neuen Status für die Bestellaktualisierung
 
-        // DOMContentLoaded ensures all HTML elements are loaded before running the script
+        // DOMContentLoaded stellt sicher, dass alle HTML-Elemente geladen sind, bevor das Skript ausgeführt wird
         document.addEventListener('DOMContentLoaded', async () => {
-            // Main content area containers
+            // Hauptinhaltsbereich Container
             const publicContentDiv = document.getElementById('publicContent');
             const adminAreaDiv = document.getElementById('adminArea');
 
-            // UI Elements for the admin section
+            // UI-Elemente für den Admin-Bereich
             const adminPanel = document.getElementById('adminPanel');
             const adminAuthButton = document.getElementById('adminAuthButton');
             const adminLoginFormDiv = document.getElementById('adminLoginForm');
@@ -760,7 +761,7 @@
             const adminTabsContainer = document.querySelector('.admin-tabs');
             const adminTabContents = document.querySelectorAll('.admin-tab-content');
 
-            // General Settings UI elements
+            // Allgemeine Einstellungen UI-Elemente
             const settingsForm = document.getElementById('settingsForm'); 
             const footerText = document.getElementById('footerText'); 
             const drinksNote = document.getElementById('drinksNote'); 
@@ -768,7 +769,7 @@
             const footerTextDisplay = document.getElementById('footerTextDisplay'); 
             const drinksNoteDisplay = document.getElementById('drinksNoteDisplay'); 
 
-            // Price List Image Upload UI elements
+            // Preislistenbild Upload UI-Elemente
             const priceList1FileInput = document.getElementById('priceList1FileInput');
             const uploadPriceList1Btn = document.getElementById('uploadPriceList1Btn');
             const priceList1Status = document.getElementById('priceList1Status');
@@ -779,7 +780,7 @@
             const priceList2Status = document.getElementById('priceList2Status');
             const adminPriceList2Preview = document.getElementById('adminPriceList2Preview');
 
-            // Category Management UI elements
+            // Kategorieverwaltung UI-Elemente
             const categoryForm = document.getElementById('categoryForm'); 
             const categoryIdInput = document.getElementById('categoryId'); 
             const categoryNameInput = document.getElementById('categoryName'); 
@@ -788,7 +789,7 @@
             const adminCategoryList = document.getElementById('adminCategoryList'); 
             const productCategoriesCheckboxes = document.getElementById('productCategoriesCheckboxes'); 
 
-            // Product Management UI elements
+            // Produktverwaltung UI-Elemente
             const productForm = document.getElementById('productForm');
             const productIdInput = document.getElementById('productId');
             const productNameInput = document.getElementById('productName');
@@ -799,23 +800,23 @@
             const cancelEditBtn = document.getElementById('cancelEditBtn');
             const adminProductListUl = document.getElementById('adminProductList');
 
-            // Elements for static image display
+            // Elemente für die statische Bildanzeige
             const priceList1Display = document.getElementById('priceList1Display');
             const priceList2Display = document.getElementById('priceList2Display');
 
-            // Query Selectors for all administrable elements to disable them when not logged in as admin
+            // Query-Selektoren für alle administrierbaren Elemente, um sie zu deaktivieren, wenn nicht als Admin angemeldet
             const adminControlElements = document.querySelectorAll(
                 '#adminPanel input:not(#adminEmail):not(#adminPassword), #adminPanel button:not([type="submit"]), #adminPanel select, #adminPanel textarea'
             );
 
-            // Elements for generic confirmation modal
+            // Elemente für das generische Bestätigungsmodal
             const confirmModal = document.getElementById('confirmModal');
             const confirmModalTitle = document.getElementById('confirmModalTitle');
             const confirmModalMessage = document.getElementById('confirmModalMessage');
             const modalConfirmBtn = document.getElementById('modalConfirmBtn');
             const modalCancelBtn = document.getElementById('modalCancelBtn');
 
-            // Existing search and shopping list UI elements (Public side)
+            // Bestehende Such- und Einkaufslisten-UI-Elemente (öffentliche Seite)
             const searchInput = document.getElementById('searchInput');
             const searchButton = document.getElementById('searchButton');
             const searchResultsDiv = document.getElementById('searchResults');
@@ -830,12 +831,12 @@
             const orderLottiePlayer = orderLottieContainer ? orderLottieContainer.querySelector('lottie-player') : null;
 
 
-            // Admin Product List Search/Sort/Filter UI elements
+            // Admin Produktliste Such-/Sortier-/Filter-UI-Elemente
             const adminSearchInput = document.getElementById('adminSearchInput');
             const adminSortSelect = document.getElementById('adminSortSelect');
             const adminCategoryFilter = document.getElementById('adminCategoryFilter');
 
-            // Navigation elements
+            // Navigationselemente
             const navPreisliste = document.getElementById('navPreisliste');
             const navDrinks = document.getElementById('navDrinks');
             const navShoppingList = document.getElementById('navShoppingList');
@@ -857,59 +858,73 @@
             const ordersListDiv = document.getElementById('ordersList');
             const noOrdersMessage = document.getElementById('noOrdersMessage');
 
-            // Audio element for notification sound
-            const notificationSound = new Audio('https://www.soundjay.com/buttons/beep-07a.mp3'); // Example sound URL
+            // Audio-Element für Benachrichtigungston
+            const notificationSound = new Audio('https://www.soundjay.com/buttons/beep-07a.mp3'); // Beispiel-Sound-URL
 
-            // Temporary Message Display Element
+            // Temporäres Nachrichtenanzeige-Element
             const messageDisplay = document.getElementById('messageDisplay');
 
-            // Function to show temporary messages (success, error, info)
+            /**
+             * Zeigt temporäre Nachrichten (Erfolg, Fehler, Info) an.
+             * @param {string} message - Die anzuzeigende Nachricht.
+             * @param {'success'|'error'|'info'} type - Der Typ der Nachricht (bestimmt die Farbe).
+             * @param {number} duration - Die Dauer, für die die Nachricht angezeigt wird (in Millisekunden).
+             */
             function showMessage(message, type = 'info', duration = 3000) {
                 messageDisplay.textContent = message;
-                messageDisplay.className = ''; // Reset classes
-                messageDisplay.classList.add('show', type); // Add 'show' and type class
+                messageDisplay.className = ''; // Klassen zurücksetzen
+                messageDisplay.classList.add('show', type); // 'show' und Typ-Klasse hinzufügen
                 
                 setTimeout(() => {
                     messageDisplay.classList.remove('show');
                 }, duration);
             }
 
-            // Function to enable/disable admin form elements based on admin status
+            /**
+             * Aktiviert/Deaktiviert Admin-Formularelemente.
+             * @param {boolean} disabled - True, um zu deaktivieren, False, um zu aktivieren.
+             */
             function setAdminControlsDisabled(disabled) {
                 adminControlElements.forEach(el => {
                     el.disabled = disabled;
                 });
             }
 
-            // Function to show/hide public and admin sections
+            /**
+             * Zeigt den öffentlichen oder Admin-Bereich an.
+             * @param {'admin'|'public'} viewName - Der Name des anzuzeigenden Bereichs.
+             */
             function showView(viewName) {
-                console.log(`showView called with: ${viewName}`);
+                console.log(`showView aufgerufen mit: ${viewName}`);
                 if (viewName === 'admin') {
                     publicContentDiv.classList.add('hidden');
                     adminAreaDiv.classList.remove('hidden');
                     adminPanel.classList.remove('hidden'); 
                     adminLoginFormDiv.classList.add('hidden'); 
-                    // Hide public nav links
+                    // Öffentliche Navigationslinks verstecken
                     navPreisliste.classList.add('hidden');
                     navDrinks.classList.add('hidden');
                     navShoppingList.classList.add('hidden');
-                    // Activate default admin tab (settings)
+                    // Standard-Admin-Tab (Einstellungen) aktivieren
                     activateAdminTab('settings');
                 } else { // viewName === 'public'
                     publicContentDiv.classList.remove('hidden');
                     adminAreaDiv.classList.add('hidden');
                     adminPanel.classList.add('hidden'); 
                     adminLoginFormDiv.classList.add('hidden'); 
-                    // Show public nav links
+                    // Öffentliche Navigationslinks anzeigen
                     navPreisliste.classList.remove('hidden');
                     navDrinks.classList.remove('hidden');
                     navShoppingList.classList.remove('hidden');
                 }
-                console.log('Public content hidden status:', publicContentDiv.classList.contains('hidden'));
-                console.log('Admin area hidden status:', adminAreaDiv.classList.contains('hidden'));
+                console.log('Öffentlicher Inhalt versteckt:', publicContentDiv.classList.contains('hidden'));
+                console.log('Admin-Bereich versteckt:', adminAreaDiv.classList.contains('hidden'));
             }
 
-            // Function to handle admin tab switching
+            /**
+             * Wechselt zwischen Admin-Tabs.
+             * @param {string} tabId - Die ID des zu aktivierenden Tabs (z.B. 'settings', 'products').
+             */
             function activateAdminTab(tabId) {
                 adminTabContents.forEach(content => {
                     if (content.id === `tab-${tabId}`) {
@@ -927,7 +942,7 @@
                 });
             }
 
-            // Event listener for admin tabs
+            // Event-Listener für Admin-Tabs
             adminTabsContainer.addEventListener('click', (e) => {
                 if (e.target.tagName === 'BUTTON' && e.target.dataset.tab) {
                     activateAdminTab(e.target.dataset.tab);
@@ -935,25 +950,25 @@
             });
 
 
-            // Authentication state change listener
+            // Authentifizierungsstatus-Änderungs-Listener
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
-                    // If user is authenticated, they are an admin
+                    // Wenn der Benutzer authentifiziert ist, ist er ein Admin
                     currentUserId = user.uid;
                     isAdminLoggedIn = true; 
                     adminAuthButton.textContent = "Admin Logout";
-                    showView('admin'); // Show admin area
-                    setAdminControlsDisabled(false); // Enable admin controls
+                    showView('admin'); // Admin-Bereich anzeigen
+                    setAdminControlsDisabled(false); // Admin-Steuerelemente aktivieren
                     console.log("Benutzer angemeldet als Admin:", user.email, "UID:", user.uid);
 
-                    // Attempt to initialize products/categories if they haven't been.
+                    // Versuchen, Produkte/Kategorien zu initialisieren, falls noch nicht geschehen.
                     if (!initialProductsChecked) initializeProductsInFirestore();
                     if (!initialCategoriesChecked) initializeCategoriesInFirestore();
                     
-                    // Setup orders listener only when admin is logged in
-                    setupOrdersListener();
+                    // Admin-spezifische Listener einrichten (wie Bestellungen und tägliche Bestellstatistiken)
+                    setupAdminOrdersListener();
 
-                    // Request notification permission when admin logs in
+                    // Benachrichtigungsberechtigung anfordern, wenn Admin sich anmeldet
                     requestNotificationPermission();
 
                 } else {
@@ -961,24 +976,24 @@
                     isAdminLoggedIn = false; 
                     console.log("Kein Benutzer angemeldet.");
                     adminAuthButton.textContent = "Admin Login";
-                    showView('public'); // Show public area
+                    showView('public'); // Öffentlichen Bereich anzeigen
                     setAdminControlsDisabled(true); 
                     
-                    // Continue listening to public data even when logged out
-                    setupFirestoreListeners(); 
-                    loadSettings(); 
-
-                    // Detach orders listener when admin logs out
+                    // Admin-spezifische Listener bei Abmeldung des Admins deaktivieren
                     if (unsubscribeOrders) {
                         unsubscribeOrders();
                         unsubscribeOrders = null;
-                        ordersListDiv.innerHTML = '<p class="text-gray-600 text-center italic" id="noOrdersMessage">Keine Bestellungen vorhanden.</p>'; // Clear orders list on logout
+                        ordersListDiv.innerHTML = '<p class="text-gray-600 text-center italic" id="noOrdersMessage">Keine Bestellungen vorhanden.</p>'; // Bestellliste bei Abmeldung leeren
+                        dailyOrdersStatsList.innerHTML = '<p class="text-gray-600 text-center italic">Keine Bestelldaten für Mittwoch oder Freitag vorhanden.</p>'; // Tägliche Bestellstatistiken bei Abmeldung leeren
                     }
                 }
             });
 
-            // --- Notification Functions ---
+            // --- Benachrichtigungsfunktionen ---
 
+            /**
+             * Fordert die Berechtigung für Desktop-Benachrichtigungen an.
+             */
             function requestNotificationPermission() {
                 if (!("Notification" in window)) {
                     console.warn("Dieser Browser unterstützt keine Desktop-Benachrichtigungen.");
@@ -996,6 +1011,11 @@
                 }
             }
 
+            /**
+             * Zeigt eine Desktop-Benachrichtigung für eine neue Bestellung an.
+             * @param {string} orderId - Die ID der neuen Bestellung.
+             * @param {number} totalPrice - Der Gesamtpreis der Bestellung.
+             */
             function showNewOrderNotification(orderId, totalPrice) {
                 if (Notification.permission === "granted") {
                     const notificationTitle = "Neue Bestellung eingegangen!";
@@ -1009,6 +1029,9 @@
                 }
             }
 
+            /**
+             * Spielt einen Benachrichtigungston ab.
+             */
             function playNotificationSound() {
                 if (notificationSound) {
                     notificationSound.play().catch(e => console.error("Fehler beim Abspielen des Benachrichtigungssounds:", e));
@@ -1018,7 +1041,9 @@
 
             // --- Statistikfunktionen ---
 
-            // Funktion zum Erhöhen des Seitenaufruf-Zählers
+            /**
+             * Erhöht den Seitenaufruf-Zähler in Firestore.
+             */
             async function incrementPageView() {
                 try {
                     await setDoc(websiteTrafficDocRef, { totalPageViews: increment(1) }, { merge: true });
@@ -1028,8 +1053,10 @@
                 }
             }
 
-            // Funktion zum Laden und Anzeigen der Statistiken im Admin-Panel
-            function setupStatisticsListeners() {
+            /**
+             * Richtet Live-Listener für öffentliche Statistiken ein (Seitenaufrufe, Einkaufslisten-Artikel).
+             */
+            function setupPublicStatisticsListeners() {
                 // Live-Update für Seitenaufrufe
                 onSnapshot(websiteTrafficDocRef, (docSnap) => {
                     if (docSnap.exists()) {
@@ -1043,15 +1070,15 @@
 
                 // Live-Update für Einkaufsliste-Statistiken
                 onSnapshot(shoppingListStatsDocRef, (docSnap) => {
-                    shoppingListStatsList.innerHTML = ''; // Clear previous list
+                    shoppingListStatsList.innerHTML = ''; // Vorherige Liste leeren
                     if (docSnap.exists()) {
                         const data = docSnap.data();
-                        // Convert object to array of [productName, count] pairs and sort by count (descending)
+                        // Objekt in ein Array von [productName, count]-Paaren umwandeln und nach Anzahl (absteigend) sortieren
                         const sortedItems = Object.entries(data).sort(([, countA], [, countB]) => countB - countA);
                         
                         sortedItems.forEach(([productName, count]) => {
                             const listItem = document.createElement('li');
-                            // Replace '_' back to space for display
+                            // '_' zurück in Leerzeichen für die Anzeige umwandeln
                             listItem.textContent = `${productName.replace(/_/g, ' ')}: ${count}`;
                             shoppingListStatsList.appendChild(listItem);
                         });
@@ -1063,10 +1090,39 @@
                 }, (error) => {
                     console.error("Fehler beim Laden der Einkaufsliste-Statistik:", error);
                 });
+            }
 
-                // NEU: Live-Update für Bestellungen pro Tag Statistiken
-                onSnapshot(ordersColRef, (snapshot) => {
+            /**
+             * Richtet Live-Listener für Admin-spezifische Daten (Bestellungen und tägliche Bestellstatistiken) ein.
+             * Dieser Listener wird nur aktiviert, wenn ein Admin angemeldet ist.
+             */
+            function setupAdminOrdersListener() {
+                // Sicherstellen, dass nur ein Listener aktiv ist
+                if (unsubscribeOrders) {
+                    unsubscribeOrders();
+                }
+
+                unsubscribeOrders = onSnapshot(ordersColRef, (snapshot) => {
+                    let newOrderDetected = false;
                     const dailyTotals = {};
+                    
+                    snapshot.docChanges().forEach(change => {
+                        const orderData = change.doc.data();
+                        const orderTimestamp = orderData.timestamp ? orderData.timestamp.toDate() : new Date(0);
+
+                        // Nur neue Bestellungen nach dem letzten bekannten Zeitstempel benachrichtigen
+                        if (change.type === "added" && orderTimestamp > lastOrderTimestamp) {
+                            newOrderDetected = true;
+                            lastOrderTimestamp = orderTimestamp; 
+                            console.log("Neue Bestellung erkannt:", change.doc.id);
+                            if (isAdminLoggedIn && document.getElementById('tab-orders').classList.contains('active')) {
+                                showNewOrderNotification(change.doc.id, orderData.totalPrice);
+                                playNotificationSound();
+                            }
+                        }
+                    });
+
+                    // Daten für tägliche Statistiken verarbeiten (alle Bestellungen im Snapshot)
                     snapshot.forEach(doc => {
                         const order = doc.data();
                         if (order.timestamp && order.totalPrice) {
@@ -1084,14 +1140,14 @@
                         }
                     });
 
-                    dailyOrdersStatsList.innerHTML = ''; // Clear previous list
+                    dailyOrdersStatsList.innerHTML = ''; // Vorherige Liste leeren
                     const sortedDailyTotals = Object.entries(dailyTotals).sort(([dateA], [dateB]) => {
-                        // Convert "DD.MM.YYYY" to "YYYY-MM-DD" for correct sorting
+                        // "DD.MM.YYYY" in "YYYY-MM-DD" für korrekte Sortierung umwandeln
                         const parseDate = (dateStr) => {
                             const [day, month, year] = dateStr.split('.');
                             return new Date(`${year}-${month}-${day}`);
                         };
-                        return parseDate(dateB).getTime() - parseDate(dateA).getTime(); // Newest first
+                        return parseDate(dateB).getTime() - parseDate(dateA).getTime(); // Neueste zuerst
                     });
 
                     if (sortedDailyTotals.length > 0) {
@@ -1105,12 +1161,116 @@
                         listItem.textContent = "Keine Bestelldaten für Mittwoch oder Freitag vorhanden.";
                         dailyOrdersStatsList.appendChild(listItem);
                     }
+
+                    // Gesamte Bestellliste im Admin-Panel neu rendern
+                    ordersListDiv.innerHTML = ''; 
+                    if (snapshot.empty) {
+                        noOrdersMessage.classList.remove('hidden');
+                    } else {
+                        noOrdersMessage.classList.add('hidden');
+                        const orders = snapshot.docs.map(doc => ({
+                            id: doc.id,
+                            ...doc.data()
+                        })).sort((a, b) => (b.timestamp?.toDate() || 0) - (a.timestamp?.toDate() || 0)); // Nach neuestem zuerst sortieren
+
+                        orders.forEach(order => {
+                            const orderElement = document.createElement('div');
+                            orderElement.classList.add('order-item');
+
+                            const orderDate = order.timestamp ? new Date(order.timestamp.toDate()).toLocaleString() : 'N/A';
+                            const statusClass = order.status ? order.status.toLowerCase().replace(/\s/g, '') : 'neu'; 
+
+                            let itemsHtml = order.items.map(item => `<li>${item.name} x ${item.quantity} (${item.price.toFixed(2)} Fr.)</li>`).join('');
+
+                            orderElement.innerHTML = `
+                                <div class="flex justify-between items-center mb-2">
+                                    <h4 class="text-lg">Bestellung ID: <span class="font-normal text-gray-700">${order.id}</span></h4>
+                                    <span class="order-status ${statusClass}">${order.status || 'Neu'}</span>
+                                </div>
+                                <p class="text-sm text-gray-500 mb-2">Datum: ${orderDate}</p>
+                                <p class="text-sm text-gray-500 mb-2">Benutzer ID: ${order.userId || 'Nicht verfügbar'}</p>
+                                <p class="font-semibold text-gray-700">Artikel:</p>
+                                <ul class="list-disc list-inside ml-4">${itemsHtml}</ul>
+                                <p class="order-total text-xl mt-2">Gesamt: ${order.totalPrice.toFixed(2)} Fr.</p>
+                                <div class="flex flex-col sm:flex-row gap-2 mt-4">
+                                    <!-- Das Dropdown für den Status, ohne 'Neu' als wählbare Option -->
+                                    <select class="order-status-select p-2 border border-gray-300 rounded-md flex-grow" data-id="${order.id}">
+                                        <option value="Bearbeitet" ${order.status === 'Bearbeitet' ? 'selected' : ''}>Bearbeitet</option>
+                                        <option value="Abgeschlossen" ${order.status === 'Abgeschlossen' ? 'selected' : ''}>Abgeschlossen</option>
+                                        <option value="Storniert" ${order.status === 'Storniert' ? 'selected' : ''}>Storniert</option>
+                                    </select>
+                                    <button class="mark-done-btn bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition" data-id="${order.id}">Erledigt</button>
+                                    <button class="mark-cancelled-btn bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition" data-id="${order.id}">Storniert</button>
+                                    <button class="delete-order-btn bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition" data-id="${order.id}">Löschen</button>
+                                </div>
+                            `;
+                            ordersListDiv.appendChild(orderElement);
+                        });
+
+                        // Event-Listener für Statusänderung und Lösch-Buttons hinzufügen
+                        ordersListDiv.querySelectorAll('.order-status-select').forEach(select => {
+                            select.addEventListener('change', (e) => {
+                                const orderId = e.target.dataset.id;
+                                const newStatus = e.target.value;
+                                currentModalAction = 'updateOrderStatus';
+                                modalTargetId = orderId;
+                                modalTargetStatus = newStatus;
+                                confirmModalTitle.textContent = "Bestellstatus aktualisieren";
+                                confirmModalMessage.innerHTML = `Möchten Sie den Status der Bestellung **${orderId.substring(0, 8)}...** auf **${newStatus}** ändern?`;
+                                confirmModal.classList.add('visible');
+                                confirmModal.classList.remove('hidden');
+                            });
+                        });
+
+                        // Event-Listener für "Erledigt"-Button
+                        ordersListDiv.querySelectorAll('.mark-done-btn').forEach(button => {
+                            button.addEventListener('click', (e) => {
+                                const orderId = e.target.dataset.id;
+                                currentModalAction = 'updateOrderStatus';
+                                modalTargetId = orderId;
+                                modalTargetStatus = 'Abgeschlossen'; // Status auf 'Abgeschlossen' setzen
+                                confirmModalTitle.textContent = "Bestellung erledigen";
+                                confirmModalMessage.innerHTML = `Möchten Sie die Bestellung **${orderId.substring(0, 8)}...** als **erledigt (Abgeschlossen)** markieren? Diese Aktion löscht die Bestellung.`;
+                                confirmModal.classList.add('visible');
+                                confirmModal.classList.remove('hidden');
+                            });
+                        });
+
+                        // Event-Listener für "Storniert"-Button
+                        ordersListDiv.querySelectorAll('.mark-cancelled-btn').forEach(button => {
+                            button.addEventListener('click', (e) => {
+                                const orderId = e.target.dataset.id;
+                                currentModalAction = 'updateOrderStatus';
+                                modalTargetId = orderId;
+                                modalTargetStatus = 'Storniert'; // Status auf 'Storniert' setzen
+                                confirmModalTitle.textContent = "Bestellung stornieren";
+                                confirmModalMessage.innerHTML = `Möchten Sie die Bestellung **${orderId.substring(0, 8)}...** wirklich **stornieren**? Diese Aktion löscht die Bestellung.`;
+                                confirmModal.classList.add('visible');
+                                confirmModal.classList.remove('hidden');
+                            });
+                        });
+
+                        ordersListDiv.querySelectorAll('.delete-order-btn').forEach(button => {
+                            button.addEventListener('click', (e) => {
+                                const orderId = e.target.dataset.id;
+                                currentModalAction = 'deleteOrder';
+                                modalTargetId = orderId;
+                                confirmModalTitle.textContent = "Bestellung löschen";
+                                confirmModalMessage.innerHTML = `Möchten Sie die Bestellung **${orderId.substring(0, 8)}...** wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`;
+                                confirmModal.classList.add('visible');
+                                confirmModal.classList.remove('hidden');
+                            });
+                        });
+                    }
                 }, (error) => {
                     console.error("Fehler beim Laden der täglichen Bestellstatistiken:", error);
+                    dailyOrdersStatsList.innerHTML = `<li class="text-red-500 text-center">Fehler beim Laden der Bestellungen: ${error.message}</li>`;
                 });
             }
 
-            // Funktion zum Zurücksetzen der Website-Aufrufe
+            /**
+             * Funktion zum Zurücksetzen der Website-Aufrufe.
+             */
             async function resetPageViewsFunction() {
                 if (!isAdminLoggedIn) {
                     showMessage("Sie müssen als Admin angemeldet sein, um Statistiken zurückzusetzen.", "error");
@@ -1126,7 +1286,9 @@
                 }
             }
 
-            // Funktion zum Zurücksetzen der Einkaufsliste-Statistiken
+            /**
+             * Funktion zum Zurücksetzen der Einkaufsliste-Statistiken.
+             */
             async function resetShoppingListStatsFunction() {
                 if (!isAdminLoggedIn) {
                     showMessage("Sie müssen als Admin angemeldet sein, um Statistiken zurückzusetzen.", "error");
@@ -1168,7 +1330,10 @@
             });
 
 
-            // --- KI-Analyse Funktion (NEU) ---
+            // --- KI-Analyse Funktion ---
+            /**
+             * Generiert KI-Einblicke basierend auf den Einkaufslisten-Statistiken.
+             */
             async function generateAiInsights() {
                 if (!isAdminLoggedIn) {
                     aiInsightStatus.textContent = "Sie müssen als Admin angemeldet sein, um KI-Analysen zu generieren.";
@@ -1248,45 +1413,43 @@
 
             // --- Allgemeine Firestore-Listener und Initialisierungen ---
             
-            // Call incrementPageView right at the start of DOMContentLoaded for every page load
+            // Seitenaufruf direkt beim Start von DOMContentLoaded inkrementieren
             incrementPageView();
+            setupPublicStatisticsListeners(); // Startet Listener für öffentliche Statistiken
+            loadSettings(); // Lädt Einstellungen
 
-            // Initialize all Firestore listeners once DOM is ready
-            function setupFirestoreListeners() {
-                setupStatisticsListeners(); // Setup statistics listeners first
+            // Listener für Produkte und Kategorien (immer aktiv, da öffentlich lesbar)
+            onSnapshot(productsColRef, (snapshot) => {
+                const fetchedProducts = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                window.products = fetchedProducts.sort((a, b) => a.name.localeCompare(b.name));
+                console.log("Produkte von Firestore geladen:", window.products);
+                
+                searchProducts(); 
+                updateShoppingListDisplay();
+                filterAndSortAdminProducts(); 
+            }, (error) => {
+                console.error("Fehler beim Laden der Produkte von Firestore:", error);
+            });
 
-                onSnapshot(productsColRef, (snapshot) => {
-                    const fetchedProducts = snapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    }));
-                    window.products = fetchedProducts.sort((a, b) => a.name.localeCompare(b.name));
-                    console.log("Produkte von Firestore geladen:", window.products);
-                    
-                    searchProducts(); 
-                    updateShoppingListDisplay();
-                    filterAndSortAdminProducts(); 
-                }, (error) => {
-                    console.error("Fehler beim Laden der Produkte von Firestore:", error);
-                });
+            onSnapshot(categoriesColRef, (snapshot) => {
+                window.categories = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                })).sort((a, b) => a.name.localeCompare(b.name));
+                console.log("Kategorien von Firestore geladen:", window.categories);
+                populateCategoryCheckboxes(); 
+                populateAdminCategoryFilter(); 
+                filterAndSortAdminProducts(); 
+            }, (error) => {
+                console.error("Fehler beim Laden der Kategorien von Firestore:", error);
+            });
 
-                onSnapshot(categoriesColRef, (snapshot) => {
-                    window.categories = snapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    })).sort((a, b) => a.name.localeCompare(b.name));
-                    console.log("Kategorien von Firestore geladen:", window.categories);
-                    populateCategoryCheckboxes(); 
-                    populateAdminCategoryFilter(); 
-                    filterAndSortAdminProducts(); 
-                }, (error) => {
-                    console.error("Fehler beim Laden der Kategorien von Firestore:", error);
-                });
-            }
-
-            setupFirestoreListeners(); // Call the main listener setup
-
-            // Function to initialize categories in Firestore with initial data if the collection is empty
+            /**
+             * Initialisiert Kategorien in Firestore mit initialen Daten, falls die Sammlung leer ist.
+             */
             async function initializeCategoriesInFirestore() {
                 try {
                     const snapshot = await getDocs(categoriesColRef);
@@ -1311,7 +1474,9 @@
             }
 
 
-            // Function to initialize products in Firestore with initial data if the collection is empty
+            /**
+             * Initialisiert Produkte in Firestore mit initialen Daten, falls die Sammlung leer ist.
+             */
             async function initializeProductsInFirestore() {
                 try {
                     const snapshot = await getDocs(productsColRef);
@@ -1338,11 +1503,14 @@
                 }
             }
 
+            /**
+             * Lädt Website-Einstellungen von Firestore und aktualisiert die UI.
+             */
             function loadSettings() {
                 onSnapshot(settingsDocRef, (docSnap) => {
                     if (docSnap.exists()) {
                         const data = docSnap.data();
-                        // Update Footer Text
+                        // Footer-Text aktualisieren
                         if (data.footerText) {
                             footerTextDisplay.textContent = data.footerText;
                             if (footerText) footerText.value = data.footerText; 
@@ -1350,7 +1518,7 @@
                             footerTextDisplay.textContent = "&copy; 2025 MOJAS.ch. Alle Rechte vorbehalten.";
                             if (footerText) footerText.value = "";
                         }
-                        // Update Drinks Note
+                        // Drinks-Hinweis aktualisieren
                         if (data.drinksNote) {
                             drinksNoteDisplay.querySelector('p').textContent = data.drinksNote;
                             if (drinksNote) drinksNote.value = data.drinksNote; 
@@ -1358,7 +1526,7 @@
                             drinksNoteDisplay.querySelector('p').textContent = "Diese Drinks sind nur während Partys und kurz danach erhältlich.";
                             if (drinksNote) drinksNote.value = "";
                         }
-                        // Update Price List Image 1
+                        // Preislistenbild 1 aktualisieren
                         if (data.priceList1Url) {
                             priceList1Display.src = data.priceList1Url;
                             adminPriceList1Preview.src = data.priceList1Url; 
@@ -1366,7 +1534,7 @@
                             priceList1Display.src = "1.1.png"; 
                             adminPriceList1Preview.src = "1.1.png"; 
                         }
-                        // Update Price List Image 2
+                        // Preislistenbild 2 aktualisieren
                         if (data.priceList2Url) {
                             priceList2Display.src = data.priceList2Url;
                             adminPriceList2Preview.src = data.priceList2Url; 
@@ -1391,7 +1559,7 @@
                 });
             }
 
-            // Admin Login / Logout button handler
+            // Admin Login / Logout Button Handler
             adminAuthButton.addEventListener('click', async () => {
                 if (isAdminLoggedIn) {
                     try {
@@ -1410,7 +1578,7 @@
                 }
             });
 
-            // Login Form Handler (for real Firebase email/password login)
+            // Login Formular Handler (für echte Firebase E-Mail/Passwort-Anmeldung)
             loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const email = adminEmailInput.value;
@@ -1420,8 +1588,8 @@
 
                 try {
                     await signInWithEmailAndPassword(auth, email, password);
-                    // The onAuthStateChanged listener will now handle showing the admin panel,
-                    // as any authenticated user is now considered an admin.
+                    // Der onAuthStateChanged-Listener wird nun die Anzeige des Admin-Panels übernehmen,
+                    // da jeder authentifizierte Benutzer nun als Admin betrachtet wird.
                 } catch (error) {
                     console.error("Fehler beim Admin-Login:", error);
                     let errorMessage = "Anmeldung fehlgeschlagen. Ungültige E-Mail oder Passwort.";
@@ -1436,11 +1604,11 @@
                     }
                     loginErrorP.textContent = errorMessage;
                     loginErrorP.classList.remove('hidden'); 
-                    showMessage(errorMessage, "error"); // Show as temporary message too
+                    showMessage(errorMessage, "error"); // Auch als temporäre Nachricht anzeigen
                 }
             });
 
-            // General Settings Form Handler (for saving footer and drinks note)
+            // Allgemeine Einstellungen Formular Handler (zum Speichern von Footer- und Drinks-Hinweis)
             settingsForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 if (!isAdminLoggedIn) {
@@ -1467,7 +1635,14 @@
                 }
             });
 
-            // --- Price List Image Upload Functions ---
+            // --- Preislistenbild Upload Funktionen ---
+            /**
+             * Lädt ein Preislistenbild in Firebase Storage hoch und speichert die URL in Firestore-Einstellungen.
+             * @param {File} file - Die hochzuladende Datei.
+             * @param {string} imageFileName - Der Dateiname im Storage (z.B. '1.1.png').
+             * @param {HTMLElement} statusElement - Das Element zur Anzeige des Upload-Status.
+             * @param {HTMLImageElement} previewElement - Das Element zur Anzeige der Bildvorschau.
+             */
             async function uploadPriceListImage(file, imageFileName, statusElement, previewElement) {
                 if (!isAdminLoggedIn) {
                     statusElement.textContent = "Sie müssen als Admin angemeldet sein, um Bilder hochzuladen.";
@@ -1563,7 +1738,11 @@
             });
 
 
-            // Category Management Functions
+            // Kategorieverwaltung Funktionen
+            /**
+             * Fügt eine neue Kategorie zu Firestore hinzu.
+             * @param {string} name - Der Name der Kategorie.
+             */
             async function addCategoryToFirestore(name) {
                 if (!isAdminLoggedIn) {
                     showMessage("Sie müssen als Admin angemeldet sein, um Kategorien hinzuzufügen/zu bearbeiten.", "error");
@@ -1588,6 +1767,11 @@
                 }
             }
 
+            /**
+             * Aktualisiert eine bestehende Kategorie in Firestore.
+             * @param {string} id - Die ID der zu aktualisierenden Kategorie.
+             * @param {string} name - Der neue Name der Kategorie.
+             */
             async function updateCategoryInFirestore(id, name) {
                 if (!isAdminLoggedIn) {
                     showMessage("Sie müssen als Admin angemeldet sein, um Kategorien hinzuzufügen/zu bearbeiten.", "error");
@@ -1609,6 +1793,10 @@
                 }
             }
 
+            /**
+             * Löscht eine Kategorie aus Firestore nach Bestätigung.
+             * @param {string} id - Die ID der zu löschenden Kategorie.
+             */
             async function deleteCategoryFromFirestore(id) {
                 if (!isAdminLoggedIn) {
                     showMessage("Sie müssen als Admin angemeldet sein, um Kategorien zu löschen.", "error");
@@ -1620,8 +1808,8 @@
                     return;
                 }
 
-                currentModalAction = 'deleteCategory'; // Set action for modal
-                modalTargetId = id; // Store ID for category deletion (reusing productToDeleteId)
+                currentModalAction = 'deleteCategory'; // Aktion für Modal setzen
+                modalTargetId = id; // ID für Kategorielöschung speichern
                 confirmModalTitle.textContent = "Kategorie löschen";
                 const categoryToDelete = window.categories.find(c => c.id === id);
                 confirmModalMessage.innerHTML = `Möchten Sie die Kategorie "<span class="font-semibold">${categoryToDelete ? categoryToDelete.name : id}</span>" wirklich löschen?`;
@@ -1629,6 +1817,9 @@
                 confirmModal.classList.remove('hidden');
             }
 
+            /**
+             * Aktualisiert die Liste der Kategorien im Admin-Panel.
+             */
             function updateAdminCategoryList() {
                 if (!adminCategoryList) return;
                 adminCategoryList.innerHTML = ''; 
@@ -1665,6 +1856,9 @@
                 });
             }
 
+            /**
+             * Setzt das Kategorieformular zurück.
+             */
             function resetCategoryForm() {
                 categoryForm.reset(); 
                 categoryIdInput.value = ''; 
@@ -1686,6 +1880,9 @@
 
             cancelCategoryEditBtn.addEventListener('click', resetCategoryForm);
 
+            /**
+             * Füllt die Checkboxen für Produktkategorien.
+             */
             function populateCategoryCheckboxes() {
                 if (!productCategoriesCheckboxes) return;
                 productCategoriesCheckboxes.innerHTML = ''; 
@@ -1699,6 +1896,9 @@
                 });
             }
 
+            /**
+             * Füllt den Kategorie-Filter im Admin-Panel.
+             */
             function populateAdminCategoryFilter() {
                 if (!adminCategoryFilter) return;
                 adminCategoryFilter.innerHTML = '<option value="">Alle Kategorien</option>'; 
@@ -1710,8 +1910,15 @@
                 });
             }
 
-            // --- Product Management ---
+            // --- Produktverwaltung ---
             
+            /**
+             * Fügt ein neues Produkt zu Firestore hinzu.
+             * @param {string} name - Der Produktname.
+             * @param {number} price - Der Produktpreis.
+             * @param {string} keywords - Kommagetrennte Schlüsselwörter.
+             * @param {string[]} categoryIds - Array der Kategorie-IDs.
+             */
             async function addProductToFirestore(name, price, keywords, categoryIds) { 
                 if (!name || isNaN(price)) {
                     showMessage("Name und Preis müssen gültig sein.", "error");
@@ -1739,6 +1946,14 @@
                 }
             }
            
+            /**
+             * Aktualisiert ein bestehendes Produkt in Firestore.
+             * @param {string} id - Die ID des Produkts.
+             * @param {string} name - Der Produktname.
+             * @param {number} price - Der Produktpreis.
+             * @param {string} keywords - Kommagetrennte Schlüsselwörter.
+             * @param {string[]} categoryIds - Array der Kategorie-IDs.
+             */
             async function updateProductInFirestore(id, name, price, keywords, categoryIds) { 
                 if (!id || !name || isNaN(price)) {
                     showMessage("Alle Felder müssen gültig sein.", "error");
@@ -1765,6 +1980,11 @@
                 }
             }
 
+            /**
+             * Löscht ein Produkt aus Firestore nach Bestätigung.
+             * @param {string} id - Die ID des zu löschenden Produkts.
+             * @param {string} productNameForDisplay - Der Name des Produkts für die Anzeige im Modal.
+             */
             async function deleteProductFromFirestore(id, productNameForDisplay) {
                 if (!isAdminLoggedIn) { 
                     showMessage("Sie müssen als Admin angemeldet sein, um Produkte zu löschen.", "error");
@@ -1772,7 +1992,7 @@
                 }
                 
                 currentModalAction = 'deleteProduct';
-                modalTargetId = id; // Store the ID of the product to delete
+                modalTargetId = id; // ID des zu löschenden Produkts speichern
                 confirmModalTitle.textContent = "Produkt löschen";
                 confirmModalMessage.innerHTML = `Möchten Sie "<span class="font-semibold">${productNameForDisplay}</span>" wirklich löschen?`;
                 confirmModal.classList.add('visible');
@@ -1800,7 +2020,7 @@
                 } else if (currentModalAction === 'resetShoppingList') {
                     await resetShoppingListStatsFunction();
                 } else if (currentModalAction === 'deleteCategory') {
-                    // Logic for category deletion after confirmation
+                    // Logik für Kategorielöschung nach Bestätigung
                     try {
                         const categoryRef = doc(categoriesColRef, modalTargetId); 
                         await deleteDoc(categoryRef); 
@@ -1825,12 +2045,12 @@
                     try {
                         const orderRef = doc(ordersColRef, modalTargetId);
                         if (modalTargetStatus === 'Abgeschlossen' || modalTargetStatus === 'Storniert') {
-                            // Delete the order if status is 'Abgeschlossen' or 'Storniert'
+                            // Bestellung löschen, wenn Status 'Abgeschlossen' oder 'Storniert' ist
                             await deleteDoc(orderRef);
                             console.log(`Bestellung ${modalTargetId} gelöscht (Status: ${modalTargetStatus}).`);
                             showMessage(`Bestellung erfolgreich als '${modalTargetStatus}' markiert und gelöscht!`, "success");
                         } else {
-                            // Only update status if it's not 'Abgeschlossen' or 'Storniert' (e.g., 'Bearbeitet')
+                            // Nur Status aktualisieren, wenn er nicht 'Abgeschlossen' oder 'Storniert' ist (z.B. 'Bearbeitet')
                             await updateDoc(orderRef, { status: modalTargetStatus });
                             console.log(`Bestellung ${modalTargetId} Status aktualisiert auf: ${modalTargetStatus}`);
                             showMessage(`Bestellstatus erfolgreich auf '${modalTargetStatus}' aktualisiert!`, "success");
@@ -1845,7 +2065,7 @@
                     showMessage("Einkaufsliste wurde geleert.", "success");
                 } 
 
-                // Reset modal state
+                // Modal-Zustand zurücksetzen
                 currentModalAction = null;
                 modalTargetId = null;
                 modalTargetStatus = null;
@@ -1855,13 +2075,16 @@
             modalCancelBtn.addEventListener('click', () => {
                 confirmModal.classList.add('hidden');
                 confirmModal.classList.remove('visible');
-                // Reset modal state
+                // Modal-Zustand zurücksetzen
                 currentModalAction = null;
                 modalTargetId = null;
                 modalTargetStatus = null;
             });
 
-
+            /**
+             * Aktualisiert die Liste der Produkte im Admin-Panel, optional gefiltert.
+             * @param {Array<Object>} [filteredProducts=null] - Optionale Liste gefilterter Produkte.
+             */
             window.updateAdminProductList = (filteredProducts = null) => {
                 if (!adminProductListUl) return;
 
@@ -1941,6 +2164,9 @@
                 });
             };
 
+            /**
+             * Filtert und sortiert die Produkte im Admin-Panel basierend auf Suche, Sortierung und Kategorie.
+             */
             function filterAndSortAdminProducts() {
                 let filtered = [...window.products]; 
 
@@ -1981,6 +2207,9 @@
             adminCategoryFilter.addEventListener('change', filterAndSortAdminProducts);
 
 
+            /**
+             * Setzt das Produktformular im Admin-Panel zurück.
+             */
             function resetAdminForm() {
                 productForm.reset(); 
                 productIdInput.value = ''; 
@@ -2011,20 +2240,23 @@
 
             cancelEditBtn.addEventListener('click', resetAdminForm);
 
-            // --- Existing search and shopping list functions (Public facing) ---
+            // --- Bestehende Such- und Einkaufslistenfunktionen (öffentlich zugänglich) ---
 
+            /**
+             * Aktualisiert die Anzeige der Einkaufsliste.
+             */
             window.updateShoppingListDisplay = function() {
                 shoppingListItemsUl.innerHTML = ''; 
 
                 if (shoppingList.length === 0) {
                     emptyListMessage.classList.remove('hidden');
                     shoppingListItemsUl.classList.add('hidden');
-                    placeOrderBtn.disabled = true; // Disable order button if list is empty
+                    placeOrderBtn.disabled = true; // Bestell-Button deaktivieren, wenn Liste leer ist
                     placeOrderBtn.classList.add('opacity-50', 'cursor-not-allowed');
                 } else {
                     emptyListMessage.classList.add('hidden');
                     shoppingListItemsUl.classList.remove('hidden');
-                    placeOrderBtn.disabled = false; // Enable order button
+                    placeOrderBtn.disabled = false; // Bestell-Button aktivieren
                     placeOrderBtn.classList.remove('opacity-50', 'cursor-not-allowed');
 
                     shoppingList.forEach(item => {
@@ -2046,11 +2278,19 @@
                 calculateTotal(); 
             };
 
+            /**
+             * Berechnet den Gesamtbetrag der Einkaufsliste.
+             */
             function calculateTotal() {
                 let total = shoppingList.reduce((sum, item) => sum + (item.price * item.quantity), 0);
                 shoppingListTotalSpan.textContent = `${total.toFixed(2)} Fr.`;
             }
 
+            /**
+             * Fügt ein Produkt zur Einkaufsliste hinzu und aktualisiert die Statistik.
+             * @param {string} productName - Der Name des hinzuzufügenden Produkts.
+             * @param {HTMLElement} targetButton - Der Button, der die Aktion ausgelöst hat, für Lottie-Animation.
+             */
             window.addToShoppingList = async function(productName, targetButton) { 
                 const product = window.products.find(p => p.name === productName);
                 if (!product) return; 
@@ -2079,8 +2319,8 @@
                     const lottiePlayer = lottieContainer ? lottieContainer.querySelector('lottie-player') : null;
 
                     if (lottieContainer && lottiePlayer) {
-                        targetButton.classList.add('hidden'); // Use Tailwind hidden class
-                        lottieContainer.classList.remove('hidden'); // Use Tailwind hidden class
+                        targetButton.classList.add('hidden'); // Tailwind hidden Klasse verwenden
+                        lottieContainer.classList.remove('hidden'); // Tailwind hidden Klasse verwenden
                         
                         lottiePlayer.setDirection(1); 
                         lottiePlayer.load("animations/checkmark_animation.json"); 
@@ -2088,8 +2328,8 @@
 
                         setTimeout(() => {
                             lottiePlayer.stop();
-                            lottieContainer.classList.add('hidden'); // Use Tailwind hidden class
-                            targetButton.classList.remove('hidden'); // Use Tailwind hidden class
+                            lottieContainer.classList.add('hidden'); // Tailwind hidden Klasse verwenden
+                            targetButton.classList.remove('hidden'); // Tailwind hidden Klasse verwenden
                             
                             searchInput.value = ''; 
                             searchProducts(); 
@@ -2098,8 +2338,8 @@
                 }
             };
 
-            // Event Listener für Klicks auf die Einkaufsliste (für Mengenänderung und Entfernung)
-            shoppingListItemsUl.addEventListener('click', async (event) => { // Wichtig: Diese Funktion muss async sein!
+            // Event-Listener für Klicks auf die Einkaufsliste (für Mengenänderung und Entfernung)
+            shoppingListItemsUl.addEventListener('click', async (event) => { 
                 const target = event.target;
                 const action = target.dataset.action; 
                 const productName = target.dataset.name; 
@@ -2153,6 +2393,9 @@
                 confirmModal.classList.remove('hidden');
             });
 
+            /**
+             * Sucht Produkte basierend auf der Eingabe im Suchfeld.
+             */
             window.searchProducts = function() {
                 const query = searchInput.value.toLowerCase().trim();
                 searchResultsDiv.innerHTML = ''; 
@@ -2223,21 +2466,21 @@
                         items: shoppingList,
                         totalPrice: total,
                         timestamp: serverTimestamp(), // Firestore Timestamp
-                        status: 'Neu', // Initial status
-                        userId: currentUserId || 'anonym-' + crypto.randomUUID(), // Track anonymous users
+                        status: 'Neu', // Initialer Status
+                        userId: currentUserId || 'anonym-' + crypto.randomUUID(), // Anonyme Benutzer verfolgen
                     };
 
                     await addDoc(ordersColRef, order);
                     console.log("Bestellung erfolgreich aufgegeben:", order);
                     showMessage("Ihre Bestellung wurde erfolgreich aufgegeben!", "success"); 
-                    shoppingList = []; // Clear local shopping list
-                    updateShoppingListDisplay(); // Update UI
+                    shoppingList = []; // Lokale Einkaufsliste leeren
+                    updateShoppingListDisplay(); // UI aktualisieren
 
                 } catch (error) {
                     console.error("Fehler beim Aufgeben der Bestellung:", error);
                     showMessage("Fehler beim Aufgeben der Bestellung: " + error.message, "error");
                 } finally {
-                    // Reset Lottie and button after animation or error
+                    // Lottie und Button nach Animation oder Fehler zurücksetzen
                     setTimeout(() => {
                         if (orderLottiePlayer) {
                             orderLottiePlayer.stop();
@@ -2246,139 +2489,12 @@
                         placeOrderBtn.classList.remove('hidden'); // Button wieder einblenden
                         placeOrderBtn.disabled = false;
                         placeOrderBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                    }, 5000); // Animation duration increased to 5 seconds
+                    }, 5000); // Animationsdauer auf 5 Sekunden erhöht
                 }
             });
 
-            // Listener für Bestellungen im Admin-Panel
-            function setupOrdersListener() {
-                // Speichere die Unsubscribe-Funktion
-                unsubscribeOrders = onSnapshot(ordersColRef, (snapshot) => {
-                    let newOrderDetected = false;
-                    snapshot.docChanges().forEach(change => {
-                        const orderData = change.doc.data();
-                        const orderTimestamp = orderData.timestamp ? orderData.timestamp.toDate() : new Date(0);
-
-                        if (change.type === "added" && orderTimestamp > lastOrderTimestamp) {
-                            newOrderDetected = true;
-                            // Update lastOrderTimestamp only if it's a genuinely new order after initial load
-                            lastOrderTimestamp = orderTimestamp; 
-                            console.log("Neue Bestellung erkannt:", change.doc.id);
-                            if (isAdminLoggedIn && document.getElementById('tab-orders').classList.contains('active')) {
-                                showNewOrderNotification(change.doc.id, orderData.totalPrice);
-                                playNotificationSound();
-                            }
-                        }
-                    });
-
-                    // Re-render the entire list to ensure correct sorting and display
-                    ordersListDiv.innerHTML = ''; 
-                    if (snapshot.empty) {
-                        noOrdersMessage.classList.remove('hidden');
-                    } else {
-                        noOrdersMessage.classList.add('hidden');
-                        const orders = snapshot.docs.map(doc => ({
-                            id: doc.id,
-                            ...doc.data()
-                        })).sort((a, b) => (b.timestamp?.toDate() || 0) - (a.timestamp?.toDate() || 0)); // Sort by newest first
-
-                        orders.forEach(order => {
-                            const orderElement = document.createElement('div');
-                            orderElement.classList.add('order-item');
-
-                            const orderDate = order.timestamp ? new Date(order.timestamp.toDate()).toLocaleString() : 'N/A';
-                            const statusClass = order.status ? order.status.toLowerCase().replace(/\s/g, '') : 'neu'; 
-
-                            let itemsHtml = order.items.map(item => `<li>${item.name} x ${item.quantity} (${item.price.toFixed(2)} Fr.)</li>`).join('');
-
-                            orderElement.innerHTML = `
-                                <div class="flex justify-between items-center mb-2">
-                                    <h4 class="text-lg">Bestellung ID: <span class="font-normal text-gray-700">${order.id}</span></h4>
-                                    <span class="order-status ${statusClass}">${order.status || 'Neu'}</span>
-                                </div>
-                                <p class="text-sm text-gray-500 mb-2">Datum: ${orderDate}</p>
-                                <p class="text-sm text-gray-500 mb-2">Benutzer ID: ${order.userId || 'Nicht verfügbar'}</p>
-                                <p class="font-semibold text-gray-700">Artikel:</p>
-                                <ul class="list-disc list-inside ml-4">${itemsHtml}</ul>
-                                <p class="order-total text-xl mt-2">Gesamt: ${order.totalPrice.toFixed(2)} Fr.</p>
-                                <div class="flex flex-col sm:flex-row gap-2 mt-4">
-                                    <!-- Das Dropdown für den Status, ohne 'Neu' als wählbare Option -->
-                                    <select class="order-status-select p-2 border border-gray-300 rounded-md flex-grow" data-id="${order.id}">
-                                        <option value="Bearbeitet" ${order.status === 'Bearbeitet' ? 'selected' : ''}>Bearbeitet</option>
-                                        <option value="Abgeschlossen" ${order.status === 'Abgeschlossen' ? 'selected' : ''}>Abgeschlossen</option>
-                                        <option value="Storniert" ${order.status === 'Storniert' ? 'selected' : ''}>Storniert</option>
-                                    </select>
-                                    <button class="mark-done-btn bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition" data-id="${order.id}">Erledigt</button>
-                                    <button class="mark-cancelled-btn bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition" data-id="${order.id}">Storniert</button>
-                                    <button class="delete-order-btn bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition" data-id="${order.id}">Löschen</button>
-                                </div>
-                            `;
-                            ordersListDiv.appendChild(orderElement);
-                        });
-
-                        // Add event listeners for status change and delete buttons
-                        ordersListDiv.querySelectorAll('.order-status-select').forEach(select => {
-                            select.addEventListener('change', (e) => {
-                                const orderId = e.target.dataset.id;
-                                const newStatus = e.target.value;
-                                currentModalAction = 'updateOrderStatus';
-                                modalTargetId = orderId;
-                                modalTargetStatus = newStatus;
-                                confirmModalTitle.textContent = "Bestellstatus aktualisieren";
-                                confirmModalMessage.innerHTML = `Möchten Sie den Status der Bestellung **${orderId.substring(0, 8)}...** auf **${newStatus}** ändern?`;
-                                confirmModal.classList.add('visible');
-                                confirmModal.classList.remove('hidden');
-                            });
-                        });
-
-                        // Event listener for "Erledigt" button
-                        ordersListDiv.querySelectorAll('.mark-done-btn').forEach(button => {
-                            button.addEventListener('click', (e) => {
-                                const orderId = e.target.dataset.id;
-                                currentModalAction = 'updateOrderStatus';
-                                modalTargetId = orderId;
-                                modalTargetStatus = 'Abgeschlossen'; // Set status to 'Abgeschlossen'
-                                confirmModalTitle.textContent = "Bestellung erledigen";
-                                confirmModalMessage.innerHTML = `Möchten Sie die Bestellung **${orderId.substring(0, 8)}...** als **erledigt (Abgeschlossen)** markieren? Diese Aktion löscht die Bestellung.`;
-                                confirmModal.classList.add('visible');
-                                confirmModal.classList.remove('hidden');
-                            });
-                        });
-
-                        // Event listener for "Storniert" button
-                        ordersListDiv.querySelectorAll('.mark-cancelled-btn').forEach(button => {
-                            button.addEventListener('click', (e) => {
-                                const orderId = e.target.dataset.id;
-                                currentModalAction = 'updateOrderStatus';
-                                modalTargetId = orderId;
-                                modalTargetStatus = 'Storniert'; // Set status to 'Storniert'
-                                confirmModalTitle.textContent = "Bestellung stornieren";
-                                confirmModalMessage.innerHTML = `Möchten Sie die Bestellung **${orderId.substring(0, 8)}...** wirklich **stornieren**? Diese Aktion löscht die Bestellung.`;
-                                confirmModal.classList.add('visible');
-                                confirmModal.classList.remove('hidden');
-                            });
-                        });
-
-                        ordersListDiv.querySelectorAll('.delete-order-btn').forEach(button => {
-                            button.addEventListener('click', (e) => {
-                                const orderId = e.target.dataset.id;
-                                currentModalAction = 'deleteOrder';
-                                modalTargetId = orderId;
-                                confirmModalTitle.textContent = "Bestellung löschen";
-                                confirmModalMessage.innerHTML = `Möchten Sie die Bestellung **${orderId.substring(0, 8)}...** wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`;
-                                confirmModal.classList.add('visible');
-                                confirmModal.classList.remove('hidden');
-                            });
-                        });
-                    }
-                }, (error) => {
-                    console.error("Fehler beim Laden der Bestellungen:", error);
-                    ordersListDiv.innerHTML = `<p class="text-red-500 text-center">Fehler beim Laden der Bestellungen: ${error.message}</p>`;
-                });
-            }
-
             updateShoppingListDisplay(); 
-        }); // End DOMContentLoaded
+        }); // Ende DOMContentLoaded
     </script>
 </body>
 </html>
