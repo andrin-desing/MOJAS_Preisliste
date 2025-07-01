@@ -353,7 +353,6 @@
                     <button type="button" data-tab="products">Produkte</button>
                     <button type="button" data-tab="statistics">Statistiken</button>
                     <button type="button" data-tab="orders">Bestellungen</button>
-                    <button type="button" data-tab="users">Benutzerverwaltung</button>
                 </div>
 
                 <!-- Tab Content: Einstellungen -->
@@ -504,29 +503,6 @@
                         <p class="text-gray-600 text-center italic" id="noOrdersMessage">Keine Bestellungen vorhanden.</p>
                     </div>
                 </div>
-
-                <!-- Tab Content: Benutzerverwaltung (NEU) -->
-                <div id="tab-users" class="admin-tab-content">
-                    <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Admin-Benutzer verwalten</h3>
-                    <form id="addUserForm" class="grid grid-cols-1 gap-4 mb-8">
-                        <div>
-                            <label for="newAdminEmail" class="block text-gray-700 text-sm font-bold mb-2">E-Mail des neuen Admins:</label>
-                            <input type="email" id="newAdminEmail" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                        </div>
-                        <div>
-                            <label for="newAdminPassword" class="block text-gray-700 text-sm font-bold mb-2">Passwort für neuen Admin:</label>
-                            <input type="password" id="newAdminPassword" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                        </div>
-                        <button type="submit" id="addAdminBtn" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Admin hinzufügen</button>
-                        <p id="addAdminStatus" class="text-sm mt-2 text-gray-600"></p>
-                    </form>
-
-                    <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Vorhandene Admin-Benutzer</h3>
-                    <ul id="adminUserList" class="space-y-3 mb-8">
-                        <!-- Admin users will be loaded here -->
-                    </ul>
-                </div>
-
             </section>
         </div> <!-- End of adminArea -->
 
@@ -632,8 +608,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // Wichtig: createUserWithEmailAndPassword und deleteUser für die Benutzerverwaltung importieren
-        import { getAuth, signOut, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, deleteUser } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signOut, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // getDoc wird nicht mehr für adminUsers verwendet, aber für andere Zwecke (z.B. Statistiken) noch benötigt.
         import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, updateDoc, deleteDoc, getDocs, getDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
@@ -669,8 +645,7 @@
         // Firestore-Referenz für Bestellungen
         const ordersColRef = collection(db, `artifacts/${appId}/public/data/orders`);
 
-        // NEU: Firestore-Referenz für Admin-Benutzer
-        const adminUsersColRef = collection(db, `artifacts/${appId}/public/data/adminUsers`);
+        // Die Firestore-Referenz für Admin-Benutzer wird nicht mehr benötigt und wurde entfernt.
 
         // Global variables
         window.products = []; 
@@ -680,9 +655,7 @@
         let initialProductsChecked = false; 
         let initialCategoriesChecked = false; 
         let unsubscribeOrders = null; // Variable zum Speichern der Unsubscribe-Funktion für Bestellungen
-        let unsubscribeAdminUsers = null; // NEU: Variable für Admin-Benutzer-Listener
         let lastOrderTimestamp = new Date(); // Speichert den Zeitstempel der letzten bekannten Bestellung
-        let adminUsers = []; // NEU: Array zur Speicherung der Admin-Benutzerdaten
 
         // Initial product data (only for populating Firestore if empty)
         const initialProductsData = [
@@ -732,10 +705,9 @@
         let shoppingList = [];
 
         // Variable to store the current action for the generic confirmation modal
-        let currentModalAction = null; // 'deleteProduct', 'resetPageViews', 'resetShoppingList', 'deleteCategory', 'deleteOrder', 'updateOrderStatus', 'clearShoppingList', 'deleteAdminUser'
+        let currentModalAction = null; // 'deleteProduct', 'resetPageViews', 'resetShoppingList', 'deleteCategory', 'deleteOrder', 'updateOrderStatus', 'clearShoppingList'
         let modalTargetId = null; // Stores the ID of the item (product/category/order/user) to delete or reset/update
         let modalTargetStatus = null; // Stores the new status for order update
-        let modalTargetEmail = null; // NEU: Speichert die E-Mail des zu löschenden Admins
 
         // DOMContentLoaded ensures all HTML elements are loaded before running the script
         document.addEventListener('DOMContentLoaded', async () => {
@@ -855,14 +827,6 @@
             // Audio element for notification sound
             const notificationSound = new Audio('https://www.soundjay.com/buttons/beep-07a.mp3'); // Example sound URL
 
-            // NEU: Admin Benutzerverwaltung UI Elemente
-            const addUserForm = document.getElementById('addUserForm');
-            const newAdminEmailInput = document.getElementById('newAdminEmail');
-            const newAdminPasswordInput = document.getElementById('newAdminPassword');
-            const addAdminStatusP = document.getElementById('addAdminStatus');
-            const adminUserListUl = document.getElementById('adminUserList');
-
-
             // Function to enable/disable admin form elements based on admin status
             function setAdminControlsDisabled(disabled) {
                 adminControlElements.forEach(el => {
@@ -927,33 +891,23 @@
             // Authentication state change listener
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
-                    // Check if the authenticated user is an admin
-                    const adminDoc = await getDoc(doc(adminUsersColRef, user.uid));
-                    if (adminDoc.exists()) {
-                        currentUserId = user.uid;
-                        isAdminLoggedIn = true; 
-                        adminAuthButton.textContent = "Admin Logout";
-                        showView('admin'); // Show admin area
-                        setAdminControlsDisabled(false); // Enable admin controls
-                        console.log("Benutzer angemeldet als Admin:", user.email, "UID:", user.uid);
+                    // If user is authenticated, they are an admin
+                    currentUserId = user.uid;
+                    isAdminLoggedIn = true; 
+                    adminAuthButton.textContent = "Admin Logout";
+                    showView('admin'); // Show admin area
+                    setAdminControlsDisabled(false); // Enable admin controls
+                    console.log("Benutzer angemeldet als Admin:", user.email, "UID:", user.uid);
 
-                        // Attempt to initialize products/categories if they haven't been.
-                        if (!initialProductsChecked) initializeProductsInFirestore();
-                        if (!initialCategoriesChecked) initializeCategoriesInFirestore();
-                        
-                        // Setup orders listener only when admin is logged in
-                        setupOrdersListener();
-                        // Setup admin users listener
-                        setupAdminUsersListener();
+                    // Attempt to initialize products/categories if they haven't been.
+                    if (!initialProductsChecked) initializeProductsInFirestore();
+                    if (!initialCategoriesChecked) initializeCategoriesInFirestore();
+                    
+                    // Setup orders listener only when admin is logged in
+                    setupOrdersListener();
 
-                        // Request notification permission when admin logs in
-                        requestNotificationPermission();
-                    } else {
-                        // User is authenticated but not an admin in our Firestore collection
-                        console.log("Benutzer angemeldet, aber kein Admin:", user.email);
-                        await signOut(auth); // Log them out if not in adminUsers collection
-                        alert("Sie haben keine Admin-Berechtigung.");
-                    }
+                    // Request notification permission when admin logs in
+                    requestNotificationPermission();
 
                 } else {
                     currentUserId = null;
@@ -972,12 +926,6 @@
                         unsubscribeOrders();
                         unsubscribeOrders = null;
                         ordersListDiv.innerHTML = '<p class="text-gray-600 text-center italic" id="noOrdersMessage">Keine Bestellungen vorhanden.</p>'; // Clear orders list on logout
-                    }
-                    // Detach admin users listener when admin logs out
-                    if (unsubscribeAdminUsers) {
-                        unsubscribeAdminUsers();
-                        unsubscribeAdminUsers = null;
-                        adminUserListUl.innerHTML = ''; // Clear admin user list on logout
                     }
                 }
             });
@@ -1212,7 +1160,6 @@
             // Initialize all Firestore listeners once DOM is ready
             function setupFirestoreListeners() {
                 setupStatisticsListeners(); // Setup statistics listeners first
-                // setupOrdersListener(); // VERSCHOBEN: Wird jetzt nur noch bei Admin-Login aufgerufen
 
                 onSnapshot(productsColRef, (snapshot) => {
                     const fetchedProducts = snapshot.docs.map(doc => ({
@@ -1378,23 +1325,9 @@
                 loginErrorP.classList.add('hidden'); 
 
                 try {
-                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                    const user = userCredential.user;
-
-                    // After successful Firebase Auth login, check/add to adminUsers collection
-                    const adminDocRef = doc(adminUsersColRef, user.uid);
-                    const adminDocSnap = await getDoc(adminDocRef);
-
-                    if (!adminDocSnap.exists()) {
-                        // If user is not yet in our adminUsers collection, add them
-                        await setDoc(adminDocRef, { 
-                            email: user.email, 
-                            uid: user.uid,
-                            createdAt: serverTimestamp()
-                        });
-                        console.log("Neuer Admin-Benutzer in Firestore hinzugefügt:", user.email);
-                    }
-                    // The onAuthStateChanged listener will now handle showing the admin panel
+                    await signInWithEmailAndPassword(auth, email, password);
+                    // The onAuthStateChanged listener will now handle showing the admin panel,
+                    // as any authenticated user is now considered an admin.
                 } catch (error) {
                     console.error("Fehler beim Admin-Login:", error);
                     let errorMessage = "Anmeldung fehlgeschlagen. Ungültige E-Mail oder Passwort.";
@@ -1799,37 +1732,16 @@
                         console.error("Fehler beim Aktualisieren/Löschen des Bestellstatus:", error);
                         alert("Fehler beim Aktualisieren/Löschen des Bestellstatus: " + error.message);
                     }
-                } else if (currentModalAction === 'clearShoppingList') { // NEU: Behandlung für "Einkaufsliste leeren"
+                } else if (currentModalAction === 'clearShoppingList') { // Behandlung für "Einkaufsliste leeren"
                     shoppingList = []; 
                     updateShoppingListDisplay(); 
                     alert("Einkaufsliste wurde geleert.");
-                } else if (currentModalAction === 'deleteAdminUser') { // NEU: Behandlung für Admin-Benutzer löschen
-                    try {
-                        // Lösche den Benutzer aus Firebase Authentication
-                        // Dies erfordert, dass der aktuell angemeldete Admin derjenige ist, der die Löschung ausführt.
-                        // Für eine robuste Lösung wäre hier ein Backend-Dienst nötig.
-                        const userToDelete = auth.currentUser; // Annahme: Der aktuell angemeldeten Admin ist der zu löschende
-                        // Besser: Versuchen Sie, den Benutzer anhand seiner UID zu finden und zu löschen.
-                        // Da deleteUser() den aktuell angemeldeten Benutzer löscht, ist dies hier ein Problem.
-                        // Für die Demo belassen wir es bei der Löschung aus Firestore und geben einen Hinweis aus.
-                        
-                        // Da deleteUser() nur den *aktuell angemeldeten* Benutzer löschen kann,
-                        // und wir hier einen *anderen* Admin löschen wollen, ist dies clientseitig nicht direkt möglich.
-                        // Wir können nur den Eintrag in Firestore löschen.
-                        await deleteDoc(doc(adminUsersColRef, modalTargetId));
-                        console.log(`Admin-Benutzer ${modalTargetEmail} (UID: ${modalTargetId}) aus Firestore entfernt.`);
-                        alert(`Admin-Benutzer ${modalTargetEmail} erfolgreich entfernt. Beachten Sie: Der zugehörige Firebase Auth-Eintrag kann nur von einem Backend-Dienst gelöscht werden.`);
-                    } catch (error) {
-                        console.error("Fehler beim Löschen des Admin-Benutzers:", error);
-                        alert("Fehler beim Löschen des Admin-Benutzers: " + error.message);
-                    }
-                }
+                } 
 
                 // Reset modal state
                 currentModalAction = null;
                 modalTargetId = null;
                 modalTargetStatus = null;
-                modalTargetEmail = null; // NEU: Reset der E-Mail
             });
 
             // Event-Listener für den Abbrechen-Button im generischen Modal
@@ -1840,7 +1752,6 @@
                 currentModalAction = null;
                 modalTargetId = null;
                 modalTargetStatus = null;
-                modalTargetEmail = null; // NEU: Reset der E-Mail
             });
 
 
@@ -2126,13 +2037,13 @@
                 }
             });
 
-            // NEU: Event-Listener für den "Einkaufsliste leeren" Button mit Modal
+            // Event-Listener für den "Einkaufsliste leeren" Button mit Modal
             clearShoppingListBtn.addEventListener('click', () => {
                 currentModalAction = 'clearShoppingList';
                 confirmModalTitle.textContent = "Einkaufsliste leeren";
                 confirmModalMessage.innerHTML = "Möchten Sie die gesamte Einkaufsliste wirklich leeren?";
                 confirmModal.classList.add('visible');
-                                confirmModal.classList.remove('hidden');
+                confirmModal.classList.remove('hidden');
             });
 
             window.searchProducts = function() {
@@ -2237,8 +2148,6 @@
                 // Speichere die Unsubscribe-Funktion
                 unsubscribeOrders = onSnapshot(ordersColRef, (snapshot) => {
                     let newOrderDetected = false;
-                    const updatedOrders = [];
-
                     snapshot.docChanges().forEach(change => {
                         const orderData = change.doc.data();
                         const orderTimestamp = orderData.timestamp ? orderData.timestamp.toDate() : new Date(0);
@@ -2360,106 +2269,6 @@
                     ordersListDiv.innerHTML = `<p class="text-red-500 text-center">Fehler beim Laden der Bestellungen: ${error.message}</p>`;
                 });
             }
-
-            // NEU: Admin Benutzerverwaltung Funktionen
-            function setupAdminUsersListener() {
-                unsubscribeAdminUsers = onSnapshot(adminUsersColRef, (snapshot) => {
-                    adminUsers = snapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    })).sort((a, b) => a.email.localeCompare(b.email)); // Sort by email
-                    updateAdminUserList();
-                }, (error) => {
-                    console.error("Fehler beim Laden der Admin-Benutzer:", error);
-                    adminUserListUl.innerHTML = `<li class="text-red-500">Fehler beim Laden der Admin-Benutzer.</li>`;
-                });
-            }
-
-            function updateAdminUserList() {
-                adminUserListUl.innerHTML = '';
-                if (adminUsers.length === 0) {
-                    adminUserListUl.innerHTML = `<li class="text-gray-600 italic">Keine Admin-Benutzer vorhanden.</li>`;
-                    return;
-                }
-
-                adminUsers.forEach(user => {
-                    const listItem = document.createElement('li');
-                    listItem.classList.add('flex', 'items-center', 'justify-between', 'border-b', 'border-gray-200', 'py-2');
-                    listItem.innerHTML = `
-                        <span>${user.email}</span>
-                        <button class="delete-admin-user-btn bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition" 
-                                data-uid="${user.uid}" data-email="${user.email}">Löschen</button>
-                    `;
-                    adminUserListUl.appendChild(listItem);
-                });
-
-                document.querySelectorAll('.delete-admin-user-btn').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        const uidToDelete = e.target.dataset.uid;
-                        const emailToDelete = e.target.dataset.email;
-
-                        // Verhindern, dass der aktuell angemeldete Admin sich selbst löscht
-                        if (uidToDelete === auth.currentUser.uid) {
-                            alert("Sie können Ihr eigenes Admin-Konto nicht über diese Oberfläche löschen. Bitte melden Sie sich ab und lassen Sie sich von einem anderen Admin löschen, oder löschen Sie es direkt in der Firebase Console.");
-                            return;
-                        }
-                        
-                        currentModalAction = 'deleteAdminUser';
-                        modalTargetId = uidToDelete;
-                        modalTargetEmail = emailToDelete;
-                        confirmModalTitle.textContent = "Admin-Benutzer löschen";
-                        confirmModalMessage.innerHTML = `Möchten Sie den Admin-Benutzer **${emailToDelete}** wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden und entfernt den Benutzer aus der Liste der Admins sowie aus der Firebase Authentication.`;
-                        confirmModal.classList.add('visible');
-                        confirmModal.classList.remove('hidden');
-                    });
-                });
-            }
-
-            addUserForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                addAdminStatusP.textContent = ''; // Clear previous status
-                const email = newAdminEmailInput.value.trim();
-                const password = newAdminPasswordInput.value.trim();
-
-                if (password.length < 6) {
-                    addAdminStatusP.textContent = "Passwort muss mindestens 6 Zeichen lang sein.";
-                    addAdminStatusP.style.color = "red";
-                    return;
-                }
-
-                addAdminStatusP.textContent = "Füge Admin hinzu...";
-                addAdminStatusP.style.color = "orange";
-
-                try {
-                    // 1. Benutzer in Firebase Authentication erstellen
-                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    const newUser = userCredential.user;
-
-                    // 2. Benutzerdetails in Firestore speichern
-                    await setDoc(doc(adminUsersColRef, newUser.uid), {
-                        email: newUser.email,
-                        uid: newUser.uid,
-                        createdAt: serverTimestamp()
-                    });
-
-                    addAdminStatusP.textContent = `Admin-Benutzer ${email} erfolgreich hinzugefügt!`;
-                    addAdminStatusP.style.color = "green";
-                    addUserForm.reset(); // Clear form
-                } catch (error) {
-                    console.error("Fehler beim Hinzufügen des Admin-Benutzers:", error);
-                    let errorMessage = "Fehler beim Hinzufügen des Admins.";
-                    if (error.code === 'auth/email-already-in-use') {
-                        errorMessage = "Diese E-Mail-Adresse wird bereits verwendet.";
-                    } else if (error.code === 'auth/invalid-email') {
-                        errorMessage = "Ungültiges E-Mail-Format.";
-                    } else if (error.code === 'auth/weak-password') {
-                        errorMessage = "Das Passwort ist zu schwach (mind. 6 Zeichen).";
-                    }
-                    addAdminStatusP.textContent = errorMessage;
-                    addAdminStatusP.style.color = "red";
-                }
-            });
-
 
             updateShoppingListDisplay(); 
         }); // End DOMContentLoaded
