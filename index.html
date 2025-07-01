@@ -195,6 +195,80 @@
             margin-bottom: 1rem;
             line-height: 1.6;
         }
+
+        /* Admin Panel Tabs */
+        .admin-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #eee;
+        }
+        .admin-tabs button {
+            padding: 0.75rem 1.25rem;
+            border: none;
+            background-color: transparent;
+            color: #555;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .admin-tabs button:hover {
+            color: #ee7719;
+            border-color: #fdd8b2; /* Lighter orange for hover */
+        }
+        .admin-tabs button.active {
+            color: #ee7719;
+            border-color: #ee7719;
+        }
+        .admin-tab-content {
+            display: none;
+        }
+        .admin-tab-content.active {
+            display: block;
+        }
+
+        /* Styling for order list in admin panel */
+        .order-item {
+            background-color: #fdfdfd;
+            border: 1px solid #e0e0e0;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .order-item h4 {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        .order-item ul {
+            list-style: none;
+            padding-left: 0;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .order-item ul li {
+            margin-bottom: 0.25rem;
+            color: #555;
+        }
+        .order-item .order-total {
+            font-weight: bold;
+            color: #ee7719;
+            margin-top: 0.5rem;
+        }
+        .order-item .order-status {
+            font-weight: bold;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            display: inline-block;
+            margin-left: 0.5rem;
+        }
+        .order-status.neu { background-color: #ffe0b2; color: #e65100; } /* Light orange */
+        .order-status.bearbeitet { background-color: #c8e6c9; color: #2e7d32; } /* Light green */
+        .order-status.abgeschlossen { background-color: #bbdefb; color: #1976d2; } /* Light blue */
+        .order-status.storniert { background-color: #ffcdd2; color: #d32f2f; } /* Light red */
+
     </style>
 </head>
 <body class="bg-light-cream flex flex-col min-h-screen">
@@ -274,138 +348,162 @@
             <section id="adminPanel" class="my-8 bg-white p-6 rounded-2xl shadow-xl hidden">
                 <h2 class="text-3xl font-bold text-dark-accent mb-6 text-center">Admin Bereich</h2>
                 
-                <!-- Allgemeine Website-Einstellungen -->
-                <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Website-Einstellungen</h3>
-                <form id="settingsForm" class="grid grid-cols-1 gap-4 mb-8">
-                    <div>
-                        <label for="footerText" class="block text-gray-700 text-sm font-bold mb-2">Footer-Text:</label>
-                        <input type="text" id="footerText" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                    </div>
-                    <div>
-                        <label for="drinksNote" class="block text-gray-700 text-sm font-bold mb-2">Hinweis bei Drinks:</label>
-                        <textarea id="drinksNote" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
-                    </div>
-                    <button type="submit" id="saveSettingsBtn" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Einstellungen speichern</button>
-                    <p id="settingsStatus" class="text-sm mt-2 text-gray-600"></p>
-                </form>
-
-                <!-- Preislistenbilder verwalten -->
-                <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Preislistenbilder verwalten</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <!-- Bild 1.1.png Verwaltung -->
-                    <div class="p-4 border border-gray-200 rounded-lg">
-                        <h4 class="font-semibold text-lg mb-2">Preisliste 1 (Snacks & Getränke)</h4>
-                        <img id="adminPriceList1Preview" src="1.1.png" alt="Vorschau Preisliste 1" class="w-full h-auto max-h-48 object-contain rounded-md mb-3 border border-gray-300">
-                        <input type="file" id="priceList1FileInput" accept=".png" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-mojas-orange file:text-white hover:file:bg-opacity-90">
-                        <button id="uploadPriceList1Btn" class="mt-3 w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">Bild 1 hochladen</button>
-                        <p id="priceList1Status" class="text-sm mt-2"></p>
-                    </div>
-
-                    <!-- Bild 2.1.png Verwaltung -->
-                    <div class="p-4 border border-gray-200 rounded-lg">
-                        <h4 class="font-semibold text-lg mb-2">Preisliste 2 (Drinks)</h4>
-                        <img id="adminPriceList2Preview" src="2.1.png" alt="Vorschau Preisliste 2" class="w-full h-auto max-h-48 object-contain rounded-md mb-3 border border-gray-300">
-                        <input type="file" id="priceList2FileInput" accept=".png" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-mojas-orange file:text-white hover:file:bg-opacity-90">
-                        <button id="uploadPriceList2Btn" class="mt-3 w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">Bild 2 hochladen</button>
-                        <p id="priceList2Status" class="text-sm mt-2"></p>
-                    </div>
+                <!-- Admin Tabs for Navigation -->
+                <div class="admin-tabs">
+                    <button type="button" data-tab="settings" class="active">Einstellungen</button>
+                    <button type="button" data-tab="categories">Kategorien</button>
+                    <button type="button" data-tab="products">Produkte</button>
+                    <button type="button" data-tab="statistics">Statistiken</button>
+                    <button type="button" data-tab="orders">Bestellungen</button>
                 </div>
 
+                <!-- Tab Content: Einstellungen -->
+                <div id="tab-settings" class="admin-tab-content active">
+                    <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Website-Einstellungen</h3>
+                    <form id="settingsForm" class="grid grid-cols-1 gap-4 mb-8">
+                        <div>
+                            <label for="footerText" class="block text-gray-700 text-sm font-bold mb-2">Footer-Text:</label>
+                            <input type="text" id="footerText" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </div>
+                        <div>
+                            <label for="drinksNote" class="block text-gray-700 text-sm font-bold mb-2">Hinweis bei Drinks:</label>
+                            <textarea id="drinksNote" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+                        </div>
+                        <button type="submit" id="saveSettingsBtn" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Einstellungen speichern</button>
+                        <p id="settingsStatus" class="text-sm mt-2 text-gray-600"></p>
+                    </form>
 
-                <!-- Kategorien verwalten -->
-                <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Kategorien verwalten</h3>
-                <form id="categoryForm" class="grid grid-cols-1 gap-4 mb-8">
-                    <input type="hidden" id="categoryId">
-                    <div>
-                        <label for="categoryName" class="block text-gray-700 text-sm font-bold mb-2">Kategoriename:</label>
-                        <input type="text" id="categoryName" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                    </div>
-                    <div class="flex justify-end space-x-2">
-                        <button type="submit" id="saveCategoryBtn" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Kategorie hinzufügen</button>
-                        <button type="button" id="cancelCategoryEditBtn" class="bg-gray-400 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-500 transition hidden">Abbrechen</button>
-                    </div>
-                </form>
-                <ul id="adminCategoryList" class="space-y-3 mb-8">
-                    <!-- Categories will be loaded here -->
-                </ul>
+                    <!-- Preislistenbilder verwalten -->
+                    <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Preislistenbilder verwalten</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <!-- Bild 1.1.png Verwaltung -->
+                        <div class="p-4 border border-gray-200 rounded-lg">
+                            <h4 class="font-semibold text-lg mb-2">Preisliste 1 (Snacks & Getränke)</h4>
+                            <img id="adminPriceList1Preview" src="1.1.png" alt="Vorschau Preisliste 1" class="w-full h-auto max-h-48 object-contain rounded-md mb-3 border border-gray-300">
+                            <input type="file" id="priceList1FileInput" accept=".png" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-mojas-orange file:text-white hover:file:bg-opacity-90">
+                            <button id="uploadPriceList1Btn" class="mt-3 w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">Bild 1 hochladen</button>
+                            <p id="priceList1Status" class="text-sm mt-2"></p>
+                        </div>
 
-
-                <!-- Produkte verwalten -->
-                <h3 id="productFormTitle" class="text-2xl font-semibold text-mojas-orange mb-4">Neues Produkt hinzufügen</h3>
-                <form id="productForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                    <input type="hidden" id="productId">
-                    <div>
-                        <label for="productName" class="block text-gray-700 text-sm font-bold mb-2">Produktname:</label>
-                        <input type="text" id="productName" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                    </div>
-                    <div>
-                        <label for="productPrice" class="block text-gray-700 text-sm font-bold mb-2">Preis (Fr.):</label>
-                        <input type="number" step="0.01" id="productPrice" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label for="productKeywords" class="block text-gray-700 text-sm font-bold mb-2">Schlüsselwörter (kommagetrennt):</label>
-                        <input type="text" id="productKeywords" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Kategorien:</label>
-                        <div id="productCategoriesCheckboxes" class="grid grid-cols-2 gap-2">
-                            <!-- Categories will be loaded here dynamically -->
+                        <!-- Bild 2.1.png Verwaltung -->
+                        <div class="p-4 border border-gray-200 rounded-lg">
+                            <h4 class="font-semibold text-lg mb-2">Preisliste 2 (Drinks)</h4>
+                            <img id="adminPriceList2Preview" src="2.1.png" alt="Vorschau Preisliste 2" class="w-full h-auto max-h-48 object-contain rounded-md mb-3 border border-gray-300">
+                            <input type="file" id="priceList2FileInput" accept=".png" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-mojas-orange file:text-white hover:file:bg-opacity-90">
+                            <button id="uploadPriceList2Btn" class="mt-3 w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">Bild 2 hochladen</button>
+                            <p id="priceList2Status" class="text-sm mt-2"></p>
                         </div>
                     </div>
-                    <div class="md:col-span-2 flex justify-end space-x-2">
-                        <button type="submit" id="saveProductBtn" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Produkt hinzufügen</button>
-                        <button type="button" id="cancelEditBtn" class="bg-gray-400 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-500 transition hidden">Abbrechen</button>
-                    </div>
-                </form>
+                </div>
 
-                <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Vorhandene Produkte</h3>
-                <!-- Verbesserte Such- und Filteroptionen -->
-                <div class="flex flex-col sm:flex-row gap-4 mb-4">
-                    <input type="text" id="adminSearchInput" placeholder="Produkte suchen..." 
-                           class="w-full sm:w-1/2 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mojas-orange">
-                    <select id="adminSortSelect" class="w-full sm:w-1/4 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mojas-orange">
-                        <option value="nameAsc">Name (A-Z)</option>
-                        <option value="nameDesc">Name (Z-A)</option>
-                        <option value="priceAsc">Preis (Niedrigste)</option>
-                        <option value="priceDesc">Preis (Höchste)</option>
-                    </select>
-                    <select id="adminCategoryFilter" class="w-full sm:w-1/4 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mojas-orange">
-                        <option value="">Alle Kategorien</option>
+                <!-- Tab Content: Kategorien -->
+                <div id="tab-categories" class="admin-tab-content">
+                    <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Kategorien verwalten</h3>
+                    <form id="categoryForm" class="grid grid-cols-1 gap-4 mb-8">
+                        <input type="hidden" id="categoryId">
+                        <div>
+                            <label for="categoryName" class="block text-gray-700 text-sm font-bold mb-2">Kategoriename:</label>
+                            <input type="text" id="categoryName" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </div>
+                        <div class="flex justify-end space-x-2">
+                            <button type="submit" id="saveCategoryBtn" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Kategorie hinzufügen</button>
+                            <button type="button" id="cancelCategoryEditBtn" class="bg-gray-400 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-500 transition hidden">Abbrechen</button>
+                        </div>
+                    </form>
+                    <ul id="adminCategoryList" class="space-y-3 mb-8">
                         <!-- Categories will be loaded here -->
-                    </select>
-                </div>
-                <ul id="adminProductList" class="space-y-3 mb-8">
-                    <!-- Products will be loaded here from Firestore -->
-                </ul>
-
-                <!-- Statistikbereich -->
-                <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Statistiken</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <div class="p-4 border border-gray-200 rounded-lg bg-gray-50">
-                        <h4 class="font-semibold text-lg mb-2">Website-Aufrufe</h4>
-                        <p class="text-3xl font-bold text-dark-accent" id="totalPageViewsDisplay">0</p>
-                        <button id="resetPageViewsBtn" class="mt-3 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">Reset Aufrufe</button>
-                    </div>
-                    <div class="p-4 border border-gray-200 rounded-lg bg-gray-50">
-                        <h4 class="font-semibold text-lg mb-2">Beliebteste Einkaufslisten-Artikel (Gesamtmenge)</h4>
-                        <ul id="shoppingListStatsList" class="list-disc list-inside text-gray-700">
-                            <!-- Popular items will be displayed here -->
-                        </ul>
-                        <button id="resetShoppingListStatsBtn" class="mt-3 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">Reset Einkaufsliste</button>
-                    </div>
+                    </ul>
                 </div>
 
-                <!-- NEUER BEREICH: KI-Analyse -->
-                <h3 class="text-2xl font-semibold text-mojas-orange mb-4 mt-8">KI-Analyse der Produktstatistiken</h3>
-                <div class="p-4 border border-gray-200 rounded-lg bg-gray-50 mb-8">
-                    <p class="text-gray-700 mb-4">Generiere Erkenntnisse und mögliche Trends basierend auf den aktuellen Einkaufslisten-Statistiken.</p>
-                    <button id="generateAiInsightsBtn" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
-                        KI-Analyse generieren <span id="aiLoadingSpinner" class="spinner hidden"></span>
-                    </button>
-                    <div id="aiInsightsDisplay" class="mt-4 p-4 bg-white rounded-md border border-gray-300 text-gray-800 hidden">
-                        <!-- AI insights will be displayed here, will be rendered from Markdown -->
+                <!-- Tab Content: Produkte -->
+                <div id="tab-products" class="admin-tab-content">
+                    <h3 id="productFormTitle" class="text-2xl font-semibold text-mojas-orange mb-4">Neues Produkt hinzufügen</h3>
+                    <form id="productForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                        <input type="hidden" id="productId">
+                        <div>
+                            <label for="productName" class="block text-gray-700 text-sm font-bold mb-2">Produktname:</label>
+                            <input type="text" id="productName" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </div>
+                        <div>
+                            <label for="productPrice" class="block text-gray-700 text-sm font-bold mb-2">Preis (Fr.):</label>
+                            <input type="number" step="0.01" id="productPrice" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="productKeywords" class="block text-gray-700 text-sm font-bold mb-2">Schlüsselwörter (kommagetrennt):</label>
+                            <input type="text" id="productKeywords" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Kategorien:</label>
+                            <div id="productCategoriesCheckboxes" class="grid grid-cols-2 gap-2">
+                                <!-- Categories will be loaded here dynamically -->
+                            </div>
+                        </div>
+                        <div class="md:col-span-2 flex justify-end space-x-2">
+                            <button type="submit" id="saveProductBtn" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Produkt hinzufügen</button>
+                            <button type="button" id="cancelEditBtn" class="bg-gray-400 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-500 transition hidden">Abbrechen</button>
+                        </div>
+                    </form>
+
+                    <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Vorhandene Produkte</h3>
+                    <!-- Verbesserte Such- und Filteroptionen -->
+                    <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                        <input type="text" id="adminSearchInput" placeholder="Produkte suchen..." 
+                               class="w-full sm:w-1/2 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mojas-orange">
+                        <select id="adminSortSelect" class="w-full sm:w-1/4 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mojas-orange">
+                            <option value="nameAsc">Name (A-Z)</option>
+                            <option value="nameDesc">Name (Z-A)</option>
+                            <option value="priceAsc">Preis (Niedrigste)</option>
+                            <option value="priceDesc">Preis (Höchste)</option>
+                        </select>
+                        <select id="adminCategoryFilter" class="w-full sm:w-1/4 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mojas-orange">
+                            <option value="">Alle Kategorien</option>
+                            <!-- Categories will be loaded here -->
+                        </select>
                     </div>
-                    <p id="aiInsightStatus" class="text-sm mt-2"></p>
+                    <ul id="adminProductList" class="space-y-3 mb-8">
+                        <!-- Products will be loaded here from Firestore -->
+                    </ul>
+                </div>
+
+                <!-- Tab Content: Statistiken -->
+                <div id="tab-statistics" class="admin-tab-content">
+                    <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Statistiken</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                            <h4 class="font-semibold text-lg mb-2">Website-Aufrufe</h4>
+                            <p class="text-3xl font-bold text-dark-accent" id="totalPageViewsDisplay">0</p>
+                            <button id="resetPageViewsBtn" class="mt-3 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">Reset Aufrufe</button>
+                        </div>
+                        <div class="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                            <h4 class="font-semibold text-lg mb-2">Beliebteste Einkaufslisten-Artikel (Gesamtmenge)</h4>
+                            <ul id="shoppingListStatsList" class="list-disc list-inside text-gray-700">
+                                <!-- Popular items will be displayed here -->
+                            </ul>
+                            <button id="resetShoppingListStatsBtn" class="mt-3 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">Reset Einkaufsliste</button>
+                        </div>
+                    </div>
+
+                    <!-- KI-Analyse -->
+                    <h3 class="text-2xl font-semibold text-mojas-orange mb-4 mt-8">KI-Analyse der Produktstatistiken</h3>
+                    <div class="p-4 border border-gray-200 rounded-lg bg-gray-50 mb-8">
+                        <p class="text-gray-700 mb-4">Generiere Erkenntnisse und mögliche Trends basierend auf den aktuellen Einkaufslisten-Statistiken.</p>
+                        <button id="generateAiInsightsBtn" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                            KI-Analyse generieren <span id="aiLoadingSpinner" class="spinner hidden"></span>
+                        </button>
+                        <div id="aiInsightsDisplay" class="mt-4 p-4 bg-white rounded-md border border-gray-300 text-gray-800 hidden">
+                            <!-- AI insights will be displayed here, will be rendered from Markdown -->
+                        </div>
+                        <p id="aiInsightStatus" class="text-sm mt-2"></p>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Bestellungen (NEU) -->
+                <div id="tab-orders" class="admin-tab-content">
+                    <h3 class="text-2xl font-semibold text-mojas-orange mb-4">Bestellungen verwalten</h3>
+                    <div id="ordersList" class="space-y-4">
+                        <!-- Orders will be loaded here -->
+                        <p class="text-gray-600 text-center italic" id="noOrdersMessage">Keine Bestellungen vorhanden.</p>
+                    </div>
                 </div>
 
             </section>
@@ -440,11 +538,24 @@
                 <div id="shoppingListSummary" class="text-right text-2xl font-bold text-mojas-orange mt-4 pt-4 border-t-2 border-gray-200">
                     Gesamt: <span id="shoppingListTotal">0.00 Fr.</span>
                 </div>
-                <button id="clearShoppingListBtn" 
-                    class="mt-4 px-6 py-3 bg-gray-300 text-gray-800 rounded-lg shadow-md 
-                           hover:bg-gray-400 transition duration-300 ease-in-out w-full sm:w-auto mx-auto block">
-                    Einkaufsliste leeren
-                </button>
+                <div class="flex flex-col sm:flex-row justify-center gap-4 mt-4">
+                    <button id="clearShoppingListBtn" 
+                        class="px-6 py-3 bg-gray-300 text-gray-800 rounded-lg shadow-md 
+                               hover:bg-gray-400 transition duration-300 ease-in-out w-full sm:w-auto">
+                        Einkaufsliste leeren
+                    </button>
+                    <!-- NEU: Bestellen Button -->
+                    <div class="relative w-full sm:w-auto flex justify-center">
+                        <button id="placeOrderBtn" 
+                                class="px-6 py-3 bg-green-600 text-white rounded-lg shadow-md 
+                                       hover:bg-green-700 transition duration-300 ease-in-out w-full sm:w-auto">
+                            Bestellung aufgeben
+                        </button>
+                        <div id="orderLottieContainer" class="lottie-container absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 hidden">
+                            <lottie-player src="animations/order_success.json" background="transparent" speed="1" style="width: 50px; height: 50px;"></lottie-player>
+                        </div>
+                    </div>
+                </div>
                 <div id="emptyListMessage" class="text-center text-gray-600 mt-4 italic">Deine Einkaufsliste ist leer.</div>
             </section>
 
@@ -500,7 +611,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, deleteDoc, getDocs, getDoc, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, updateDoc, deleteDoc, getDocs, getDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         // Ihre tatsächliche Firebase-Konfiguration von der Firebase Console
@@ -531,6 +642,9 @@
         const statisticsColRef = collection(db, `artifacts/${appId}/public/data/statistics`);
         const websiteTrafficDocRef = doc(statisticsColRef, 'websiteTraffic');
         const shoppingListStatsDocRef = doc(statisticsColRef, 'shoppingListItemsAdded');
+        
+        // NEU: Firestore-Referenz für Bestellungen
+        const ordersColRef = collection(db, `artifacts/${appId}/public/data/orders`);
 
         // Global variables
         window.products = []; 
@@ -539,10 +653,21 @@
         let isAdminLoggedIn = false; 
         let initialProductsChecked = false; 
         let initialCategoriesChecked = false; 
+        let unsubscribeOrders = null; // NEU: Variable zum Speichern der Unsubscribe-Funktion für Bestellungen
 
         // Initial product data (only for populating Firestore if empty)
         const initialProductsData = [
-            { name: "Diverse Softdrinks", price: 1.50, keywords: ["diverse softdrinks", "softdrink", "softdrinks", "getränke", "rivella", "cola", "fanta", "sprite", "zitronenlimo", "apfelschorle", "eistee", "trinken"], categoryIds: ["getraenke"] },
+            // Updated Softdrinks
+            { name: "Coca-Cola", price: 1.50, keywords: ["coca-cola", "cola", "softdrink", "getränk", "trinken"], categoryIds: ["getraenke"] },
+            { name: "Fanta", price: 1.50, keywords: ["fanta", "softdrink", "getränk", "orange", "trinken"], categoryIds: ["getraenke"] },
+            { name: "Sprite", price: 1.50, keywords: ["sprite", "softdrink", "getränk", "zitrone-limette", "trinken"], categoryIds: ["getraenke"] },
+            { name: "Rivella Rot", price: 1.50, keywords: ["rivella rot", "rivella", "softdrink", "getränk", "schweiz", "trinken"], categoryIds: ["getraenke"] },
+            { name: "Rivella Blau", price: 1.50, keywords: ["rivella blau", "rivella", "softdrink", "getränk", "light", "schweiz", "trinken"], categoryIds: ["getraenke"] },
+            { name: "Zitronenlimonade", price: 1.50, keywords: ["zitronenlimonade", "limo", "zitrone", "getränk", "trinken"], categoryIds: ["getraenke"] },
+            { name: "Apfelschorle", price: 1.50, keywords: ["apfelschorle", "apfel", "schorle", "getränk", "trinken"], categoryIds: ["getraenke"] },
+            { name: "Eistee Zitrone", price: 1.50, keywords: ["eistee zitrone", "eistee", "zitrone", "getränk", "trinken"], categoryIds: ["getraenke"] },
+            { name: "Eistee Pfirsich", price: 1.50, keywords: ["eistee pfirsich", "eistee", "pfirsich", "getränk", "trinken"], categoryIds: ["getraenke"] },
+            
             { name: "Mineralwasser", price: 1.00, keywords: ["mineralwasser", "wasser", "mineral", "still", "sprudel"], categoryIds: ["getraenke"] },
             { name: "Capri Sun", price: 0.80, keywords: ["capri sun", "caprisun", "saft", "fruchtsaft", "kindergetränk"], categoryIds: ["getraenke"] },
             { name: "Gummistangen", price: 0.10, keywords: ["gummistangen", "gummi", "süssigkeiten", "süsswaren", "gumistange"], categoryIds: ["suessigkeiten"] },
@@ -578,9 +703,9 @@
         let shoppingList = [];
 
         // Variable to store the current action for the generic confirmation modal
-        let currentModalAction = null; // 'deleteProduct', 'resetPageViews', 'resetShoppingList', 'deleteCategory'
-        let modalTargetId = null; // Stores the ID of the item (product/category) to delete or reset
-
+        let currentModalAction = null; // 'deleteProduct', 'resetPageViews', 'resetShoppingList', 'deleteCategory', 'deleteOrder', 'updateOrderStatus', 'clearShoppingList'
+        let modalTargetId = null; // Stores the ID of the item (product/category/order) to delete or reset/update
+        let modalTargetStatus = null; // Stores the new status for order update
 
         // DOMContentLoaded ensures all HTML elements are loaded before running the script
         document.addEventListener('DOMContentLoaded', async () => {
@@ -596,6 +721,10 @@
             const adminEmailInput = document.getElementById('adminEmail');
             const adminPasswordInput = document.getElementById('adminPassword');
             const loginErrorP = document.getElementById('loginError');
+
+            // Admin Tabs
+            const adminTabsContainer = document.querySelector('.admin-tabs');
+            const adminTabContents = document.querySelectorAll('.admin-tab-content');
 
             // General Settings UI elements
             const settingsForm = document.getElementById('settingsForm'); 
@@ -660,6 +789,12 @@
             const shoppingListTotalSpan = document.getElementById('shoppingListTotal');
             const clearShoppingListBtn = document.getElementById('clearShoppingListBtn');
             const emptyListMessage = document.getElementById('emptyListMessage');
+            
+            // NEU: Bestell-Button und Lottie-Container
+            const placeOrderBtn = document.getElementById('placeOrderBtn');
+            const orderLottieContainer = document.getElementById('orderLottieContainer');
+            const orderLottiePlayer = orderLottieContainer ? orderLottieContainer.querySelector('lottie-player') : null;
+
 
             // Admin Product List Search/Sort/Filter UI elements
             const adminSearchInput = document.getElementById('adminSearchInput');
@@ -683,6 +818,10 @@
             const aiInsightsDisplay = document.getElementById('aiInsightsDisplay');
             const aiInsightStatus = document.getElementById('aiInsightStatus');
 
+            // NEU: Bestellungen Admin UI
+            const ordersListDiv = document.getElementById('ordersList');
+            const noOrdersMessage = document.getElementById('noOrdersMessage');
+
 
             // Function to enable/disable admin form elements based on admin status
             function setAdminControlsDisabled(disabled) {
@@ -693,7 +832,7 @@
 
             // Function to show/hide public and admin sections
             function showView(viewName) {
-                console.log(`showView called with: ${viewName}`); // Added console log for debugging
+                console.log(`showView called with: ${viewName}`);
                 if (viewName === 'admin') {
                     publicContentDiv.classList.add('hidden');
                     adminAreaDiv.classList.remove('hidden');
@@ -703,6 +842,8 @@
                     navPreisliste.classList.add('hidden');
                     navDrinks.classList.add('hidden');
                     navShoppingList.classList.add('hidden');
+                    // Activate default admin tab (settings)
+                    activateAdminTab('settings');
                 } else { // viewName === 'public'
                     publicContentDiv.classList.remove('hidden');
                     adminAreaDiv.classList.add('hidden');
@@ -713,9 +854,34 @@
                     navDrinks.classList.remove('hidden');
                     navShoppingList.classList.remove('hidden');
                 }
-                console.log('Public content hidden status:', publicContentDiv.classList.contains('hidden')); // Added console log
-                console.log('Admin area hidden status:', adminAreaDiv.classList.contains('hidden')); // Added console log
+                console.log('Public content hidden status:', publicContentDiv.classList.contains('hidden'));
+                console.log('Admin area hidden status:', adminAreaDiv.classList.contains('hidden'));
             }
+
+            // Function to handle admin tab switching
+            function activateAdminTab(tabId) {
+                adminTabContents.forEach(content => {
+                    if (content.id === `tab-${tabId}`) {
+                        content.classList.add('active');
+                    } else {
+                        content.classList.remove('active');
+                    }
+                });
+                adminTabsContainer.querySelectorAll('button').forEach(button => {
+                    if (button.dataset.tab === tabId) {
+                        button.classList.add('active');
+                    } else {
+                        button.classList.remove('active');
+                    }
+                });
+            }
+
+            // Event listener for admin tabs
+            adminTabsContainer.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON' && e.target.dataset.tab) {
+                    activateAdminTab(e.target.dataset.tab);
+                }
+            });
 
 
             // Authentication state change listener
@@ -731,6 +897,9 @@
                     // Attempt to initialize products/categories if they haven't been.
                     if (!initialProductsChecked) initializeProductsInFirestore();
                     if (!initialCategoriesChecked) initializeCategoriesInFirestore();
+                    
+                    // NEU: Setup orders listener only when admin is logged in
+                    setupOrdersListener();
 
                 } else {
                     currentUserId = null;
@@ -743,6 +912,13 @@
                     // Continue listening to public data even when logged out
                     setupFirestoreListeners(); 
                     loadSettings(); 
+
+                    // NEU: Detach orders listener when admin logs out
+                    if (unsubscribeOrders) {
+                        unsubscribeOrders();
+                        unsubscribeOrders = null;
+                        ordersListDiv.innerHTML = '<p class="text-gray-600 text-center italic" id="noOrdersMessage">Keine Bestellungen vorhanden.</p>'; // Clear orders list on logout
+                    }
                 }
             });
 
@@ -937,6 +1113,7 @@
             // Initialize all Firestore listeners once DOM is ready
             function setupFirestoreListeners() {
                 setupStatisticsListeners(); // Setup statistics listeners first
+                // setupOrdersListener(); // VERSCHOBEN: Wird jetzt nur noch bei Admin-Login aufgerufen
 
                 onSnapshot(productsColRef, (snapshot) => {
                     const fetchedProducts = snapshot.docs.map(doc => ({
@@ -1248,7 +1425,7 @@
                     const categoryId = name.toLowerCase().replace(/[^a-z0-9]+/g, ''); 
                     await setDoc(doc(categoriesColRef, categoryId), { 
                         name: name,
-                        createdAt: new Date()
+                        createdAt: new Date() 
                     });
                     console.log("Kategorie hinzugefügt:", name);
                     resetCategoryForm();
@@ -1480,11 +1657,36 @@
                         console.error("Fehler beim Löschen der Kategorie:", error);
                         alert("Fehler beim Löschen: " + error.message);
                     }
+                } else if (currentModalAction === 'deleteOrder') {
+                    try {
+                        const orderRef = doc(ordersColRef, modalTargetId);
+                        await deleteDoc(orderRef);
+                        console.log("Bestellung gelöscht:", modalTargetId);
+                        alert("Bestellung erfolgreich gelöscht!");
+                    } catch (error) {
+                        console.error("Fehler beim Löschen der Bestellung:", error);
+                        alert("Fehler beim Löschen der Bestellung: " + error.message);
+                    }
+                } else if (currentModalAction === 'updateOrderStatus') {
+                    try {
+                        const orderRef = doc(ordersColRef, modalTargetId);
+                        await updateDoc(orderRef, { status: modalTargetStatus });
+                        console.log(`Bestellung ${modalTargetId} Status aktualisiert auf: ${modalTargetStatus}`);
+                        alert(`Bestellstatus erfolgreich auf '${modalTargetStatus}' aktualisiert!`);
+                    } catch (error) {
+                        console.error("Fehler beim Aktualisieren des Bestellstatus:", error);
+                        alert("Fehler beim Aktualisieren des Bestellstatus: " + error.message);
+                    }
+                } else if (currentModalAction === 'clearShoppingList') { // NEU: Behandlung für "Einkaufsliste leeren"
+                    shoppingList = []; 
+                    updateShoppingListDisplay(); 
+                    alert("Einkaufsliste wurde geleert.");
                 }
 
                 // Reset modal state
                 currentModalAction = null;
                 modalTargetId = null;
+                modalTargetStatus = null;
             });
 
             // Event-Listener für den Abbrechen-Button im generischen Modal
@@ -1494,6 +1696,7 @@
                 // Reset modal state
                 currentModalAction = null;
                 modalTargetId = null;
+                modalTargetStatus = null;
             });
 
 
@@ -1654,9 +1857,14 @@
                 if (shoppingList.length === 0) {
                     emptyListMessage.classList.remove('hidden');
                     shoppingListItemsUl.classList.add('hidden');
+                    placeOrderBtn.disabled = true; // Disable order button if list is empty
+                    placeOrderBtn.classList.add('opacity-50', 'cursor-not-allowed');
                 } else {
                     emptyListMessage.classList.add('hidden');
                     shoppingListItemsUl.classList.remove('hidden');
+                    placeOrderBtn.disabled = false; // Enable order button
+                    placeOrderBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
                     shoppingList.forEach(item => {
                         const listItem = document.createElement('li');
                         listItem.classList.add('list-item');
@@ -1774,16 +1982,13 @@
                 }
             });
 
-            clearShoppingListBtn.addEventListener('click', async () => {
-                const confirmation = confirm("Möchten Sie die gesamte lokale Einkaufsliste leeren?");
-                if (confirmation) {
-                    // ACHTUNG: Das Leeren der lokalen Liste hat KEINEN direkten Einfluss auf die Firestore-Statistik hier,
-                    // da diese die aggregierte Menge über alle Sitzungen hinweg speichert.
-                    // Ein vollständiger Reset der Firestore-Statistik muss über den Admin-Button erfolgen.
-                    shoppingList = []; 
-                    updateShoppingListDisplay(); 
-                    alert("Einkaufsliste wurde geleert.");
-                }
+            // NEU: Event-Listener für den "Einkaufsliste leeren" Button mit Modal
+            clearShoppingListBtn.addEventListener('click', () => {
+                currentModalAction = 'clearShoppingList';
+                confirmModalTitle.textContent = "Einkaufsliste leeren";
+                confirmModalMessage.innerHTML = "Möchten Sie die gesamte Einkaufsliste wirklich leeren?";
+                confirmModal.classList.add('visible');
+                confirmModal.classList.remove('hidden');
             });
 
             window.searchProducts = function() {
@@ -1836,6 +2041,137 @@
 
             searchButton.addEventListener('click', searchProducts);
             searchInput.addEventListener('input', searchProducts);
+
+            // NEU: Bestellfunktion
+            placeOrderBtn.addEventListener('click', async () => {
+                if (shoppingList.length === 0) {
+                    alert("Ihre Einkaufsliste ist leer. Bitte fügen Sie Produkte hinzu, bevor Sie bestellen.");
+                    return;
+                }
+
+                const confirmation = confirm("Möchten Sie diese Bestellung wirklich aufgeben?");
+                if (!confirmation) {
+                    return;
+                }
+
+                placeOrderBtn.disabled = true;
+                placeOrderBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                placeOrderBtn.style.display = 'none'; // Hide button
+                orderLottieContainer.classList.remove('hidden'); // Show Lottie
+                orderLottiePlayer.play();
+
+                try {
+                    const total = shoppingList.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                    const order = {
+                        items: shoppingList,
+                        totalPrice: total,
+                        timestamp: serverTimestamp(), // Firestore Timestamp
+                        status: 'Neu', // Initial status
+                        userId: currentUserId || 'anonym-' + crypto.randomUUID(), // Track anonymous users
+                    };
+
+                    await addDoc(ordersColRef, order);
+                    console.log("Bestellung erfolgreich aufgegeben:", order);
+                    alert("Ihre Bestellung wurde erfolgreich aufgegeben!");
+                    shoppingList = []; // Clear local shopping list
+                    updateShoppingListDisplay(); // Update UI
+
+                } catch (error) {
+                    console.error("Fehler beim Aufgeben der Bestellung:", error);
+                    alert("Fehler beim Aufgeben der Bestellung: " + error.message);
+                } finally {
+                    // Reset Lottie and button after animation or error
+                    setTimeout(() => {
+                        if (orderLottiePlayer) {
+                            orderLottiePlayer.stop();
+                        }
+                        orderLottieContainer.classList.add('hidden');
+                        placeOrderBtn.style.display = 'block'; // Show button again
+                        placeOrderBtn.disabled = false;
+                        placeOrderBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    }, 2000); // Animation duration
+                }
+            });
+
+            // NEU: Listener für Bestellungen im Admin-Panel
+            function setupOrdersListener() {
+                // NEU: Speichere die Unsubscribe-Funktion
+                unsubscribeOrders = onSnapshot(ordersColRef, (snapshot) => {
+                    ordersListDiv.innerHTML = ''; // Clear existing orders
+                    if (snapshot.empty) {
+                        noOrdersMessage.classList.remove('hidden');
+                    } else {
+                        noOrdersMessage.classList.add('hidden');
+                        const orders = snapshot.docs.map(doc => ({
+                            id: doc.id,
+                            ...doc.data()
+                        })).sort((a, b) => (b.timestamp?.toDate() || 0) - (a.timestamp?.toDate() || 0)); // Sort by newest first
+
+                        orders.forEach(order => {
+                            const orderElement = document.createElement('div');
+                            orderElement.classList.add('order-item');
+
+                            const orderDate = order.timestamp ? new Date(order.timestamp.toDate()).toLocaleString() : 'N/A';
+                            const statusClass = order.status ? order.status.toLowerCase().replace(/\s/g, '') : 'neu'; // Fix: 'new' zu 'neu'
+
+                            let itemsHtml = order.items.map(item => `<li>${item.name} x ${item.quantity} (${item.price.toFixed(2)} Fr.)</li>`).join('');
+
+                            orderElement.innerHTML = `
+                                <div class="flex justify-between items-center mb-2">
+                                    <h4 class="text-lg">Bestellung ID: <span class="font-normal text-gray-700">${order.id}</span></h4>
+                                    <span class="order-status ${statusClass}">${order.status || 'Neu'}</span>
+                                </div>
+                                <p class="text-sm text-gray-500 mb-2">Datum: ${orderDate}</p>
+                                <p class="text-sm text-gray-500 mb-2">Benutzer ID: ${order.userId || 'Nicht verfügbar'}</p>
+                                <p class="font-semibold text-gray-700">Artikel:</p>
+                                <ul class="list-disc list-inside ml-4">${itemsHtml}</ul>
+                                <p class="order-total text-xl mt-2">Gesamt: ${order.totalPrice.toFixed(2)} Fr.</p>
+                                <div class="flex flex-col sm:flex-row gap-2 mt-4">
+                                    <select class="order-status-select p-2 border border-gray-300 rounded-md flex-grow" data-id="${order.id}">
+                                        <option value="Neu" ${order.status === 'Neu' ? 'selected' : ''}>Neu</option>
+                                        <option value="Bearbeitet" ${order.status === 'Bearbeitet' ? 'selected' : ''}>Bearbeitet</option>
+                                        <option value="Abgeschlossen" ${order.status === 'Abgeschlossen' ? 'selected' : ''}>Abgeschlossen</option>
+                                        <option value="Storniert" ${order.status === 'Storniert' ? 'selected' : ''}>Storniert</option>
+                                    </select>
+                                    <button class="delete-order-btn bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition" data-id="${order.id}">Löschen</button>
+                                </div>
+                            `;
+                            ordersListDiv.appendChild(orderElement);
+                        });
+
+                        // Add event listeners for status change and delete buttons
+                        ordersListDiv.querySelectorAll('.order-status-select').forEach(select => {
+                            select.addEventListener('change', (e) => {
+                                const orderId = e.target.dataset.id;
+                                const newStatus = e.target.value;
+                                currentModalAction = 'updateOrderStatus';
+                                modalTargetId = orderId;
+                                modalTargetStatus = newStatus;
+                                confirmModalTitle.textContent = "Bestellstatus aktualisieren";
+                                confirmModalMessage.innerHTML = `Möchten Sie den Status der Bestellung **${orderId.substring(0, 8)}...** auf **${newStatus}** ändern?`;
+                                confirmModal.classList.add('visible');
+                                confirmModal.classList.remove('hidden');
+                            });
+                        });
+
+                        ordersListDiv.querySelectorAll('.delete-order-btn').forEach(button => {
+                            button.addEventListener('click', (e) => {
+                                const orderId = e.target.dataset.id;
+                                currentModalAction = 'deleteOrder';
+                                modalTargetId = orderId;
+                                confirmModalTitle.textContent = "Bestellung löschen";
+                                confirmModalMessage.innerHTML = `Möchten Sie die Bestellung **${orderId.substring(0, 8)}...** wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`;
+                                confirmModal.classList.add('visible');
+                                confirmModal.classList.remove('hidden');
+                            });
+                        });
+                    }
+                }, (error) => {
+                    console.error("Fehler beim Laden der Bestellungen:", error);
+                    ordersListDiv.innerHTML = `<p class="text-red-500 text-center">Fehler beim Laden der Bestellungen: ${error.message}</p>`;
+                });
+            }
+
 
             updateShoppingListDisplay(); 
         }); // End DOMContentLoaded
