@@ -334,7 +334,7 @@
                         <input type="email" id="adminEmail" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                     </div>
                     <div>
-                        <label for="adminPassword" class="block text-gray-700 text-sm font-bold mb-2">Passwort:</label>
+                        <label for="adminPassword" class="block text-700 text-sm font-bold mb-2">Passwort:</label>
                         <input type="password" id="adminPassword" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                     </div>
                     <button type="submit" class="bg-mojas-orange text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">Login</button>
@@ -652,7 +652,8 @@
         let isAdminLoggedIn = false; 
         let initialProductsChecked = false; 
         let initialCategoriesChecked = false; 
-        let unsubscribeOrders = null; // NEU: Variable zum Speichern der Unsubscribe-Funktion für Bestellungen
+        let unsubscribeOrders = null; // Variable zum Speichern der Unsubscribe-Funktion für Bestellungen
+        let lastOrderTimestamp = new Date(); // Speichert den Zeitstempel der letzten bekannten Bestellung
 
         // Initial product data (only for populating Firestore if empty)
         const initialProductsData = [
@@ -821,6 +822,9 @@
             const ordersListDiv = document.getElementById('ordersList');
             const noOrdersMessage = document.getElementById('noOrdersMessage');
 
+            // Audio element for notification sound
+            const notificationSound = new Audio('https://www.soundjay.com/buttons/beep-07a.mp3'); // Example sound URL
+
 
             // Function to enable/disable admin form elements based on admin status
             function setAdminControlsDisabled(disabled) {
@@ -897,8 +901,11 @@
                     if (!initialProductsChecked) initializeProductsInFirestore();
                     if (!initialCategoriesChecked) initializeCategoriesInFirestore();
                     
-                    // NEU: Setup orders listener only when admin is logged in
+                    // Setup orders listener only when admin is logged in
                     setupOrdersListener();
+
+                    // Request notification permission when admin logs in
+                    requestNotificationPermission();
 
                 } else {
                     currentUserId = null;
@@ -912,7 +919,7 @@
                     setupFirestoreListeners(); 
                     loadSettings(); 
 
-                    // NEU: Detach orders listener when admin logs out
+                    // Detach orders listener when admin logs out
                     if (unsubscribeOrders) {
                         unsubscribeOrders();
                         unsubscribeOrders = null;
@@ -920,6 +927,45 @@
                     }
                 }
             });
+
+            // --- Notification Functions ---
+
+            function requestNotificationPermission() {
+                if (!("Notification" in window)) {
+                    console.warn("Dieser Browser unterstützt keine Desktop-Benachrichtigungen.");
+                    return;
+                }
+
+                if (Notification.permission === "default") {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === "granted") {
+                            console.log("Benachrichtigungsberechtigung erteilt.");
+                        } else {
+                            console.warn("Benachrichtigungsberechtigung verweigert.");
+                        }
+                    });
+                }
+            }
+
+            function showNewOrderNotification(orderId, totalPrice) {
+                if (Notification.permission === "granted") {
+                    const notificationTitle = "Neue Bestellung eingegangen!";
+                    const notificationOptions = {
+                        body: `Bestellung ID: ${orderId.substring(0, 8)}... - Gesamt: ${totalPrice.toFixed(2)} Fr.`,
+                        icon: 'Logo.png' // Pfad zu Ihrem Logo
+                    };
+                    new Notification(notificationTitle, notificationOptions);
+                } else if (Notification.permission === "denied") {
+                    console.warn("Benachrichtigungsberechtigung verweigert. Kann keine Benachrichtigungen anzeigen.");
+                }
+            }
+
+            function playNotificationSound() {
+                if (notificationSound) {
+                    notificationSound.play().catch(e => console.error("Fehler beim Abspielen des Benachrichtigungssounds:", e));
+                }
+            }
+
 
             // --- Statistikfunktionen ---
 
@@ -1987,7 +2033,7 @@
                 confirmModalTitle.textContent = "Einkaufsliste leeren";
                 confirmModalMessage.innerHTML = "Möchten Sie die gesamte Einkaufsliste wirklich leeren?";
                 confirmModal.classList.add('visible');
-                confirmModal.classList.remove('hidden');
+                                confirmModal.classList.remove('hidden');
             });
 
             window.searchProducts = function() {
@@ -2089,9 +2135,29 @@
 
             // NEU: Listener für Bestellungen im Admin-Panel
             function setupOrdersListener() {
-                // NEU: Speichere die Unsubscribe-Funktion
+                // Speichere die Unsubscribe-Funktion
                 unsubscribeOrders = onSnapshot(ordersColRef, (snapshot) => {
-                    ordersListDiv.innerHTML = ''; // Clear existing orders
+                    let newOrderDetected = false;
+                    const updatedOrders = [];
+
+                    snapshot.docChanges().forEach(change => {
+                        const orderData = change.doc.data();
+                        const orderTimestamp = orderData.timestamp ? orderData.timestamp.toDate() : new Date(0);
+
+                        if (change.type === "added" && orderTimestamp > lastOrderTimestamp) {
+                            newOrderDetected = true;
+                            // Update lastOrderTimestamp only if it's a genuinely new order after initial load
+                            lastOrderTimestamp = orderTimestamp; 
+                            console.log("Neue Bestellung erkannt:", change.doc.id);
+                            if (isAdminLoggedIn && document.getElementById('tab-orders').classList.contains('active')) {
+                                showNewOrderNotification(change.doc.id, orderData.totalPrice);
+                                playNotificationSound();
+                            }
+                        }
+                    });
+
+                    // Re-render the entire list to ensure correct sorting and display
+                    ordersListDiv.innerHTML = ''; 
                     if (snapshot.empty) {
                         noOrdersMessage.classList.remove('hidden');
                     } else {
@@ -2106,7 +2172,7 @@
                             orderElement.classList.add('order-item');
 
                             const orderDate = order.timestamp ? new Date(order.timestamp.toDate()).toLocaleString() : 'N/A';
-                            const statusClass = order.status ? order.status.toLowerCase().replace(/\s/g, '') : 'neu'; // Fix: 'new' zu 'neu'
+                            const statusClass = order.status ? order.status.toLowerCase().replace(/\s/g, '') : 'neu'; 
 
                             let itemsHtml = order.items.map(item => `<li>${item.name} x ${item.quantity} (${item.price.toFixed(2)} Fr.)</li>`).join('');
 
@@ -2121,13 +2187,15 @@
                                 <ul class="list-disc list-inside ml-4">${itemsHtml}</ul>
                                 <p class="order-total text-xl mt-2">Gesamt: ${order.totalPrice.toFixed(2)} Fr.</p>
                                 <div class="flex flex-col sm:flex-row gap-2 mt-4">
+                                    <!-- Das Dropdown für den Status, ohne 'Neu' als wählbare Option -->
                                     <select class="order-status-select p-2 border border-gray-300 rounded-md flex-grow" data-id="${order.id}">
-                                        <option value="Neu" ${order.status === 'Neu' ? 'selected' : ''}>Neu</option>
                                         <option value="Bearbeitet" ${order.status === 'Bearbeitet' ? 'selected' : ''}>Bearbeitet</option>
                                         <option value="Abgeschlossen" ${order.status === 'Abgeschlossen' ? 'selected' : ''}>Abgeschlossen</option>
                                         <option value="Storniert" ${order.status === 'Storniert' ? 'selected' : ''}>Storniert</option>
                                     </select>
-                                    <button class="delete-order-btn bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition" data-id="${order.id}">Löschen</button>
+                                    <button class="mark-done-btn bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition" data-id="${order.id}">Erledigt</button>
+                                    <button class="mark-cancelled-btn bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition" data-id="${order.id}">Storniert</button>
+                                    <button class="delete-order-btn bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition" data-id="${order.id}">Löschen</button>
                                 </div>
                             `;
                             ordersListDiv.appendChild(orderElement);
@@ -2143,6 +2211,34 @@
                                 modalTargetStatus = newStatus;
                                 confirmModalTitle.textContent = "Bestellstatus aktualisieren";
                                 confirmModalMessage.innerHTML = `Möchten Sie den Status der Bestellung **${orderId.substring(0, 8)}...** auf **${newStatus}** ändern?`;
+                                confirmModal.classList.add('visible');
+                                confirmModal.classList.remove('hidden');
+                            });
+                        });
+
+                        // Event listener for "Erledigt" button
+                        ordersListDiv.querySelectorAll('.mark-done-btn').forEach(button => {
+                            button.addEventListener('click', (e) => {
+                                const orderId = e.target.dataset.id;
+                                currentModalAction = 'updateOrderStatus';
+                                modalTargetId = orderId;
+                                modalTargetStatus = 'Abgeschlossen'; // Set status to 'Abgeschlossen'
+                                confirmModalTitle.textContent = "Bestellung erledigen";
+                                confirmModalMessage.innerHTML = `Möchten Sie die Bestellung **${orderId.substring(0, 8)}...** als **erledigt (Abgeschlossen)** markieren?`;
+                                confirmModal.classList.add('visible');
+                                confirmModal.classList.remove('hidden');
+                            });
+                        });
+
+                        // Event listener for "Storniert" button
+                        ordersListDiv.querySelectorAll('.mark-cancelled-btn').forEach(button => {
+                            button.addEventListener('click', (e) => {
+                                const orderId = e.target.dataset.id;
+                                currentModalAction = 'updateOrderStatus';
+                                modalTargetId = orderId;
+                                modalTargetStatus = 'Storniert'; // Set status to 'Storniert'
+                                confirmModalTitle.textContent = "Bestellung stornieren";
+                                confirmModalMessage.innerHTML = `Möchten Sie die Bestellung **${orderId.substring(0, 8)}...** wirklich **stornieren**?`;
                                 confirmModal.classList.add('visible');
                                 confirmModal.classList.remove('hidden');
                             });
